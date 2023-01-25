@@ -27,3 +27,21 @@ This directory contains the application that runs on the RPi.
 # Building
 
 `cargo build` or `cargo build --release`
+
+# Testing
+
+`cargo test`
+
+## Testing Requirements
+
+Must be tested under Linux. Requires `qemu-arm-static` to be installed.
+* On Debian-based Linux: `apt install qemu-user-static`
+* On WSL2: WSL2 Packages do not automatically configure binfmt. Add the runner manually to cargo's config:
+  * `apt install qemu-user-static`
+  * Modify `~/.cargo/config.toml`:
+    ```
+    [target.arm-unknown-linux-musleabihf]
+    linker = "arm-linux-gnueabihf-gcc"
+    runner = "qemu-arm-static"    
+    ```
+

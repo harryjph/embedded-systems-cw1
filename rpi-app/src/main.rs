@@ -1,17 +1,10 @@
-use std::thread::sleep;
-use std::time::Duration;
-use i2cdev::core::I2CDevice;
-use i2cdev::linux::LinuxI2CDevice;
-use byteorder::{BigEndian, ByteOrder};
+use crate::sensors::si7021::SI7021;
+use crate::sensors::{HumiditySensor, TemperatureSensor};
+
+mod sensors;
 
 fn main() {
     println!("Hello, world!");
-
-    let mut dev = LinuxI2CDevice::new("/dev/i2c-1", 0x40).unwrap();
-    dev.write(&[0xF3]).unwrap();
-    sleep(Duration::from_secs(1));
-    let mut data = [0u8; 2];
-    dev.read(&mut data).unwrap();
-    let data_parsed = BigEndian::read_u16(&data);
-    println!("Result: {data_parsed}");
+    let mut dev = SI7021::new_from_descriptor("/dev/i2c-1", 0x40).unwrap();
+    println!("Result: {}C, {}%", dev.read_temperature().unwrap(), dev.read_humidity().unwrap());
 }

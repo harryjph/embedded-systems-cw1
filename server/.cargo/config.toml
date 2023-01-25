@@ -1,5 +1,9 @@
 [build]
 rustflags = ["-C", "target-cpu=x86-64-v2"]
 
+# Procedural Macros must be dynamically linked.
+# This flag is needed as musl targets are statically linked by default.
+# In order to build procedural macros on musl targets, this configuration
+# must be set and the musl-dev package installed.
 [target.'cfg(proc_macro)']
 rustflags = ["-C", "target-feature=-crt-static"]

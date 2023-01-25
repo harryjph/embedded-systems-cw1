@@ -1,2 +1,5 @@
 [build]
-rustflags = ["-C", "target-feature=+crt-static", "-C", "target-cpu=x86-64-v2"]
+rustflags = ["-C", "target-cpu=x86-64-v2"]
+
+[target.'cfg(proc_macro)']
+rustflags = ["-C", "target-feature=-crt-static"]

@@ -1,0 +1,31 @@
+name: rpi-app
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  
+defaults:
+  run:
+    working-directory: rpi-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Cross-compiler
+        run: |
+          rustup target add arm-unknown-linux-musleabihf
+          sudo apt install -y --no-install-recommends gcc-arm-linux-gnueabihf qemu-user-static
+          echo "[target.arm-unknown-linux-musleabihf]" > ~/.cargo/config.toml
+          echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config.toml
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose

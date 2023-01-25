@@ -2,6 +2,7 @@
 name = "server"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [profile.release]
 strip = true
@@ -10,3 +11,8 @@ lto = "fat"
 [dependencies]
 tokio = { version = "1.24.2", features = ["full"] }
 warp = "0.3.3"
+tonic = "0.8.3"
+prost = "0.11.6"
+
+[build-dependencies]
+tonic-build = "0.8"

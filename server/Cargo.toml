@@ -10,6 +10,7 @@ lto = "fat"
 
 [dependencies]
 tokio = { version = "1.24.2", features = ["full"] }
+futures-util = "0.3.25"
 warp = "0.3.3"
 tonic = "0.8.3"
 prost = "0.11.6"

@@ -18,7 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: sudo apt install -y --no-install-recommends protobuf-compiler
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: protobuf-compiler
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "server"
       - name: Build
         run: cargo build
       - name: Run tests
@@ -27,5 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - uses: jpribyl/action-docker-layer-caching@v0.1.1
+      continue-on-error: true
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)

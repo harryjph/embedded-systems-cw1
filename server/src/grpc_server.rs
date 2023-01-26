@@ -11,7 +11,7 @@ pub fn launch(data_sink: Sender<(f32, f32)>) -> JoinHandle<()> {
 }
 
 async fn start_server(data_sink: Sender<(f32, f32)>) {
-    println!("Starting gRPC Server on http://localhost:50051");
+    println!("Starting gRPC Server on http://localhost:81");
 
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(nodeapi::FILE_DESCRIPTOR_SET)
@@ -21,7 +21,7 @@ async fn start_server(data_sink: Sender<(f32, f32)>) {
     Server::builder()
         .add_service(reflection_service)
         .add_service(NodeApiServer::new(NodeApiImpl { data_sink }))
-        .serve("[::]:50051".parse().unwrap())
+        .serve("[::]:81".parse().unwrap())
         .await.unwrap();
 }
 

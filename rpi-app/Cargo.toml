@@ -13,6 +13,7 @@ i2cdev = "0.5.1"
 byteorder = "1.4.3"
 tonic = "0.8.3"
 prost = "0.11.6"
+async-trait = "0.1.63"
 
 [build-dependencies]
 tonic-build = "0.8"

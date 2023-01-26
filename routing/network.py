@@ -108,16 +108,28 @@ class Network:
         return (mst_links, mst_nodes)
 
     
-    def get_odd_links(self) -> List[Node]:
-        mst_links, mst_nodes = self.prims_mst()
-        links_by_node = self.links_per_node(mst_links, mst_nodes)
-        odd_links: List[Node] = [node for node in mst_nodes if links_by_node[node] % 2 != 0]
-        return odd_links
+    def get_odd(self, links: List[Link], nodes: List[Node]) -> tuple(List[Node], List[Link]):
+        links_by_node = links_per_node(links, nodes)
+        odd_nodes: List[Node] = [node for node in nodes if links_by_node[node] % 2 != 0]
+        odd_links = []
+        for node in odd_nodes: 
+            odd_links.extend(links_by_node[node])
+        return (odd_nodes, odd_links)
         # need to find out which algorithm can be used to find minimum weight perfect matching tree
         # right now looking at edmond's blossom algorithm but seems quite complex (LP formulation)
     
-    def perfect_matching(self, matched: List[Node], to_match: List[Node], links: List[Link], possible_links: List[Link], curr_best: float, curr_cost: float) -> tuple(bool, List[Link]):
-        pass
+    def relax_double(self) -> List[Link]:
+        mst_links, mst_nodes = self.prims_mst()
+        odd_nodes, odd_links = self.get_odd(mst_links, mst_nodes)
+        max_price = 0.0
+        for link in odd_links:
+            max_price += link.cost
+        perfect_matching_cl = PerfectMatching(odd_nodes, odd_links, max_price)
+        extra_links = perfect_matching_cl.perfect_matching(odd_links)
+        extra_links.extend(mst_links)
+        # TODO relaxation
+        # put together the list of links obtained from the perfect matching and that of the mst
+        
 
 def links_per_node(links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
     links_by_node: Dict[Node, int] = {}

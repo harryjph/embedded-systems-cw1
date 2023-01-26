@@ -1,6 +1,7 @@
 from typing import List, Dict
 from time import timedelta, datetime
 from dataclasses import dataclass
+from copy import deepcopy
 
 @dataclass 
 class Node: 
@@ -106,18 +107,106 @@ class Network:
             self.update_costs(min_cost_node, active_nodes, costs)
         return (mst_links, mst_nodes)
 
-    def links_per_node(self, links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
-        links_by_node: Dict[Node, int] = {}
-        for node in nodes: 
-            node_links = [link for link in links if link.is_link(node)]
-            links_by_node[node] = len(node_links)
-        return links_by_node
     
-    def perfect_matching(self) -> List[Link]:
+    def get_odd_links(self) -> List[Node]:
         mst_links, mst_nodes = self.prims_mst()
         links_by_node = self.links_per_node(mst_links, mst_nodes)
         odd_links: List[Node] = [node for node in mst_nodes if links_by_node[node] % 2 != 0]
+        return odd_links
         # need to find out which algorithm can be used to find minimum weight perfect matching tree
         # right now looking at edmond's blossom algorithm but seems quite complex (LP formulation)
+    
+    def perfect_matching(self, matched: List[Node], to_match: List[Node], links: List[Link], possible_links: List[Link], curr_best: float, curr_cost: float) -> tuple(bool, List[Link]):
+        pass
+
+def links_per_node(links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
+    links_by_node: Dict[Node, int] = {}
+    for node in nodes: 
+        node_links = [link for link in links if link.is_link(node)]
+        links_by_node[node] = len(node_links)
+    return links_by_node
+
+class PerfectMatching: 
+    def __init__(self, nodes: List[Node], links: List[Link], max_price: float,   ):
+        self.to_match: List[Node] = nodes
+        self.links: List[Link] = links
+        self.nodes: List[Node] = nodes # to go back to the initial state 
+        self.curr_best_cost: float = max_price
+        self.curr_best_links: List[Link] = []
+        self.nodes_matched: List[Node] = []
+        self.links_matched: List[Link] = []
+        self.cost: float = 0.0
+        self.max_cost: float = max_price
+
+    def undo(self, to_match, matched, nodes_matched, cost): 
+        self.to_match = to_match
+        self.nodes_matched = nodes_matched
+        self.links_matched = matched
+        self.cost = cost
+        
+    def perfect_matching(self, links_unmatched) -> bool: 
+        for link in links_unmatched:
+            # save initial state 
+            # TODO add things to save as you go 
+            to_match_init = deepcopy(self.to_match)
+            matched_init = deepcopy(self.links_matched)
+            nodes_matched_init = deepcopy(self.nodes_matched)
+            cost_init = deepcopy(self.cost)
+
+            # add link to the list of matched links and update cost
+            self.links_matched.append(link)
+            node1, node2 = link.nodes
+            # add to nodes that have been matched already
+            self.nodes_matched.append(node1)
+            self.nodes_matched.append(node2)
+            self.to_match.remove(node1)
+            self.to_match.remove(node1)
+
+            # check cost is not worse than the best one
+            self.cost += link.cost
+            if self.cost >= self.curr_best_cost: 
+                self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)
+                return False
+            
+            # remove links with the nodes that have just been added
+            next_links = []
+            for available_link in links_unmatched[1:]:
+                if not available_link.is_link(node1) and not available_link.is_link(node2): 
+                    next_links.append(available_link)
+            
+            # check that all the unmatched node have at least one link in the available ones
+            # this might be unnecessary as as long as there is a node there will be a link
+            links_by_node = links_per_node(next_links, self.to_match)
+            for node in self.to_match: 
+                if node not in links_by_node.keys(): 
+                    self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)
+                    return False 
+            
+            #available_link_init = deepcopy(links_unmatched)
+            
+            # call the recursion
+            self.perfect_matching(next_links)
+            # undo for next attempt (as not only we need a valid perfect match, but also the minimum one)
+            self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)    
+                
+
+        # all possible links have been used
+        # check that all nodes have been matched ù
+        # TODO determine how to handle the possibility of having odd nodes 
+        if len(self.to_match) == 0: 
+            if self.cost < self.curr_best_cost: 
+                self.curr_best_cost = self.cost 
+                self.curr_best_links = self.links_matched
+            self.to_match = deepcopy(self.nodes)
+            self.cost = deepcopy(self.max_cost)
+            return True
+        else: return False
+        
+
+
+
+
+            
+
 
 

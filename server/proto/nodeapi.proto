@@ -1,0 +1,13 @@
+syntax = "proto3";
+package nodeapi;
+
+message Empty {}
+
+service NodeAPI {
+  rpc ReportEnvironment(stream EnvironmentData) returns (Empty);
+}
+
+message EnvironmentData {
+  float temperature = 1;
+  float relativeHumidity = 2;
+}

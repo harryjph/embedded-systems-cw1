@@ -1,7 +1,6 @@
 name: rpi-app
 
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
     branches: [ "master" ]
   pull_request:
@@ -26,6 +25,6 @@ jobs:
           echo "[target.arm-unknown-linux-musleabihf]" > ~/.cargo/config.toml
           echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config.toml
       - name: Build
-        run: cargo build --verbose
+        run: cargo build
       - name: Run tests
         run: cargo test --verbose

@@ -755,7 +755,6 @@ dependencies = [
  "i2cdev",
  "prost",
  "tokio",
- "tokio-stream",
  "tonic",
  "tonic-build",
 ]

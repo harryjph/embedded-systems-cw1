@@ -21,7 +21,7 @@ async fn start_server(data_sink: Sender<(f32, f32)>) {
     Server::builder()
         .add_service(reflection_service)
         .add_service(NodeApiServer::new(NodeApiImpl { data_sink }))
-        .serve("[::]:81".parse().unwrap())
+        .serve("0.0.0.0:81".parse().unwrap())
         .await.unwrap();
 }
 

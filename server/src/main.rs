@@ -19,8 +19,9 @@ async fn main() {
         }
     });
 
-    // TODO shutdown if any service stops
-    http_server_handle.await.unwrap();
-    grpc_server_handle.await.unwrap();
-    data_handler_handle.await.unwrap();
+    tokio::select! {
+        _ = http_server_handle => { println!("HTTP Server Stopped! Shutting down."); }
+        _ = grpc_server_handle => { println!("gRPC Server Stopped! Shutting down."); }
+        _ = data_handler_handle => { println!("Data Handler Stopped! Shutting down."); }
+    }
 }

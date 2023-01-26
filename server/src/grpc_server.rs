@@ -41,7 +41,6 @@ impl NodeApi for NodeApiImpl {
         let mut stream = request.into_inner();
         while let Some(data_result) = stream.next().await {
             let data = data_result?;
-            println!("Got Data: {:?}", data);
             self.data_sink.send((data.temperature, data.relative_humidity)).await.unwrap();
         }
         Ok(Response::new(nodeapi::Empty{}))

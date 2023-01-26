@@ -2,9 +2,9 @@ use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tonic::{Request, Response, Status, Streaming};
 use tonic::transport::Server;
-use nodeapi::node_api_server::{NodeApi, NodeApiServer};
 use futures_util::StreamExt;
-use crate::grpc_server::nodeapi::{Empty, EnvironmentData};
+use self::grpc_generated::{Empty, EnvironmentData};
+use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 
 pub fn launch(data_sink: Sender<(f32, f32)>) -> JoinHandle<()> {
     tokio::spawn(start_server(data_sink))
@@ -14,7 +14,7 @@ async fn start_server(data_sink: Sender<(f32, f32)>) {
     println!("Starting gRPC Server on http://localhost:81");
 
     let reflection_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(nodeapi::FILE_DESCRIPTOR_SET)
+        .register_encoded_file_descriptor_set(grpc_generated::FILE_DESCRIPTOR_SET)
         .build()
         .unwrap();
 
@@ -25,7 +25,7 @@ async fn start_server(data_sink: Sender<(f32, f32)>) {
         .await.unwrap();
 }
 
-mod nodeapi {
+mod grpc_generated {
     tonic::include_proto!("nodeapi");
 
     pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("nodeapi_descriptor");
@@ -43,6 +43,6 @@ impl NodeApi for NodeApiImpl {
             let data = data_result?;
             self.data_sink.send((data.temperature, data.relative_humidity)).await.unwrap();
         }
-        Ok(Response::new(nodeapi::Empty{}))
+        Ok(Response::new(Empty::default()))
     }
 }

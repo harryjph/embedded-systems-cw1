@@ -2,6 +2,7 @@
 name = "rpi-app"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [profile.release]
 strip = true
@@ -10,3 +11,8 @@ lto = "fat"
 [dependencies]
 i2cdev = "0.5.1"
 byteorder = "1.4.3"
+tonic = "0.8.3"
+prost = "0.11.6"
+
+[build-dependencies]
+tonic-build = "0.8"

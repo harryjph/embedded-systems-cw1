@@ -1,6 +1,7 @@
 use crate::sensors::si7021::SI7021;
 use crate::sensors::{HumiditySensor, TemperatureSensor};
 
+mod nodeapi;
 mod sensors;
 
 fn main() {

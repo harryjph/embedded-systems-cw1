@@ -18,17 +18,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
+      - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: gcc-arm-linux-gnueabihf qemu-user-static protobuf-compiler
+          execute_install_scripts: true
       - name: Configure Cross-compiler
         run: |
           rustup target add arm-unknown-linux-musleabihf
           echo "[target.arm-unknown-linux-musleabihf]" > ~/.cargo/config.toml
           echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config.toml
-      - name: Cargo Cache
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Build
         run: cargo build
       - name: Run tests

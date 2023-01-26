@@ -12,7 +12,14 @@ pub fn launch(data_sink: Sender<(f32, f32)>) -> JoinHandle<()> {
 
 async fn start_server(data_sink: Sender<(f32, f32)>) {
     println!("Starting gRPC Server on http://localhost:50051");
+
+    let reflection_service = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(nodeapi::FILE_DESCRIPTOR_SET)
+        .build()
+        .unwrap();
+
     Server::builder()
+        .add_service(reflection_service)
         .add_service(NodeApiServer::new(NodeApiImpl { data_sink }))
         .serve("[::]:50051".parse().unwrap())
         .await.unwrap();
@@ -20,6 +27,8 @@ async fn start_server(data_sink: Sender<(f32, f32)>) {
 
 mod nodeapi {
     tonic::include_proto!("nodeapi");
+
+    pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("nodeapi_descriptor");
 }
 
 pub struct NodeApiImpl {
@@ -32,6 +41,7 @@ impl NodeApi for NodeApiImpl {
         let mut stream = request.into_inner();
         while let Some(data_result) = stream.next().await {
             let data = data_result?;
+            println!("Got Data: {:?}", data);
             self.data_sink.send((data.temperature, data.relative_humidity)).await.unwrap();
         }
         Ok(Response::new(nodeapi::Empty{}))

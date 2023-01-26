@@ -34,8 +34,12 @@ class Link:
         else: 
             return False
     
-    def is_link(self, node1: Node, node2: Node) -> bool:
-        if self.nodes == (node1, node2) or self.nodes == (node2, node1): return True 
+    def is_link(self, node1: Node, node2: Node = None) -> bool:
+        if node2 is None: 
+            for link in self.links:
+                if node1 in link.nodes: return True
+            return False 
+        if node1 in self.nodes and node2 in self.nodes : return True 
         else: return False
     
 
@@ -88,7 +92,7 @@ class Network:
             costs.append((cost, link))
         return dict(zip(active_nodes, costs))
 
-    def prims_mst(self) -> List[Link]:
+    def prims_mst(self) -> tuple(List[Link], List[Node]):
         active_nodes: List[Node] = [node for node in self.nodes if node.needs_emptying]
         # starts with start_point, initialise the cost dict to hold all the distances from the start 
         mst_links: List[Link] = []
@@ -100,6 +104,20 @@ class Network:
             mst_nodes.append(min_cost_node)
             active_nodes.remove(min_cost_node)
             self.update_costs(min_cost_node, active_nodes, costs)
-        return mst_links
+        return (mst_links, mst_nodes)
+
+    def links_per_node(self, links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
+        links_by_node: Dict[Node, int] = {}
+        for node in nodes: 
+            node_links = [link for link in links if link.is_link(node)]
+            links_by_node[node] = len(node_links)
+        return links_by_node
+    
+    def perfect_matching(self) -> List[Link]:
+        mst_links, mst_nodes = self.prims_mst()
+        links_by_node = self.links_per_node(mst_links, mst_nodes)
+        odd_links: List[Node] = [node for node in mst_nodes if links_by_node[node] % 2 != 0]
+        # need to find out which algorithm can be used to find minimum weight perfect matching tree
+        # right now looking at edmond's blossom algorithm but seems quite complex (LP formulation)
 
 

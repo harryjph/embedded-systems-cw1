@@ -1,7 +1,8 @@
-use std::error::Error;
+use tokio::sync::mpsc::Receiver;
 use tonic::codegen::StdError;
-use tonic::{IntoStreamingRequest, Status, transport};
+use tonic::{Status, transport};
 use tonic::transport::Channel;
+use crate::util::Stream;
 use self::grpc_generated::EnvironmentData;
 use self::grpc_generated::node_api_client::NodeApiClient;
 
@@ -14,15 +15,13 @@ pub struct Client {
 }
 
 impl Client {
-    async fn new<E: TryInto<transport::Endpoint>>(endpoint: E) -> Result<Self, transport::Error>
+    pub async fn new<E: TryInto<transport::Endpoint>>(endpoint: E) -> Result<Self, transport::Error>
         where E::Error: Into<StdError> {
         Ok(Client { client: NodeApiClient::connect(endpoint).await? })
     }
 
-    async fn start_data_stream<S>(&mut self, stream: S) -> Result<(), Status>
-        where S: IntoStreamingRequest<Message = EnvironmentData> {
-        self.client.report_environment(stream)
-            .await?;
+    pub async fn report_environment(&mut self, receiver: Receiver<EnvironmentData>) -> Result<(), Status> {
+        self.client.report_environment(Stream::new(receiver)).await?;
         Ok(())
     }
 }

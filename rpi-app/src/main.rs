@@ -3,6 +3,7 @@ use crate::sensors::{HumiditySensor, TemperatureSensor};
 
 mod nodeapi;
 mod sensors;
+mod util;
 
 #[tokio::main]
 async fn main() {

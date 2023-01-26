@@ -9,6 +9,9 @@ strip = true
 lto = "fat"
 
 [dependencies]
+tokio = { version = "1.24.2", features = ["full"] }
+tokio-stream = "0.1.11"
+futures = "0.3.25"
 i2cdev = "0.5.1"
 byteorder = "1.4.3"
 tonic = "0.8.3"

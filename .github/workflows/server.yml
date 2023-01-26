@@ -22,6 +22,8 @@ jobs:
         with:
           packages: protobuf-compiler
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "server"
       - name: Build
         run: cargo build
       - name: Run tests

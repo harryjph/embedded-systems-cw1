@@ -21,13 +21,15 @@ jobs:
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: gcc-arm-linux-gnueabihf qemu-user-static protobuf-compiler
-          execute_install_scripts: true
       - name: Configure Cross-compiler
         run: |
           rustup target add arm-unknown-linux-musleabihf
           echo "[target.arm-unknown-linux-musleabihf]" > ~/.cargo/config.toml
           echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config.toml
+          echo "runner = \"qemu-arm-static\"" >> ~/.cargo/config.toml
       - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rpi-app"
       - name: Build
         run: cargo build
       - name: Run tests

@@ -64,13 +64,13 @@ mod tests {
     use crate::sensors::si7021::{MEASURE_HUMIDITY_NO_HOLD, MEASURE_TEMPERATURE_NO_HOLD, SI7021};
     use crate::sensors::{HumiditySensor, TemperatureSensor};
 
-    #[test]
-    fn test_sensor_driver() {
+    #[tokio::test]
+    async fn test_sensor_driver() {
         let mut device = MockI2CDevice::new();
         device.regmap.write_regs(MEASURE_TEMPERATURE_NO_HOLD as usize, &[0x68, 0xAD]);
         device.regmap.write_regs(MEASURE_HUMIDITY_NO_HOLD as usize, &[0x68, 0x73]);
         let mut driver = SI7021::new(device);
-        assert_eq!(25.000114, driver.read_temperature().unwrap());
-        assert_eq!(45.000595, driver.read_humidity().unwrap());
+        assert_eq!(25.000114, driver.read_temperature().await.unwrap());
+        assert_eq!(45.000595, driver.read_humidity().await.unwrap());
     }
 }

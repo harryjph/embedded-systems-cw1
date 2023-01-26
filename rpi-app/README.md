@@ -23,6 +23,8 @@ This directory contains the application that runs on the RPi.
       [target.arm-unknown-linux-musleabihf]
       linker = "arm-none-linux-gnueabihf-gcc"
       ```
+* Protocol Buffers Compiler (`protoc`) installed
+  * On Debian-based Linux: `apt install protobuf-compiler`
 
 # Building
 

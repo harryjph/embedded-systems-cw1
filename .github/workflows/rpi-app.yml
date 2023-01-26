@@ -21,7 +21,7 @@ jobs:
       - name: Install Cross-compiler
         run: |
           rustup target add arm-unknown-linux-musleabihf
-          sudo apt install -y --no-install-recommends gcc-arm-linux-gnueabihf qemu-user-static
+          sudo apt install -y --no-install-recommends gcc-arm-linux-gnueabihf qemu-user-static protobuf-compiler
           echo "[target.arm-unknown-linux-musleabihf]" > ~/.cargo/config.toml
           echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config.toml
       - name: Build

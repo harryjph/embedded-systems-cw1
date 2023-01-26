@@ -1,11 +1,12 @@
 use std::error::Error;
 use std::path::Path;
 use std::result;
-use std::thread::sleep;
 use std::time::Duration;
+use async_trait::async_trait;
 use byteorder::{BigEndian, ByteOrder};
 use i2cdev::core::I2CDevice;
 use i2cdev::linux::{LinuxI2CDevice, LinuxI2CError};
+use tokio::time::sleep;
 use super::{HumiditySensor, TemperatureSensor};
 use super::Result;
 
@@ -28,24 +29,26 @@ impl <D: I2CDevice> SI7021<D> {
         SI7021 { device }
     }
 
-    fn take_measurement(&mut self, command: u8) -> Result<u16> {
+    async fn take_measurement(&mut self, command: u8) -> Result<u16> {
         self.device.write(&[command]).map_err(stringify_error)?;
-        sleep(Duration::from_millis(READ_DELAY_MS));
+        sleep(Duration::from_millis(READ_DELAY_MS)).await;
         let mut data = [0u8; 2];
         self.device.read(&mut data).map_err(stringify_error)?;
         Ok(BigEndian::read_u16(&data))
     }
 }
 
-impl <D: I2CDevice> TemperatureSensor for SI7021<D> {
-    fn read_temperature(&mut self) -> Result<f32> {
-        Ok(175.72 * self.take_measurement(MEASURE_TEMPERATURE_NO_HOLD)? as f32 / 65536.0 - 46.85)
+#[async_trait]
+impl <D: I2CDevice + Send> TemperatureSensor for SI7021<D> {
+    async fn read_temperature(&mut self) -> Result<f32> {
+        Ok(175.72 * self.take_measurement(MEASURE_TEMPERATURE_NO_HOLD).await? as f32 / 65536.0 - 46.85)
     }
 }
 
-impl <D: I2CDevice> HumiditySensor for SI7021<D> {
-    fn read_humidity(&mut self) -> Result<f32> {
-        Ok(125.0 * self.take_measurement(MEASURE_HUMIDITY_NO_HOLD)? as f32 / 65536.0 - 6.0)
+#[async_trait]
+impl <D: I2CDevice + Send> HumiditySensor for SI7021<D> {
+    async fn read_humidity(&mut self) -> Result<f32> {
+        Ok(125.0 * self.take_measurement(MEASURE_HUMIDITY_NO_HOLD).await? as f32 / 65536.0 - 6.0)
     }
 }
 
@@ -61,13 +64,13 @@ mod tests {
     use crate::sensors::si7021::{MEASURE_HUMIDITY_NO_HOLD, MEASURE_TEMPERATURE_NO_HOLD, SI7021};
     use crate::sensors::{HumiditySensor, TemperatureSensor};
 
-    #[test]
-    fn test_sensor_driver() {
+    #[tokio::test]
+    async fn test_sensor_driver() {
         let mut device = MockI2CDevice::new();
         device.regmap.write_regs(MEASURE_TEMPERATURE_NO_HOLD as usize, &[0x68, 0xAD]);
         device.regmap.write_regs(MEASURE_HUMIDITY_NO_HOLD as usize, &[0x68, 0x73]);
         let mut driver = SI7021::new(device);
-        assert_eq!(25.000114, driver.read_temperature().unwrap());
-        assert_eq!(45.000595, driver.read_humidity().unwrap());
+        assert_eq!(25.000114, driver.read_temperature().await.unwrap());
+        assert_eq!(45.000595, driver.read_humidity().await.unwrap());
     }
 }

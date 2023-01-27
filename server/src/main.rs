@@ -43,7 +43,7 @@ fn load_config() -> Config {
                 Ok(e) => {
                     if e.kind() == ErrorKind::NotFound {
                         eprintln!("No config found. Example Config:");
-                        eprintln!("{}", toml::to_string(&Config::default()).unwrap());
+                        eprintln!("{}", toml::to_string_pretty(&Config::default()).unwrap());
                         exit(1);
                     } else {
                         eprintln!("Failed to load config: {e}")

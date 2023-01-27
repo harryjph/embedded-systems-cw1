@@ -3,19 +3,21 @@ use std::{env, fs};
 use std::path::Path;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Default, Serialize, Deserialize)]
+const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
+
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub network: NetworkConfig,
     pub email: EmailConfig,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NetworkConfig {
     pub http_port: u16,
     pub grpc_port: u16,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EmailConfig {
     pub smtp_server_address: String,
     pub smtp_server_port: u16,
@@ -53,7 +55,31 @@ impl Config {
     }
 
     pub fn load_default() -> Result<Config, Box<dyn Error>> {
-        let config_path = if let Ok(value) = env::var("CONFIG_PATH") { value } else { "config.toml".to_string() };
+        let config_path = if let Ok(value) = env::var(CONFIG_PATH_ENV_NAME) { value } else { "config.toml".to_string() };
         Config::load_from_file(config_path)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+    use crate::config::{Config, CONFIG_PATH_ENV_NAME};
+
+    #[test]
+    fn test_config_save_load() {
+        let _file = setup_default_config();
+        assert_eq!(Config::load_default().unwrap(), Config::default());
+    }
+
+    /// Sets up the default config so that load_default() will load it.
+    /// Returns the temp file as dropping it will delete the file, so it should be dropped at the end of the test.
+    fn setup_default_config() -> NamedTempFile {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(toml::to_string(&Config::default()).unwrap().as_bytes()).unwrap();
+        let file_path = file.path();
+        env::set_var(CONFIG_PATH_ENV_NAME, file_path.to_str().unwrap());
+        file
     }
 }

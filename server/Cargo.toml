@@ -16,5 +16,9 @@ tonic = "0.8.3"
 tonic-reflection = "0.6.0"
 prost = "0.11.6"
 
+# Database
+diesel = { version = "2.0.0", features = ["sqlite"] }
+dotenvy = "0.15"
+
 [build-dependencies]
 tonic-build = "0.8"

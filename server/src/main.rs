@@ -2,11 +2,15 @@ use std::sync::Arc;
 use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
 
-mod http_server;
+mod database;
 mod grpc_server;
+mod http_server;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
+    let db = database::Database::new_sqlite().expect("Ill handle this later");
+    println!("made database connection");
+
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));
 

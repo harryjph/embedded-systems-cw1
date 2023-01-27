@@ -51,7 +51,7 @@ impl Config {
     }
 
     fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Box<dyn Error>> {
-        Ok(Config::load_from(fs::read_to_string(path)?.as_str())?)
+        Ok(Config::load_from(fs::read_to_string(path)?)?)
     }
 
     pub fn load_default() -> Result<Config, Box<dyn Error>> {

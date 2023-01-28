@@ -3,15 +3,16 @@ use std::sync::{Arc};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use warp::Filter;
+use crate::config::Config;
 
-pub fn launch(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> JoinHandle<()> {
-    tokio::spawn(start_server(data_list))
+pub fn launch(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> JoinHandle<()> {
+    tokio::spawn(start_server(config, data_list))
 }
 
-async fn start_server(data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
-    println!("Starting HTTP Server on http://localhost");
+async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
+    println!("Starting HTTP Server on http://localhost:{}", config.network.http_port);
     warp::serve(routes(data_list))
-        .run(([0, 0, 0, 0], 80))
+        .run(([0, 0, 0, 0], config.network.http_port))
         .await;
 }
 

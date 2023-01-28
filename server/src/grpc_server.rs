@@ -1,17 +1,19 @@
+use std::net::{Ipv4Addr, SocketAddrV4};
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tonic::{Request, Response, Status, Streaming};
 use tonic::transport::Server;
 use futures_util::StreamExt;
+use crate::config::Config;
 use self::grpc_generated::{Empty, EnvironmentData};
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 
-pub fn launch(data_sink: Sender<(f32, f32)>) -> JoinHandle<()> {
-    tokio::spawn(start_server(data_sink))
+pub fn launch(config: Config, data_sink: Sender<(f32, f32)>) -> JoinHandle<()> {
+    tokio::spawn(start_server(config, data_sink))
 }
 
-async fn start_server(data_sink: Sender<(f32, f32)>) {
-    println!("Starting gRPC Server on http://localhost:81");
+async fn start_server(config: Config, data_sink: Sender<(f32, f32)>) {
+    println!("Starting gRPC Server on http://localhost:{}", config.network.grpc_port);
 
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(grpc_generated::FILE_DESCRIPTOR_SET)
@@ -21,7 +23,7 @@ async fn start_server(data_sink: Sender<(f32, f32)>) {
     Server::builder()
         .add_service(reflection_service)
         .add_service(NodeApiServer::new(NodeApiImpl { data_sink }))
-        .serve("0.0.0.0:81".parse().unwrap())
+        .serve(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, config.network.grpc_port).into())
         .await.unwrap();
 }
 

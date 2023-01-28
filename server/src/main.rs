@@ -2,9 +2,8 @@ use std::sync::Arc;
 use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
 
-mod database;
-mod grpc_server;
 mod http_server;
+mod grpc_server;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {

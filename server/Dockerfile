@@ -1,6 +1,6 @@
 FROM rust:alpine AS build
 # musl-dev is required in order to dynamically link proc_macro crates
-RUN apk add --no-cache musl-dev protoc openssl
+RUN apk add --no-cache musl-dev protoc openssl-dev
 
 WORKDIR /build
 COPY . .

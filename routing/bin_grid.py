@@ -175,38 +175,75 @@ class Network:
         # need to find out which algorithm can be used to find minimum weight perfect matching tree
         # right now looking at edmond's blossom algorithm but seems quite complex (LP formulation)
     
-    def relax_double(self) -> List[Link]:
-        mst_links, mst_nodes = self.prims_mst()
-        odd_nodes, odd_links = self.get_odd(mst_links, mst_nodes)
-        max_price = 0.0
-        for link in odd_links:
-            max_price += link.cost
-        perfect_matching_cl = PerfectMatching(odd_nodes, odd_links, max_price)
-        perfect_matching_cl.perfect_matching(odd_links)
-        extra_links = perfect_matching_cl.curr_best_links
-        extra_nodes = perfect_matching_cl.curr_best_nodes
-        extra_links.extend(mst_links)
-        # need to find a way to inserts the nodes in order to do the relaxation (though it's probably not needed)
-        extra_nodes.extend(mst_nodes)
-        relaxed_n: List[Node] = [] 
-        relaxed_l: List[Link] = []
-        nodes_seen: Dict[Node, int] = {}
-        for node in extra_nodes:
-            if node not in relaxed_n:
-                nodes_seen[node] = nodes_seen.get(node, 0) + 1
-                links_of_node = [link for link in extra_links if link.is_link(node) and link.nodes[0] not in relaxed_n and link.nodes[1] not in relaxed_n].sort(key=lambda x: x.cost)
-                link = links_of_node[0]
-                relaxed_l.append(link)
-                extra_links.remove(link)
-                relaxed_l.append(link)
-                # add the other node of the list to the relaxed nodes and add it to the 
-                node1, node2 = link.nodes
-                if node1 == node: 
-                    nodes_seen[node2] = nodes_seen.get(node2, 0) + 1
-                    relaxed_n
-                # there is a problem with the other node already being in the relaxed nodes, how do you handle it, is there a way to avoid it?
+    def is_relaxed(node, relaxed_links) -> bool :
+        node_links = []
+        for link in relaxed_links: 
+            if node in link.nodes: 
+                node_links.append(link)
+        assert len(node_links) <= 2
+        if len(node_links) == 2: return True
+        else: return False
 
-    def christofides(self):
+    def remove_links_relaxed(node, relaxed_nodes, remaining_links):
+        node_links = [link for link in remaining_links if node in link.nodes]
+        for node2 in relaxed_nodes: 
+            links = [link for link in node_links if node2 in link.nodes]
+            for link in links: 
+                remaining_links.remove(link)
+
+    def relax_double(self, links: List[Link], nodes: List[Node]) -> List[Link]:
+        relaxed_nodes: List[Node] = []
+        relaxed_links: List[Link] = []
+        remaining_links: List[Link] = deepcopy(links)
+        remaining_nodes: List[Link] = deepcopy(nodes)
+        for link in links: 
+            if link in remaining_links:
+                node1, node2 = link.nodes
+                if node1 and node2 in relaxed_nodes:
+                    continue 
+                elif node1 in relaxed_nodes or node2 in relaxed_nodes:
+                    if node1 in relaxed_nodes: 
+                        node_rel = node1
+                        node_next = node2
+                    elif node2 in relaxed_nodes: 
+                        node_rel = node2 
+                        node_next = node1
+                    # get all the possible nodes that could be reached from node1 (that haven't been relaxed yet )
+                    # there should always be one becasue the previous part of the algorithm ensured that each node 
+                    # had an even number of connections 
+                    by_node = links_per_node(remaining_links, remaining_nodes@[node_rel])
+                    node_rel_links = by_node[node_rel]
+                    # get the shortest possible link from node1
+                    node_rel_neighbour = min(node_rel_links)
+                    # get the nearest non-relaxed neighbour of node1
+                    node_alt = [node for node in node_rel_neighbour.nodes if node != node_rel]
+                    # get its link with node2 (this can be obtained among all the links)
+                    new_link = self.get_link(node_next, node_alt)
+                    relaxed_links.append(new_link)
+                    # remove the two current links from the next possible ones
+                    remaining_links.remove(link)
+                    if new_link in remaining_links: remaining_links.remove(new_link)
+                    # check if any of the two nodes can now be relaxed 
+                    # (in which case remove from remaining links all the links between the relaxed nodes)
+                    if self.is_relaxed(node_alt): 
+                        self.remove_links_relaxed(node_alt, remaining_links)
+                        relaxed_nodes.append(node_alt)
+                    if self.is_relaxed(node_next):
+                        self.remove_links_relaxed(node_next, remaining_links)
+                        relaxed_nodes.append(node_next)
+                else: 
+                    relaxed_links.append(link)
+                    remaining_links.remove(link)
+                    # check if adding this made the nodes relaxed
+                    if self.is_relaxed(node1): 
+                        self.remove_links_relaxed(node1, remaining_links)
+                        relaxed_nodes.append(node1)
+                    if self.is_relaxed(node2):
+                        self.remove_links_relaxed(node2, remaining_links)
+                        relaxed_nodes.append(node2)
+        return relaxed_links
+
+    def christofides(self) -> List[Link]: 
         # prims to get mst 
         mst_links, mst_nodes = self.prims_mst()
         # get all vertices with odd number of connections 
@@ -230,7 +267,7 @@ class Network:
         # do relaxation 
 
        
-
+# TODO add this back to class, should not be needed outside
 def links_per_node(links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
     links_by_node: Dict[Node, int] = {}
     for node in nodes: 
@@ -238,6 +275,7 @@ def links_per_node(links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
         links_by_node[node] = node_links
     return links_by_node
 
+# TODO delete :(
 class PerfectMatching: 
     def __init__(self, nodes: List[Node], links: List[Link], max_price: float):
         self.to_match: List[Node] = nodes

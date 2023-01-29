@@ -19,7 +19,6 @@ FROM alpine:latest
 
 WORKDIR /usr/local/bin
 COPY --from=build /build/target/release/server .
-EXPOSE 80
 ENV CONFIG_PATH=/etc/server/config.toml
 ENV DATABASE_PATH=/etc/server/database.db
 VOLUME /etc/server/

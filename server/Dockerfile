@@ -4,14 +4,7 @@ FROM rust:alpine AS build
 RUN apk add --no-cache musl-dev protoc openssl-dev
 
 WORKDIR /build
-# Download and compile dependencies first so that they get cached
-COPY Cargo.* ./
-RUN mkdir src \
-    && echo "fn main() {}" > build.rs \
-    && echo "fn main() {}" > src/main.rs \
-    && cargo build --release \
-    && rm -r Cargo.* src/ build.rs
-# Build the actual project
+# Build the project
 COPY . .
 RUN cargo build --release
 

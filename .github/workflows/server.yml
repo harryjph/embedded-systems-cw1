@@ -35,4 +35,4 @@ jobs:
     - uses: jpribyl/action-docker-layer-caching@v0.1.1
       continue-on-error: true
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      run: DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag my-image-name:$(date +%s)

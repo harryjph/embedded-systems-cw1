@@ -184,12 +184,28 @@ class Network:
         if len(node_links) == 2: return True
         else: return False
 
+    def is_entered(node, relaxed_links) -> bool:
+        node_links = []
+        for link in relaxed_links: 
+            if node in link.nodes: 
+                node_links.append(link)
+        assert len(node_links) <= 2
+        if len(node_links) == 1: return True
+        else: return False
+
+
     def remove_links_relaxed(node, relaxed_nodes, remaining_links):
         node_links = [link for link in remaining_links if node in link.nodes]
         for node2 in relaxed_nodes: 
             links = [link for link in node_links if node2 in link.nodes]
             for link in links: 
                 remaining_links.remove(link)
+    
+    def is_closing_link(self, link, relaxed_links):
+        node1, node2 = link.nodes
+        if self.is_entered(node1, relaxed_links) and self.is_entered(node2, relaxed_links): return True
+        else: return False
+
 
     def relax_double(self, links: List[Link], nodes: List[Node]) -> List[Link]:
         relaxed_nodes: List[Node] = []
@@ -201,13 +217,11 @@ class Network:
                 node1, node2 = link.nodes
                 if node1 and node2 in relaxed_nodes:
                     continue 
-                elif node1 in relaxed_nodes or node2 in relaxed_nodes:
-                    if node1 in relaxed_nodes: 
-                        node_rel = node1
-                        node_next = node2
-                    elif node2 in relaxed_nodes: 
-                        node_rel = node2 
-                        node_next = node1
+                # if it's the closing link it can't be relaxed (will be done at the end)
+                elif self.is_closing_link(link, relaxed_links):
+                    # arbitrarily choose node1 as the one that we are going to substitute
+                    node_rel = node1
+                    node_next = node2
                     # get all the possible nodes that could be reached from node1 (that haven't been relaxed yet )
                     # there should always be one becasue the previous part of the algorithm ensured that each node 
                     # had an even number of connections 
@@ -241,6 +255,10 @@ class Network:
                     if self.is_relaxed(node2):
                         self.remove_links_relaxed(node2, remaining_links)
                         relaxed_nodes.append(node2)
+        last_nodes = [node for node in nodes if node not in relaxed_nodes]
+        assert len(last_nodes) == 2
+        closing_link = self.get_link(last_nodes[0], last_nodes[1])
+        relaxed_links.append(closing_link)
         return relaxed_links
 
     def christofides(self) -> List[Link]: 

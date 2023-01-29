@@ -1,14 +1,26 @@
 from typing import List, Dict, Tuple
 from datetime import timedelta, datetime
+import networkx as nx
 
 from dataclasses import dataclass
 from copy import deepcopy
+import math
+import numpy as np
+
+id = 1000
+
+def get_id():
+    global id
+    id += 1
+    return id 
+
 
 @dataclass 
 class Node: 
     x_coord: float 
     y_coord: float 
     fullness: float 
+    node_id: int = get_id() 
     at_capacity: float = 0.75 # percentage at which a node will be considered active (ie in need for emptying)
     needs_emptying: bool = False
     time_to_full: timedelta = timedelta(seconds = 0) # this will be updated once there is more data available on past
@@ -21,7 +33,7 @@ class Node:
         return hash(self.__key__())
     
     def __str__(self):
-        return "x: " + str(self.x_coord) +", y: " + str(self.y_coord) + "\n"
+        return "x: " + str(self.x_coord) +", y: " + str(self.y_coord) + ", id: " + str(self.node_id) + "\n"
 
     def update_fullness(self, fill_level):
         # TODO make it so that the frequency with which it requires fullness data is proportional 
@@ -35,8 +47,11 @@ class Node:
 
 @dataclass
 class Link: 
-    cost: float
-    nodes: Tuple[Node, Node]
+    def __init__(self, nodes, cost = None):
+        self.nodes: Tuple[Node, Node] = nodes
+        if cost is None: 
+            self.cost: float = self.get_cost() 
+        else: self.cost = cost
 
     @property
     def is_active(self) -> bool:
@@ -48,6 +63,10 @@ class Link:
     def __str__(self):
         return "cost: " + str(self.cost) +", node1: x: " + str(self.nodes[0].x_coord) + " y: "+ str(self.nodes[0].y_coord)+ ", node2: x: " + str(self.nodes[1].x_coord) + " y: "+ str(self.nodes[1].y_coord)+ "\n"
     
+    def get_cost(self):
+        delta_x = (self.nodes[0].x_coord - self.nodes[1].x_coord)**2
+        delta_y = (self.nodes[0].y_coord - self.nodes[1].y_coord)**2
+        return math.sqrt(delta_x + delta_y) 
 
     def is_link(self, node1: Node, node2: Node = None) -> bool:
         if node2 is None: 
@@ -63,10 +82,10 @@ class Link:
 
 class Network: 
     def __init__(self, nodes, links, start_point):
-        nodes: List[Node] = nodes 
-        links: List[Link] = links # all the possible links
-        start_point: Node = start_point # place where collection must start and end
-        max_cost: float = max([link.cost for link in links])
+        self.nodes: List[Node] = nodes 
+        self.links: List[Link] = links # all the possible links
+        self.start_point: Node = start_point # place where collection must start and end
+        self.max_cost: float = max([link.cost for link in links])
     
     # get only the links that connect two nodes that need servicing
     # might not need this
@@ -76,7 +95,7 @@ class Network:
     def get_cost(self, node1: Node, node2: Node) -> float:
         for link in self.links: 
             if link.is_link(node1, node2): return link.cost 
-        return self.mac_cost # should not happen as all nodes should have a link connecting them
+        return self.max_cost # should not happen as all nodes should have a link connecting them
         # TODO decide whether there needs to be something handling the function being called on the node with itself. Can it happen?
     
     def get_link(self, node1: Node, node2: Node) -> Link: 
@@ -84,20 +103,29 @@ class Network:
             if link.is_link(node1, node2): return link
         # return nothing otherwise because the two nodes MUST have a link connecting them 
     
+    def check_emptying(self) -> None :
+        for node in self.nodes:
+            if node.fullness >= node.at_capacity: node.needs_emptying = True 
+
     def min_cost(self, costs: Dict[Node, Tuple[float, Link]]) -> Node: 
         min_cost: float = self.max_cost
         min_node: Node = self.start_point
         for node, cost in costs.items(): 
-            if cost[1] < min_cost: 
+            if cost[0] < min_cost: 
                 min_node = node
-                min_cost = cost[1]
+                min_cost = cost[0]
         return min_node
 
-    def update_costs(self, node: Node, nodes: List[Node], costs: Dict[Node, Tuple[float, Link]]) -> None: 
+    def update_costs(self, node: Node, nodes: List[Node], costs: Dict[Node, Tuple[float, Link]]) -> Dict[Node, Tuple[float, Link]]:
+        new_costs = {}
         for new_node in nodes: 
             cost = self.get_cost(node, new_node)
             if cost < costs[new_node][0]: 
-                costs[new_node] = (cost, self.get_link(node, new_node))
+                link = self.get_link(node, new_node)
+                new_costs[new_node] = (cost, link)
+            else: 
+                new_costs[new_node] = costs[new_node]
+        return new_costs
     
     def init_costs(self, active_nodes: List[Node]) -> Dict[Node, Tuple[float, Link]]: 
         costs: List[Tuple[float, Link]] = []
@@ -108,23 +136,38 @@ class Network:
         return dict(zip(active_nodes, costs))
 
     def prims_mst(self) -> Tuple[List[Link], List[Node]]:
+        self.check_emptying()
         active_nodes: List[Node] = [node for node in self.nodes if node.needs_emptying]
+        for node in active_nodes: 
+            print("active node", node)
         # starts with start_point, initialise the cost dict to hold all the distances from the start 
         mst_links: List[Link] = []
-        mst_nodes: List[Node] = [self.start_point]
+        mst_nodes: List[Node] = []
         costs: Dict[Node, Tuple[float, Link]] = self.init_costs(active_nodes)
         while len(active_nodes) != 0: 
-            min_cost_node = self.min_cost(costs)
-            mst_links.append(costs[min_cost_node][1])
-            mst_nodes.append(min_cost_node)
-            active_nodes.remove(min_cost_node)
-            self.update_costs(min_cost_node, active_nodes, costs)
+            if len(mst_nodes) == 0: 
+                costs: Dict[Node, Tuple[float, Link]] = self.init_costs(active_nodes)
+                mst_nodes.append(self.start_point)
+                active_nodes.remove(self.start_point)
+            else:
+                min_cost_node = self.min_cost(costs)
+                print("min cost node", min_cost_node)
+                link = costs[min_cost_node][1]
+                node1, node2 = link.nodes
+                mst_links.append(link)
+                # by appending them both it will be easier to keep track of 
+                # nodes with more than two links (they should all appear two times
+                # by the end of the algorithm)
+                mst_nodes.append(node1)
+                mst_nodes.append(node2)
+                active_nodes.remove(min_cost_node)
+                costs = self.update_costs(min_cost_node, active_nodes, costs)
         return (mst_links, mst_nodes)
 
     
     def get_odd(self, links: List[Link], nodes: List[Node]) -> Tuple[List[Node], List[Link]]:
         links_by_node = links_per_node(links, nodes)
-        odd_nodes: List[Node] = [node for node in nodes if links_by_node[node] % 2 != 0]
+        odd_nodes: List[Node] = [node for node in nodes if len(links_by_node[node]) % 2 != 0]
         odd_links = []
         for node in odd_nodes: 
             odd_links.extend(links_by_node[node])
@@ -163,15 +206,36 @@ class Network:
                     relaxed_n
                 # there is a problem with the other node already being in the relaxed nodes, how do you handle it, is there a way to avoid it?
 
+    def christofides(self):
+        # prims to get mst 
+        mst_links, mst_nodes = self.prims_mst()
+        # get all vertices with odd number of connections 
+        links_odd, nodes_odd = self.get_odd(mst_links, mst_nodes)
+        # instantiate networx graph 
+        graph = nx.Graph()
+        # add nodes 
+        graph.add_nodes_from(nodes_odd)
+        # add links 
+        for link in links_odd: 
+            graph.add_edge(link.nodes[0], link.nodes[1], weight=link.cost)
+        # get minimum weight perfect matching and add the nodes and links to the lists 
+        min_w = nx.min_weight_matching(graph)
+        mwpf_links = []
+        for (node1, node2) in min_w: 
+            link = self.get_link(node1, node2)    
+            mwpf_links.append(link)    
+        # add nodes and links to mst nodes and links 
+        mst_links.extend(mwpf_links)
+        mst_nodes.extend(nodes_odd)
+        # do relaxation 
 
-
-        
+       
 
 def links_per_node(links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
     links_by_node: Dict[Node, int] = {}
     for node in nodes: 
         node_links = [link for link in links if link.is_link(node)]
-        links_by_node[node] = len(node_links)
+        links_by_node[node] = node_links
     return links_by_node
 
 class PerfectMatching: 
@@ -194,7 +258,7 @@ class PerfectMatching:
         self.cost = cost
         
     def perfect_matching(self, links_unmatched) -> bool: 
-        print("links unmatched, beginning of call ", len(links_unmatched))
+        #print("links unmatched, beginning of call ", len(links_unmatched))
         for link in links_unmatched:
             # save initial state 
             # TODO add things to save as you go 
@@ -204,10 +268,10 @@ class PerfectMatching:
             cost_init = deepcopy(self.cost)
 
             # add link to the list of matched links and update cost
-            for link_matched in self.links_matched: 
-                print("matched: ", link_matched)
+            #for link_matched in self.links_matched: 
+                #print("matched: ", link_matched)
             self.links_matched.append(link)
-            print("appended link:", link)
+            #print("appended link:", link)
             node1, node2 = link.nodes
             # add to nodes that have been matched already
             self.nodes_matched.append(node1)
@@ -219,17 +283,18 @@ class PerfectMatching:
             self.cost += link.cost
             if self.cost >= self.curr_best_cost: 
                 self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)
-                print("can't be better")
+                #print("can't be better")
                 return False
             
             # remove links with the nodes that have just been added
             next_links = []
             for available_link in links_unmatched[1:]:
                 if available_link.is_link(node1) or available_link.is_link(node2): 
-                    print("is link of chosen", available_link)
+                    #print("is link of chosen", available_link)
+                    pass
                 else:
                     next_links.append(available_link)
-            print("next links", len(next_links))
+            #print("next links", len(next_links))
             
             # check that all the unmatched node have at least one link in the available ones
             # this might be unnecessary as as long as there is a node there will be a link
@@ -237,7 +302,7 @@ class PerfectMatching:
             for node in self.to_match: 
                 if node not in links_by_node.keys(): 
                     self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)
-                    print("missing node")
+                    #print("missing node")
                     return False 
             
             #available_link_init = deepcopy(links_unmatched)
@@ -251,23 +316,16 @@ class PerfectMatching:
         # all possible links have been used
         # check that all nodes have been matched ù
         # TODO determine how to handle the possibility of having odd nodes 
-        print("to match at the end: ", self.to_match)
+        #print("to match at the end: ", self.to_match)
         if len(self.to_match) == 0: 
             if self.cost < self.curr_best_cost: 
-                print("new best ", self.cost)
+                #print("new best ", self.cost)
                 self.curr_best_cost = self.cost 
                 self.curr_best_links = self.links_matched
                 self.curr_best_nodes = self.nodes_matched
             return True
         else: 
-            print("stuff to match still")
+            #print("stuff to match still")
             return False
         
-
-
-
-
-            
-
-
 

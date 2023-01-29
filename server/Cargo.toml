@@ -19,11 +19,15 @@ serde = { version = "1.0.152", features = ["derive"] }
 toml = "0.6.0"
 
 # Database
-diesel = { version = "2.0.0", features = ["sqlite"] }
-dotenvy = "0.15"
+sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-native-tls"] }
+sea-orm-migration = "0.10.7"
 
 [build-dependencies]
+tokio = { version = "1.24.2", features = ["full"] }
 tonic-build = "0.8"
+sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-native-tls"] }
+sea-orm-migration = "0.10.7"
+sea-orm-entity-generator = { git = "https://github.com/harry1453/sea-orm-entity-generator", rev = "117317d" }
 
 [dev-dependencies]
 tempfile = "3.3.0"

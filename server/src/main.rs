@@ -5,14 +5,17 @@ use std::sync::Arc;
 use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
 use crate::config::Config;
+use crate::db::Database;
 
 mod config;
+mod db;
 mod http_server;
 mod grpc_server;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
     let config = load_config();
+    let db = Database::new().await.unwrap();
 
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));

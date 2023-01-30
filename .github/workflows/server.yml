@@ -32,7 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: jpribyl/action-docker-layer-caching@v0.1.1
-      continue-on-error: true
-    - name: Build the Docker image
-      run: DOCKER_BUILDKIT=1 docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Docker Build
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: false
+        tags: "harry1453/es1-server:latest"
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

@@ -34,7 +34,7 @@ async fn main() {
         _ = grpc_server_handle => { println!("gRPC Server Stopped! Shutting down."); }
         _ = data_handler_handle => { println!("Data Handler Stopped! Shutting down."); }
     }
-    println!("lul");
+    println!("lul2");
 
     exit(3);
 }

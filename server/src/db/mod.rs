@@ -20,6 +20,7 @@ impl Database {
         let db_url = if let Ok(db_file) = env::var(DB_PATH_ENV_NAME) {
             format!("sqlite://{db_file}?mode=rwc")
         } else {
+            eprintln!("Warning: Using in-memory database. Data will be lost when server stops");
             "sqlite::memory:".to_string()
         };
         let db = SeaOrmDatabase::connect(db_url).await?;

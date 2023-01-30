@@ -39,7 +39,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: /tmp/buildkit-cache/buildkit-state.tar
-        key: ${{ runner.os }}-buildx-${{ github.ref }}
+        key: ${{ runner.os }}-buildx-${{ github.ref }}-${{ github.run_id }}
         restore-keys: |
           ${{ runner.os }}-buildx-${{ github.ref }}
           ${{ runner.os }}-buildx-
@@ -48,7 +48,7 @@ jobs:
       with:
         builder: buildx_buildkit_${{ steps.buildx.outputs.name }}0
         cache-path: /tmp/buildkit-cache
-        cache-max-size: 2g
+        cache-max-size: 3g
     - name: Docker Build
       uses: docker/build-push-action@v3
       with:

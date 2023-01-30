@@ -7,13 +7,16 @@ const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default)]
     pub network: NetworkConfig,
     pub email: EmailConfig,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NetworkConfig {
+    #[serde(default)]
     pub http_port: u16,
+    #[serde(default)]
     pub grpc_port: u16,
 }
 
@@ -33,7 +36,9 @@ pub enum EmailSecurity {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EmailConfig {
     pub smtp_server_address: String,
+    #[serde(default)]
     pub smtp_server_port: u16,
+    #[serde(default)]
     pub smtp_security: EmailSecurity,
     pub smtp_username: String,
     pub smtp_password: String,

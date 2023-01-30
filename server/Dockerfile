@@ -1,7 +1,7 @@
 FROM rust:alpine AS build
 # musl-dev is required in order to dynamically link proc_macro crates
 # openssl-dev is required for SeaORM
-RUN apk add --no-cache musl-dev protoc openssl-dev
+RUN apk add --no-cache musl-dev protoc
 WORKDIR /build
 # Build the project
 COPY . .

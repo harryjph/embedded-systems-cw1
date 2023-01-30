@@ -33,6 +33,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Docker BuildX
+      id: buildx
       uses: docker/setup-buildx-action@v2
     - name: Enable Buildkit caches
       uses: actions/cache@v3
@@ -52,7 +53,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: server/
-        push: false
+        push: false # ${{ github.event_name != 'pull_request' }}
         tags: "harry1453/es1-server:latest"
         cache-from: type=gha
         cache-to: type=gha,mode=max

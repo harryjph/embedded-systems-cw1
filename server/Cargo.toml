@@ -9,25 +9,32 @@ strip = true
 lto = "fat"
 
 [dependencies]
+# Async
 tokio = { version = "1.24.2", features = ["full"] }
 futures-util = "0.3.25"
+# HTTP Server
 warp = "0.3.3"
+# gRPC Server
 tonic = "0.8.3"
 tonic-reflection = "0.6.0"
 prost = "0.11.6"
+# serde
 serde = { version = "1.0.152", features = ["derive"] }
 toml = "0.7.0"
-
+# Email
+lettre = { version = "0.10.2", default-features = false, features = ["tokio1", "rustls-tls", "tokio1-rustls-tls", "smtp-transport", "pool", "hostname", "builder"] }
 # Database
-sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-native-tls"] }
+sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-rustls"] }
 sea-orm-migration = "0.10.7"
 
 [build-dependencies]
+# gRPC
 tokio = { version = "1.24.2", features = ["full"] }
 tonic-build = "0.8"
-sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-native-tls"] }
+# Database
+sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-rustls"] }
 sea-orm-migration = "0.10.7"
-sea-orm-entity-generator = { git = "https://github.com/harry1453/sea-orm-entity-generator", rev = "117317d" }
+sea-orm-entity-generator = { git = "https://github.com/harry1453/sea-orm-entity-generator", rev = "82d6629", features = ["runtime-tokio-rustls"] }
 
 [dev-dependencies]
 tempfile = "3.3.0"

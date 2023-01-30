@@ -37,7 +37,7 @@ jobs:
     - name: Docker Build
       uses: docker/build-push-action@v3
       with:
-        context: .
+        context: server/
         push: false
         tags: "harry1453/es1-server:latest"
         cache-from: type=gha

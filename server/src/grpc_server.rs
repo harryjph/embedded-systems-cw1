@@ -1,11 +1,12 @@
 use std::net::{Ipv4Addr, SocketAddrV4};
+use std::sync::atomic::{AtomicU32, Ordering};
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tonic::{Request, Response, Status, Streaming};
 use tonic::transport::Server;
 use futures_util::StreamExt;
 use crate::config::Config;
-use self::grpc_generated::{Empty, EnvironmentData};
+use self::grpc_generated::{Empty, EnvironmentData, NodeId};
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 
 pub fn launch(config: Config, data_sink: Sender<(f32, f32)>) -> JoinHandle<()> {
@@ -22,7 +23,7 @@ async fn start_server(config: Config, data_sink: Sender<(f32, f32)>) {
 
     Server::builder()
         .add_service(reflection_service)
-        .add_service(NodeApiServer::new(NodeApiImpl { data_sink }))
+        .add_service(NodeApiServer::new(NodeApiImpl { data_sink, node_max_id: AtomicU32::new(0) }))
         .serve(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, config.network.grpc_port).into())
         .await.unwrap();
 }
@@ -34,7 +35,8 @@ mod grpc_generated {
 }
 
 pub struct NodeApiImpl {
-    data_sink: Sender<(f32, f32)>
+    data_sink: Sender<(f32, f32)>,
+    node_max_id: AtomicU32,
 }
 
 #[tonic::async_trait]
@@ -46,5 +48,10 @@ impl NodeApi for NodeApiImpl {
             self.data_sink.send((data.temperature, data.relative_humidity)).await.unwrap();
         }
         Ok(Response::new(Empty::default()))
+    }
+
+    async fn assign_id(&self, _request: Request<Empty>) -> Result<Response<NodeId>, Status> {
+        println!("Assigned an id!");
+        Ok(Response::new(NodeId{ id: self.node_max_id.fetch_add(1, Ordering::Relaxed) }))
     }
 }

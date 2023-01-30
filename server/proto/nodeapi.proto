@@ -5,9 +5,14 @@ message Empty {}
 
 service NodeAPI {
   rpc ReportEnvironment(stream EnvironmentData) returns (Empty);
+  rpc AssignId(Empty) returns (NodeId);
 }
 
 message EnvironmentData {
   float temperature = 1;
   float relativeHumidity = 2;
+}
+
+message NodeId{
+  uint32 id = 1;
 }

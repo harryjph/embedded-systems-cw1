@@ -5,6 +5,7 @@ RUN apk add --no-cache musl-dev protoc openssl-dev
 WORKDIR /build
 # Build the project
 COPY . .
+ENV CARGO_TERM_COLOR=always
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/build/target \
     cargo build --release \

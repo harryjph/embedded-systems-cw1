@@ -1,0 +1,57 @@
+import 'C:/Users/Orkun/functional_circles/src/App.css';
+
+//  Page Routing Support
+import {BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
+//  Import Components
+import Bins from './Components/Bins.js';
+
+//  Import Navigation
+import MainNavigation from './Components/Layout/MainNavigation.js';
+
+//  Import Pages
+import AddBinsFormPage from './pages/AddBinsForm.js';
+import AllBinsPage from './pages/AllBins.js';
+import MyBinsPage from './pages/MyBins.js';
+
+import { Switch } from 'react-native-web';
+
+const data = {
+  content: {
+    body: [
+      {
+        _uid: "1",
+        _val: "73",
+      },
+      {
+        _uid: "2",
+        _val: "25",
+      },
+      {
+        _uid: "3",
+        _val: "42",
+      }
+    ]
+  }
+};
+
+function App() {
+  return (
+
+  <div>
+    <BrowserRouter>
+      <MainNavigation />
+      <Routes>
+        {/* All avaliable bins (TODO: Home-page) */}
+          <Route path='/' element={<AllBinsPage/>} />
+        {/* My Bins */}
+          <Route path='/my-bins' element={<MyBinsPage/>} />
+        {/* *Internal tool* Form page to add bins */}
+          <Route path='/internal-tool-form' element={<AddBinsFormPage/>} />
+      </Routes>
+    </BrowserRouter>
+  </div>
+  );
+}
+
+export default App;

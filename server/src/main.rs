@@ -6,16 +6,19 @@ use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
 use crate::config::Config;
 use crate::db::Database;
+use crate::mailer::Mailer;
 
 mod config;
 mod db;
 mod http_server;
 mod grpc_server;
+mod mailer;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
     let config = load_config();
     let db = Database::new().await.unwrap();
+    let mailer = Mailer::new(config.email.clone());
 
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));

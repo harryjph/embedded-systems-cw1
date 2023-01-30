@@ -7,20 +7,39 @@ const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default)]
     pub network: NetworkConfig,
     pub email: EmailConfig,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NetworkConfig {
+    #[serde(default)]
     pub http_port: u16,
+    #[serde(default)]
     pub grpc_port: u16,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum EmailSecurity {
+    /// Initiates a TLS connection
+    #[serde(rename = "tls")]
+    TLS,
+    /// Initiates a plaintext connection and upgrades using the "STARTTLS" command
+    #[serde(rename = "starttls")]
+    StartTLS,
+    /// No encryption
+    #[serde(rename = "none")]
+    None
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EmailConfig {
     pub smtp_server_address: String,
+    #[serde(default)]
     pub smtp_server_port: u16,
+    #[serde(default)]
+    pub smtp_security: EmailSecurity,
     pub smtp_username: String,
     pub smtp_password: String,
 }
@@ -34,11 +53,18 @@ impl Default for NetworkConfig {
     }
 }
 
+impl Default for EmailSecurity {
+    fn default() -> Self {
+        EmailSecurity::TLS
+    }
+}
+
 impl Default for EmailConfig {
     fn default() -> Self {
         EmailConfig {
             smtp_server_address: "example.com".to_string(),
             smtp_server_port: 465,
+            smtp_security: Default::default(),
             smtp_username: "username".to_string(),
             smtp_password: "password".to_string(),
         }

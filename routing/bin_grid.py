@@ -63,6 +63,10 @@ class Link:
     def __str__(self):
         return "cost: " + str(self.cost) +", node1: x: " + str(self.nodes[0].x_coord) + " y: "+ str(self.nodes[0].y_coord)+ ", node2: x: " + str(self.nodes[1].x_coord) + " y: "+ str(self.nodes[1].y_coord)+ "\n"
     
+    def __eq__(self, other):
+        if self.nodes == other.nodes and self.cost == other.cost: return True
+        else: return False
+
     def get_cost(self):
         delta_x = (self.nodes[0].x_coord - self.nodes[1].x_coord)**2
         delta_y = (self.nodes[0].y_coord - self.nodes[1].y_coord)**2
@@ -74,6 +78,10 @@ class Link:
             else: return False 
         if node1 in self.nodes and node2 in self.nodes : return True 
         else: return False
+    
+    def other_node(self, node): 
+        others = [node1 for node1 in self.nodes if node1 != node]
+        return others[0]
     
 
 
@@ -175,16 +183,20 @@ class Network:
         # need to find out which algorithm can be used to find minimum weight perfect matching tree
         # right now looking at edmond's blossom algorithm but seems quite complex (LP formulation)
     
-    def is_relaxed(node, relaxed_links) -> bool :
+    def is_relaxed(self, node, relaxed_links) -> bool :
         node_links = []
         for link in relaxed_links: 
             if node in link.nodes: 
                 node_links.append(link)
+        if len(node_links) > 2:
+            print("too long node links")
+            for link in node_links:
+                print(link)
         assert len(node_links) <= 2
         if len(node_links) == 2: return True
         else: return False
 
-    def is_entered(node, relaxed_links) -> bool:
+    def is_entered(self, node, relaxed_links) -> bool:
         node_links = []
         for link in relaxed_links: 
             if node in link.nodes: 
@@ -194,14 +206,14 @@ class Network:
         else: return False
 
 
-    def remove_links_relaxed(node, relaxed_nodes, remaining_links):
+    def remove_links_relaxed(self, node, relaxed_nodes, remaining_links):
         node_links = [link for link in remaining_links if node in link.nodes]
         for node2 in relaxed_nodes: 
             links = [link for link in node_links if node2 in link.nodes]
             for link in links: 
                 remaining_links.remove(link)
     
-    def is_closing_link(self, link, relaxed_links):
+    def is_closing_link(self, link, relaxed_links) -> bool:
         node1, node2 = link.nodes
         if self.is_entered(node1, relaxed_links) and self.is_entered(node2, relaxed_links): return True
         else: return False
@@ -213,47 +225,69 @@ class Network:
         remaining_links: List[Link] = deepcopy(links)
         remaining_nodes: List[Link] = deepcopy(nodes)
         for link in links: 
+            print("relaxed so far")
+            for link_rel in relaxed_links: 
+                print(link_rel)
+            print("current lin", link)
+            print("is closing link? ", self.is_closing_link(link, relaxed_links))
             if link in remaining_links:
                 node1, node2 = link.nodes
                 if node1 and node2 in relaxed_nodes:
+                    print("relaxed")
                     continue 
                 # if it's the closing link it can't be relaxed (will be done at the end)
-                elif self.is_closing_link(link, relaxed_links):
+                elif self.is_closing_link(link, relaxed_links) or node1 in relaxed_nodes or node2 in relaxed_nodes:
                     # arbitrarily choose node1 as the one that we are going to substitute
-                    node_rel = node1
-                    node_next = node2
+                    if node1 in relaxed_nodes: 
+                        node_rel = node1
+                        node_next = node2
+                    else: 
+                        node_rel = node2
+                        node_next = node1
                     # get all the possible nodes that could be reached from node1 (that haven't been relaxed yet )
                     # there should always be one becasue the previous part of the algorithm ensured that each node 
                     # had an even number of connections 
-                    by_node = links_per_node(remaining_links, remaining_nodes@[node_rel])
+                    by_node = links_per_node(remaining_links, remaining_nodes, node_rel)
                     node_rel_links = by_node[node_rel]
+                    node_rel_links = [link for link in node_rel_links if not self.is_closing_link(link, relaxed_links)]
+                    node_rel_links = [link for link in node_rel_links if node_next not in link.nodes]
                     # get the shortest possible link from node1
-                    node_rel_neighbour = min(node_rel_links)
+                    node_rel_links.sort(key=lambda x: x.cost)
+                    if len(node_rel_links) == 0: 
+                        # it means the only available ones are closing nodes 
+                        continue 
+                    node_rel_neighbour = node_rel_links[0]
                     # get the nearest non-relaxed neighbour of node1
-                    node_alt = [node for node in node_rel_neighbour.nodes if node != node_rel]
+                    node_alt = [node for node in node_rel_neighbour.nodes if node != node_rel][0]
                     # get its link with node2 (this can be obtained among all the links)
                     new_link = self.get_link(node_next, node_alt)
+                    print("node next" ,node_next )
+                    print("node alt" ,node_alt)
+                
+                    print("new link", new_link)
                     relaxed_links.append(new_link)
+                    print("relaxed links", relaxed_links)
                     # remove the two current links from the next possible ones
                     remaining_links.remove(link)
                     if new_link in remaining_links: remaining_links.remove(new_link)
                     # check if any of the two nodes can now be relaxed 
                     # (in which case remove from remaining links all the links between the relaxed nodes)
-                    if self.is_relaxed(node_alt): 
+                    if self.is_relaxed(node_alt, relaxed_links): 
                         self.remove_links_relaxed(node_alt, remaining_links)
                         relaxed_nodes.append(node_alt)
-                    if self.is_relaxed(node_next):
+                    if self.is_relaxed(node_next, relaxed_links):
                         self.remove_links_relaxed(node_next, remaining_links)
                         relaxed_nodes.append(node_next)
                 else: 
+                    print("base")
                     relaxed_links.append(link)
                     remaining_links.remove(link)
                     # check if adding this made the nodes relaxed
-                    if self.is_relaxed(node1): 
-                        self.remove_links_relaxed(node1, remaining_links)
+                    if self.is_relaxed(node1, relaxed_links): 
+                        self.remove_links_relaxed(node1, relaxed_nodes, remaining_links)
                         relaxed_nodes.append(node1)
-                    if self.is_relaxed(node2):
-                        self.remove_links_relaxed(node2, remaining_links)
+                    if self.is_relaxed(node2, relaxed_links):
+                        self.remove_links_relaxed(node2, relaxed_nodes, remaining_links)
                         relaxed_nodes.append(node2)
         last_nodes = [node for node in nodes if node not in relaxed_nodes]
         assert len(last_nodes) == 2
@@ -284,104 +318,36 @@ class Network:
         mst_nodes.extend(nodes_odd)
         # do relaxation 
 
+    def euler_tour(self, links):
+        sorted_links = [links[0]]
+        start_node = links[0]
+        last_node = links[0].nodes[0]
+        links = [link for link in links if link != links[0]]
+        while len(links) != 0: 
+            print("relaxed so far")
+            for link in sorted_links: print(link)
+            other = sorted_links[-1].other_node(last_node)
+            possible_links = [link for link in links if other in link.nodes and last_node not in link.nodes]
+            next_link = possible_links[0]
+            sorted_links.append(next_link)
+            # this should also handle double links to make a proper Euler tour
+            links = [link for link in links if link != next_link]
+            print("links after filtering")
+            for link in links: print(link)
+            last_node  = other 
+        
+        return sorted_links
+
+
+
        
 # TODO add this back to class, should not be needed outside
-def links_per_node(links: List[Link], nodes: List[Node]) -> Dict[Node, int]:
+def links_per_node(links: List[Link], nodes: List[Node], node_rel=None) -> Dict[Node, int]:
+    if nodes is not None:
+        nodes.append(node_rel)
     links_by_node: Dict[Node, int] = {}
     for node in nodes: 
         node_links = [link for link in links if link.is_link(node)]
         links_by_node[node] = node_links
     return links_by_node
-
-# TODO delete :(
-class PerfectMatching: 
-    def __init__(self, nodes: List[Node], links: List[Link], max_price: float):
-        self.to_match: List[Node] = nodes
-        self.links: List[Link] = links
-        self.nodes: List[Node] = nodes # to go back to the initial state 
-        self.curr_best_cost: float = max_price
-        self.curr_best_nodes: List[Node] = []
-        self.curr_best_links: List[Link] = []
-        self.nodes_matched: List[Node] = []
-        self.links_matched: List[Link] = []
-        self.cost: float = 0.0
-        self.max_cost: float = max_price
-
-    def undo(self, to_match, matched, nodes_matched, cost): 
-        self.to_match = to_match
-        self.nodes_matched = nodes_matched
-        self.links_matched = matched
-        self.cost = cost
-        
-    def perfect_matching(self, links_unmatched) -> bool: 
-        #print("links unmatched, beginning of call ", len(links_unmatched))
-        for link in links_unmatched:
-            # save initial state 
-            # TODO add things to save as you go 
-            to_match_init = deepcopy(self.to_match)
-            matched_init = deepcopy(self.links_matched)
-            nodes_matched_init = deepcopy(self.nodes_matched)
-            cost_init = deepcopy(self.cost)
-
-            # add link to the list of matched links and update cost
-            #for link_matched in self.links_matched: 
-                #print("matched: ", link_matched)
-            self.links_matched.append(link)
-            #print("appended link:", link)
-            node1, node2 = link.nodes
-            # add to nodes that have been matched already
-            self.nodes_matched.append(node1)
-            self.nodes_matched.append(node2)
-            self.to_match.remove(node1)
-            self.to_match.remove(node2)
-
-            # check cost is not worse than the best one
-            self.cost += link.cost
-            if self.cost >= self.curr_best_cost: 
-                self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)
-                #print("can't be better")
-                return False
-            
-            # remove links with the nodes that have just been added
-            next_links = []
-            for available_link in links_unmatched[1:]:
-                if available_link.is_link(node1) or available_link.is_link(node2): 
-                    #print("is link of chosen", available_link)
-                    pass
-                else:
-                    next_links.append(available_link)
-            #print("next links", len(next_links))
-            
-            # check that all the unmatched node have at least one link in the available ones
-            # this might be unnecessary as as long as there is a node there will be a link
-            links_by_node = links_per_node(next_links, self.to_match)
-            for node in self.to_match: 
-                if node not in links_by_node.keys(): 
-                    self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)
-                    #print("missing node")
-                    return False 
-            
-            #available_link_init = deepcopy(links_unmatched)
-            
-            # call the recursion
-            self.perfect_matching(next_links)
-            # undo for next attempt (as not only we need a valid perfect match, but also the minimum one)
-            self.undo(to_match_init, matched_init, nodes_matched_init, cost_init)    
-                
-
-        # all possible links have been used
-        # check that all nodes have been matched ù
-        # TODO determine how to handle the possibility of having odd nodes 
-        #print("to match at the end: ", self.to_match)
-        if len(self.to_match) == 0: 
-            if self.cost < self.curr_best_cost: 
-                #print("new best ", self.cost)
-                self.curr_best_cost = self.cost 
-                self.curr_best_links = self.links_matched
-                self.curr_best_nodes = self.nodes_matched
-            return True
-        else: 
-            #print("stuff to match still")
-            return False
-        
 

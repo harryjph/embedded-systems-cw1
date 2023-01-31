@@ -100,3 +100,24 @@ def get_instances_2():
     links.append(link45)
     return (links, nodes)
 
+def get_instances_3(): 
+    nodes = []
+    links = []
+    node1 = Node(1, 0, 1)
+    nodes.append(node1)
+    node2 = Node(2, 0, 1)
+    nodes.append(node2)
+    node3 = Node(3, 0, 1)
+    nodes.append(node3)
+    node4 = Node(4, 0, 1)
+    nodes.append(node4)
+    node5 = Node(5, 0, 1)
+    nodes.append(node5)
+    link12 = Link((node1, node2), 3)
+    link13 = Link((node1, node2), 3)
+    link12 = Link((node1, node2), 3)
+    link12 = Link((node1, node2), 3)
+    link12 = Link((node1, node2), 3)
+    link12 = Link((node1, node2), 3)
+    link12 = Link((node1, node2), 3)
+    return links

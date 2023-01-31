@@ -61,4 +61,55 @@ def test_get_odd():
     assert Link((nodes[2], nodes[3])) in odd_links
     assert nodes[2] not in odd_nodes
 
-test_get_odd()
+#def test_relaxing():
+#    links , nodes = get_instances_2()
+#    all_links = []
+#    nw = Network(nodes, links, nodes[0])
+#    all_links.append(nw.get_link(nodes[0], nodes[1]))
+#    all_links.append(nw.get_link(nodes[0], nodes[2]))
+#    all_links.append(nw.get_link(nodes[0], nodes[3]))
+#    all_links.append(nw.get_link(nodes[0], nodes[4]))
+#    all_links.append(nw.get_link(nodes[1], nodes[2]))
+#    all_links.append(nw.get_link(nodes[3], nodes[4]))
+#    final_links = nw.relax_double(all_links, nodes)
+#    assert nw.get_link(nodes[0], nodes[1]) in final_links
+#    assert nw.get_link(nodes[0], nodes[2]) in final_links
+#    assert nw.get_link(nodes[0], nodes[3]) in final_links
+#    assert nw.get_link(nodes[0], nodes[4]) in final_links
+#    assert nw.get_link(nodes[3], nodes[4]) in final_links
+#    assert nw.get_link(nodes[1], nodes[2]) in final_links
+
+def test_euler_1():
+    links, nodes = get_instances_2()
+    nw = Network(nodes, links, nodes[0])
+    all_links = []
+    nw = Network(nodes, links, nodes[0])
+    all_links.append(nw.get_link(nodes[0], nodes[1]))
+    all_links.append(nw.get_link(nodes[0], nodes[2]))
+    all_links.append(nw.get_link(nodes[0], nodes[3]))
+    all_links.append(nw.get_link(nodes[0], nodes[4]))
+    all_links.append(nw.get_link(nodes[1], nodes[2]))
+    all_links.append(nw.get_link(nodes[3], nodes[4]))
+    for link in all_links: print(link)
+    euler_tour = nw.euler_tour(all_links)
+    assert len(euler_tour) == 6
+
+def test_euler_2():
+    links, nodes = get_instances_2()
+    nw = Network(nodes, links, nodes[0])
+    all_links = []
+    nw = Network(nodes, links, nodes[0])
+    all_links.append(nw.get_link(nodes[0], nodes[1]))
+    all_links.append(nw.get_link(nodes[0], nodes[2]))
+    all_links.append(nw.get_link(nodes[0], nodes[3]))
+    all_links.append(nw.get_link(nodes[0], nodes[4]))
+    all_links.append(nw.get_link(nodes[1], nodes[2]))
+    all_links.append(nw.get_link(nodes[3], nodes[4]))
+    all_links.append(nw.get_link(nodes[3], nodes[4]))
+    for link in all_links: print(link)
+    euler_tour = nw.euler_tour(all_links)
+    assert len(euler_tour) == 6
+
+
+
+    

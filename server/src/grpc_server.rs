@@ -8,6 +8,7 @@ use futures_util::StreamExt;
 use crate::config::Config;
 use crate::db::Database;
 use self::grpc_generated::{Empty, EnvironmentData, NodeId};
+use crate::utils;
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 
 pub fn launch<'a>(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) -> JoinHandle<()> {

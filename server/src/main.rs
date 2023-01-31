@@ -13,6 +13,7 @@ mod db;
 mod http_server;
 mod grpc_server;
 mod mailer;
+mod utils;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {

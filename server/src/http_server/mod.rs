@@ -7,6 +7,7 @@ use axum::routing::get;
 use itertools::Itertools;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
+use tower_http::cors::{Any, CorsLayer};
 use crate::config::Config;
 use crate::utils;
 
@@ -14,6 +15,10 @@ mod entities;
 
 pub fn launch(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> JoinHandle<()> {
     tokio::spawn(start_server(config, data_list))
+}
+
+struct ServerState {
+    data_list: Arc<RwLock<Vec<(f32, f32)>>>,
 }
 
 async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
@@ -24,15 +29,16 @@ async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
         .route("/bins", get(get_all_bins))
         .route("/bins/:id", get(get_bin))
         .route("/bins/:id/config", get(get_bin_config).post(set_bin_config))
-        .with_state(data_list);
+        .with_state(Arc::new(ServerState { data_list }))
+        .layer(CorsLayer::new().allow_origin(Any));
 
     axum::Server::bind(&utils::all_interfaces(config.network.http_port))
         .serve(router.into_make_service())
         .await.unwrap();
 }
 
-pub async fn get_data(State(data_list): State<Arc<RwLock<Vec<(f32, f32)>>>>) -> impl IntoResponse {
-    let customers = data_list.read().await;
+async fn get_data(State(state): State<Arc<ServerState>>) -> impl IntoResponse {
+    let customers = state.data_list.read().await;
     Json(customers.clone())
 }
 

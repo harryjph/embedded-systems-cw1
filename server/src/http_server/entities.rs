@@ -1,3 +1,4 @@
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -5,8 +6,6 @@ pub struct Bin {
     pub id: u64,
     pub config: BinConfig,
     pub fullness: f64,
-    /// If fullness is above this value, the bin is full
-    pub full_threshold: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,9 +13,12 @@ pub struct BinConfig {
     pub name: String,
     pub latitude: f64,
     pub longitude: f64,
+    /// If fullness is above this value, the bin is full
+    pub full_threshold: f64,
 }
 
 pub fn dummy_data() -> [Bin; 5] {
+    let mut rng = rand::thread_rng();
     [
         Bin {
             id: 1,
@@ -24,9 +26,9 @@ pub fn dummy_data() -> [Bin; 5] {
                 name: "Gilbert".to_string(),
                 latitude: 51.501,
                 longitude: -0.142,
+                full_threshold: 80.0,
             },
-            fullness: 50.0,
-            full_threshold: 80.0,
+            fullness: rng.gen_range(0.0..1.0),
         },
         Bin {
             id: 2,
@@ -34,9 +36,9 @@ pub fn dummy_data() -> [Bin; 5] {
                 name: "Godfried".to_string(),
                 latitude: 51.501,
                 longitude: -0.145,
+                full_threshold: 80.0,
             },
-            fullness: 65.0,
-            full_threshold: 80.0,
+            fullness: rng.gen_range(0.0..1.0),
         },
         Bin {
             id: 3,
@@ -44,9 +46,9 @@ pub fn dummy_data() -> [Bin; 5] {
                 name: "Stephen".to_string(),
                 latitude: 51.498,
                 longitude: -0.177,
+                full_threshold: 81.0,
             },
-            fullness: 95.0,
-            full_threshold: 81.0,
+            fullness: rng.gen_range(0.0..1.0),
         },
         Bin {
             id: 4,
@@ -54,9 +56,9 @@ pub fn dummy_data() -> [Bin; 5] {
                 name: "Fry".to_string(),
                 latitude: 51.470,
                 longitude: -0.454,
+                full_threshold: 90.0,
             },
-            fullness: 85.0,
-            full_threshold: 90.0,
+            fullness: rng.gen_range(0.0..1.0),
         },
         Bin {
             id: 5,
@@ -64,9 +66,9 @@ pub fn dummy_data() -> [Bin; 5] {
                 name: "Norbert".to_string(),
                 latitude: 51.162,
                 longitude: -0.177,
+                full_threshold: 70.0,
             },
-            fullness: 99.0,
-            full_threshold: 70.0,
+            fullness: rng.gen_range(0.0..1.0),
         },
     ]
 }

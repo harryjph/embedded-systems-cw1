@@ -3,6 +3,8 @@ use std::result;
 use async_trait::async_trait;
 
 pub mod si7021;
+pub mod vl53l0x;
+mod driver;
 
 pub type Result<T> = result::Result<T, Box<dyn Error>>;
 
@@ -16,4 +18,10 @@ pub trait TemperatureSensor {
 pub trait HumiditySensor {
     /// Reads the relative humidity as a percentage
     async fn read_humidity(&mut self) -> Result<f32>;
+}
+
+#[async_trait]
+pub trait ProximitySensor {
+    /// Reads the proximity in millimeters
+    async fn read_proximity(&mut self) -> Result<f32>;
 }

@@ -13,7 +13,7 @@ function AddBinsFormPage() {
                 headers: {
                 'Content-Type': 'application/json'
                 }
-            }).then(()=>{console.log("yo"); history('/')});
+            }).then(()=>{console.log("posted form"); history('/')});
     }
 
     return <section>

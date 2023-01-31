@@ -10,6 +10,7 @@ use crate::sensors::{HumiditySensor, TemperatureSensor};
 mod nodeapi;
 mod sensors;
 mod util;
+mod config;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {

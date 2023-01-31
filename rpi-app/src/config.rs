@@ -13,7 +13,7 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config { id: Some(43), url: "https://localhost:1234".to_string() }
+        Config { id: Some(43), url: "https://es1-nodeapi.harryphillips.co.uk".to_string() }
     }
 }
 

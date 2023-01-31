@@ -35,7 +35,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut interval_timer = time::interval(Duration::from_secs(1));
     loop {
-        
         let reading = EnvironmentData { temperature: sensor.read_temperature().await?, relative_humidity: sensor.read_humidity().await? };
         println!("Reading: {reading:?}");
         client_readings_in.send(reading).await?;

@@ -5,6 +5,8 @@ use tokio::task::JoinHandle;
 use warp::Filter;
 use crate::config::Config;
 
+mod entities;
+
 pub fn launch(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> JoinHandle<()> {
     tokio::spawn(start_server(config, data_list))
 }
@@ -22,6 +24,7 @@ fn with_data_list(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extrac
 
 fn routes(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     get_data_route(data_list)
+        .or(get_all_bins_route())
 }
 
 fn get_data_route(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
@@ -34,4 +37,14 @@ fn get_data_route(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extrac
 pub async fn get_data_handler(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> Result<impl warp::Reply, Infallible> {
     let customers = data_list.read().await;
     Ok(warp::reply::json(&*customers))
+}
+
+fn get_all_bins_route() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path("bins")
+        .and(warp::get())
+        .and_then(get_all_bins_handler)
+}
+
+pub async fn get_all_bins_handler() -> Result<impl warp::Reply, Infallible> {
+    Ok(warp::reply::json(&entities::dummy_data()))
 }

@@ -7,7 +7,7 @@ function BinsList(props) {
 
     const [bins, setBins] = useState([]);
 
-    let binsWidgets = props.AllData.map(bin => (<Bins key={bin.id} ID={bin.id} Fullness={bin.fullness}/>));
+    let binsWidgets = props.AllData.map(bin => (<Bins key={bin.id} ID={bin.id} Fullness={bin.fullness * 100}/>));
     
     return (
         <div className='classes.list'>

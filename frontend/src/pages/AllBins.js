@@ -8,7 +8,7 @@ function AllBinsPage() {
     useEffect(() => {
         setIsloading(true);
         fetch(
-                'https://embedded-systems-test-server-default-rtdb.europe-west1.firebasedatabase.app//bins.json',
+                'https://es1.harryphillips.co.uk/bins',
                 ).then(response=> {
                     return response.json();
                 }).then(data => {

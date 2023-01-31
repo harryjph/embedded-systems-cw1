@@ -30,7 +30,7 @@ impl Database {
     }
 
     pub async fn insert_node(
-        &mut self,
+        &self,
         latitude: f64,
         longitude: f64,
     ) -> Result<i32, Box<dyn Error>> {

@@ -1,10 +1,10 @@
-use std::net::{Ipv4Addr, SocketAddrV4};
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tonic::{Request, Response, Status, Streaming};
 use tonic::transport::Server;
 use futures_util::StreamExt;
 use crate::config::Config;
+use crate::utils;
 use self::grpc_generated::{Empty, EnvironmentData};
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 
@@ -23,7 +23,7 @@ async fn start_server(config: Config, data_sink: Sender<(f32, f32)>) {
     Server::builder()
         .add_service(reflection_service)
         .add_service(NodeApiServer::new(NodeApiImpl { data_sink }))
-        .serve(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, config.network.grpc_port).into())
+        .serve(utils::all_interfaces(config.network.grpc_port).into())
         .await.unwrap();
 }
 

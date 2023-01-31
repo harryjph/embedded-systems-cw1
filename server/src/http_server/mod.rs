@@ -1,9 +1,14 @@
-use std::convert::Infallible;
-use std::sync::{Arc};
+use std::sync::Arc;
+use axum::extract::{Path, State};
+use axum::response::IntoResponse;
+use axum::{Json, Router};
+use axum::http::StatusCode;
+use axum::routing::get;
+use itertools::Itertools;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
-use warp::Filter;
 use crate::config::Config;
+use crate::utils;
 
 mod entities;
 
@@ -13,38 +18,30 @@ pub fn launch(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> JoinHa
 
 async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
     println!("Starting HTTP Server on http://localhost:{}", config.network.http_port);
-    warp::serve(routes(data_list))
-        .run(([0, 0, 0, 0], config.network.http_port))
-        .await;
+
+    let router = Router::new()
+        .route("/data", get(get_data))
+        .route("/bins", get(get_all_bins))
+        .route("/bins/:id", get(get_bin))
+        // .route("/bins/:id/config", get(get_bin_config).post(set_bin_config))
+        .with_state(data_list);
+
+    axum::Server::bind(&utils::all_interfaces(config.network.http_port))
+        .serve(router.into_make_service())
+        .await.unwrap();
 }
 
-fn with_data_list(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extract = (Arc<RwLock<Vec<(f32, f32)>>>,), Error = Infallible> + Clone {
-    warp::any().map(move || data_list.clone())
-}
-
-fn routes(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    get_data_route(data_list)
-        .or(get_all_bins_route())
-}
-
-fn get_data_route(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path("data")
-        .and(warp::get())
-        .and(with_data_list(data_list))
-        .and_then(get_data_handler)
-}
-
-pub async fn get_data_handler(data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> Result<impl warp::Reply, Infallible> {
+pub async fn get_data(State(data_list): State<Arc<RwLock<Vec<(f32, f32)>>>>) -> impl IntoResponse {
     let customers = data_list.read().await;
-    Ok(warp::reply::json(&*customers))
+    Json(customers.clone())
 }
 
-fn get_all_bins_route() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path("bins")
-        .and(warp::get())
-        .and_then(get_all_bins_handler)
+pub async fn get_all_bins() -> impl IntoResponse {
+    Json(entities::dummy_data())
 }
 
-pub async fn get_all_bins_handler() -> Result<impl warp::Reply, Infallible> {
-    Ok(warp::reply::json(&entities::dummy_data()))
+pub async fn get_bin(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
+    Ok(Json(entities::dummy_data().into_iter()
+        .find_or_first(|it| it.id == id).ok_or(StatusCode::NOT_FOUND)?
+        .config))
 }

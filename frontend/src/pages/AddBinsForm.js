@@ -1,5 +1,10 @@
+import AddNewBinsForm from "../Components/AddNewBinsForm";
+
 function AddBinsFormPage() {
-    return <div>Add Bins Internal Form Page</div>
+    return <section>
+        <h1>Add Bins Internal Form Page</h1>
+        <AddNewBinsForm/>
+    </section>;
 }
 
 export default AddBinsFormPage;

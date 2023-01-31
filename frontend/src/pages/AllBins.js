@@ -1,4 +1,4 @@
-import BinsList from 'C:/Users/Orkun/functional_circles/src/Components/BinsList.js';
+import BinsList from '../Components/BinsList.js';
 import {useEffect, useState} from "react";
 import axios from 'axios';
 
@@ -47,11 +47,9 @@ const DUMMY_DATA = [
 function AllBinsPage() {
 
     return (
-        <div>
-            <BinsList AllData={DUMMY_DATA}/>
-        </div>
+    <BinsList AllData={DUMMY_DATA}/>
     )
-
+    
 };
 
 export default AllBinsPage;

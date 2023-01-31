@@ -2,6 +2,7 @@ import CircularProgressBar from './CircularProgressBar.js';
 import Modal from './Modal.js';
 import ModalWithRenameSupport from './ModalWithRenameSupport.js';
 import Backdrop from './Backdrop.js';
+import Card from './ui/Card.js';
 
 import classes from './Bins.module.css';
 
@@ -29,7 +30,7 @@ function Bins(props) {
     }
 
     return(
-        <div className='card'>
+        <Card>
           <h2 className={'classes.content'}> ID {props.ID}</h2>
 
 
@@ -47,7 +48,7 @@ function Bins(props) {
 
           {renameBinValue && <ModalWithRenameSupport ID={props.ID} onCancel={closeHandler} onConfirm={closeHandler}/>}
           {(renameBinValue) && <Backdrop onClick={closeHandler}/>}
-        </div>
+        </Card>
     );
 }
 

@@ -1,4 +1,4 @@
-import 'C:/Users/Orkun/functional_circles/src/App.css';
+import './App.css';
 
 //  Page Routing Support
 import {BrowserRouter, Routes, Route, Link } from 'react-router-dom';
@@ -7,7 +7,7 @@ import {BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Bins from './Components/Bins.js';
 
 //  Import Navigation
-import MainNavigation from './Components/Layout/MainNavigation.js';
+import Layout from './Components/Layout/Layout.js';
 
 //  Import Pages
 import AddBinsFormPage from './pages/AddBinsForm.js';
@@ -40,7 +40,7 @@ function App() {
 
   <div>
     <BrowserRouter>
-      <MainNavigation />
+      <Layout />
       <Routes>
         {/* All avaliable bins (TODO: Home-page) */}
           <Route path='/' element={<AllBinsPage/>} />

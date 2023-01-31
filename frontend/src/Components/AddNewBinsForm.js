@@ -3,7 +3,7 @@ import classes from './AddNewBinsForm.module.css'
 
 import {useRef} from 'react';
 
-function AddNewBinsForm() {
+function AddNewBinsForm(props) {
     const binIDInputRef = useRef();
     const binNameInputRef = useRef();
     const binLatInputRef = useRef();
@@ -19,7 +19,7 @@ function AddNewBinsForm() {
         const enteredLong = binLongInputRef.current.value;
         const enteredFullness = binFullnessInputRef.current.value;
 
-        const meetupData = {
+        const binsData = {
             id: enteredID,
             name: enteredName,
             latitude: enteredLat,
@@ -27,7 +27,7 @@ function AddNewBinsForm() {
             fullness: enteredFullness,
         };
 
-        console.log(meetupData);
+        props.onAddBins(binsData);
     }
 
     return <Card>

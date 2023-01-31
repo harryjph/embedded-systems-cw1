@@ -1,11 +1,12 @@
 use i2cdev::core::I2CDevice;
+use crate::util;
 use super::Result;
 
 const DEFAULT_ADDRESS: u8 = 0x29;
 
 /// dummy
 pub struct VL53L0x<I2C: I2CDevice> {
-    com: I2C,
+    device: I2C,
     /// dummy
     pub revision_id: u8,
     io_mode2v8: bool,
@@ -23,14 +24,14 @@ impl<I2C> VL53L0x<I2C>
             I2C: I2CDevice,
     {
         let mut chip = VL53L0x {
-            com: i2c,
+            device: i2c,
             revision_id: 0x00,
             io_mode2v8: true,
             stop_variable: 0,
             measurement_timing_budget_microseconds: 0,
         };
 
-        let wai = chip.who_am_i()?;
+        let wai = chip.read_register(Register::WHO_AM_I)?;
         if wai == 0xEE {
             chip.init_hardware()?;
             // FIXME: return an error/optional
@@ -47,22 +48,20 @@ impl<I2C> VL53L0x<I2C>
         }
     }
 
-    fn read_register(&mut self, reg: Register) -> Result<u8> {
-        let mut data: [u8; 1] = [0];
-        // FIXME:
-        //  * device address is not a const
-        //  * register address is u16
-        self.com.write_read(&[reg as u8], &mut data)?;
-        Ok(data[0])
+    fn write_read(&mut self, bytes: &[u8], buffer: &mut [u8]) -> Result<()> {
+        self.device.write(bytes).map_err(util::stringify_error)?;
+        self.device.read(buffer).map_err(util::stringify_error)
     }
 
     fn read_byte(&mut self, reg: u8) -> Result<u8> {
-        let mut data: [u8; 1] = [0];
-        // FIXME:
-        //  * device address is not a const
-        //  * register address is u16
-        self.com.write_read(&[reg], &mut data)?;
-        Ok(data[0])
+        let mut data: u8 = 0;
+        self.device.write(&[reg]).map_err(util::stringify_error)?;
+        self.device.read(&mut [data]).map_err(util::stringify_error)?;
+        Ok(data)
+    }
+
+    fn read_register(&mut self, reg: Register) -> Result<u8> {
+        self.read_byte(reg as u8)
     }
 
     fn read_6bytes(&mut self, reg: Register) -> Result<[u8; 6]> {
@@ -79,8 +78,7 @@ impl<I2C> VL53L0x<I2C>
     ) -> Result<()> {
         // const I2C_AUTO_INCREMENT: u8 = 1 << 7;
         const I2C_AUTO_INCREMENT: u8 = 0;
-        self.com.write_read(
-            self.address,
+        self.write_read(
             &[(reg as u8) | I2C_AUTO_INCREMENT],
             buffer,
         )?;
@@ -95,47 +93,29 @@ impl<I2C> VL53L0x<I2C>
     }
 
     fn write_byte(&mut self, reg: u8, byte: u8) -> Result<()> {
-        let mut buffer = [0];
-        self.com.write_read(&[reg, byte], &mut buffer)
+        self.device.write(&[reg, byte]).map_err(util::stringify_error)
     }
 
     fn write_register(&mut self, reg: Register, byte: u8) -> Result<()> {
-        let mut buffer = [0];
-        self.com
-            .write_read(&[reg as u8, byte], &mut buffer)
+        self.write_byte(reg as u8, byte)
     }
 
     fn write_6bytes(&mut self, reg: Register, bytes: [u8; 6]) -> Result<()> {
-        let mut buf: [u8; 6] = [0, 0, 0, 0, 0, 0];
-        self.com.write_read(
-            self.address,
-            &[
-                reg as u8, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4],
-                bytes[5],
-            ],
-            &mut buf,
-        )
+        self.device.write(&[reg as u8, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]]).map_err(util::stringify_error)
     }
 
     fn write_16bit(&mut self, reg: Register, word: u16) -> Result<()> {
-        let mut buffer = [0];
-        let msb = (word >> 8) as u8;
+        let msb = (word >> 8) as u8; // TODO byteorder
         let lsb = (word & 0xFF) as u8;
-        self.com
-            .write_read(&[reg as u8, msb, lsb], &mut buffer)
+        self.device.write(&[reg as u8, msb, lsb]).map_err(util::stringify_error)
     }
 
     fn write_32bit(&mut self, reg: Register, word: u32) -> Result<()> {
-        let mut buffer = [0];
-        let v1 = (word & 0xFF) as u8;
+        let v1 = (word & 0xFF) as u8; // TODO byteorder
         let v2 = ((word >> 8) & 0xFF) as u8;
         let v3 = ((word >> 16) & 0xFF) as u8;
         let v4 = ((word >> 24) & 0xFF) as u8;
-        self.com.write_read(
-            self.address,
-            &[reg as u8, v1, v2, v3, v4],
-            &mut buffer,
-        )
+        self.device.write(&[reg as u8, v1, v2, v3, v4]).map_err(util::stringify_error)
     }
 
     fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
@@ -262,9 +242,7 @@ impl<I2C> VL53L0x<I2C>
         &mut self,
     ) -> Result<u16> {
         let mut c = 0;
-        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07)
-            == 0
-        {
+        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
             c += 1;
             if c == 10000 {
                 return Err("Timeout".into());
@@ -278,9 +256,7 @@ impl<I2C> VL53L0x<I2C>
     }
 
     /// readRangeSingleMillimeters (blocking)
-    pub fn read_range_single_millimeters_blocking(
-        &mut self,
-    ) -> Result<u16> {
+    pub fn read_range_single_millimeters_blocking(&mut self, ) -> Result<u16> {
         self.write_byte(0x80, 0x01)?;
         self.write_byte(0xFF, 0x01)?;
         self.write_byte(0x00, 0x00)?;
@@ -548,11 +524,6 @@ impl<I2C> VL53L0x<I2C>
         Ok(())
     }
 
-    /// Returns who am i
-    pub fn who_am_i(&mut self) -> Result<u8> {
-        self.read_register(Register::WHO_AM_I)
-    }
-
     fn get_vcsel_pulse_period(&mut self, ty: VcselPeriodType) -> Result<u8> {
         match ty {
             VcselPeriodType::VcselPeriodPreRange => Ok(decode_vcsel_period(
@@ -679,22 +650,17 @@ impl<I2C> VL53L0x<I2C>
         let enables = self.get_sequence_step_enables()?;
         let timeouts = self.get_sequence_step_timeouts(&enables)?;
 
-        let mut use_budget_microseconds: u32 =
-            (start_overhead + end_overhead) as u32;
+        let mut use_budget_microseconds: u32 = (start_overhead + end_overhead) as u32;
         if enables.tcc {
-            use_budget_microseconds +=
-                timeouts.msrc_dss_tcc_microseconds + tcc_overhead;
+            use_budget_microseconds += timeouts.msrc_dss_tcc_microseconds + tcc_overhead;
         }
         if enables.dss {
-            use_budget_microseconds +=
-                2 * timeouts.msrc_dss_tcc_microseconds + dss_overhead;
+            use_budget_microseconds += 2 * timeouts.msrc_dss_tcc_microseconds + dss_overhead;
         } else if enables.msrc {
-            use_budget_microseconds +=
-                timeouts.msrc_dss_tcc_microseconds + msrc_overhead;
+            use_budget_microseconds += timeouts.msrc_dss_tcc_microseconds + msrc_overhead;
         }
         if enables.pre_range {
-            use_budget_microseconds +=
-                timeouts.pre_range_microseconds + pre_range_overhead;
+            use_budget_microseconds += timeouts.pre_range_microseconds + pre_range_overhead;
         }
         if enables.final_range {
             use_budget_microseconds += final_range_overhead;
@@ -711,8 +677,7 @@ impl<I2C> VL53L0x<I2C>
             return Ok(false);
         }
 
-        let final_range_timeout_microseconds: u32 =
-            budget_microseconds - use_budget_microseconds;
+        let final_range_timeout_microseconds: u32 = budget_microseconds - use_budget_microseconds;
 
         // set_sequence_step_timeout() begin
         // (SequenceStepId == VL53L0X_SEQUENCESTEP_FINAL_RANGE)
@@ -739,34 +704,6 @@ impl<I2C> VL53L0x<I2C>
         self.measurement_timing_budget_microseconds = budget_microseconds;
         Ok(true)
     }
-
-    /*
-        fn write_byte_raw(&mut self, reg: u8, byte: u8) {
-            // FIXME:
-            //  * remove this function
-            //  * device address is not a const
-            //  * register address is u16
-            let mut buffer = [0];
-            let _ = self.com.write_read(ADDRESS, &[reg, byte], &mut buffer);
-        }
-
-        fn read_byte_raw(&mut self, reg: u8) -> u8 {
-            // FIXME:
-            //  * remove this function
-            //  * device address is not a const
-            //  * register address is u16
-            let mut data: [u8; 1] = [0];
-            let _ = self.com.write_read(ADDRESS, &[reg], &mut data);
-            data[0]
-        }
-
-        fn write_byte(&mut self, reg: Register, byte: u8) {
-            let mut buffer = [0];
-            let _ = self
-                .com
-                .write_read(ADDRESS, &[reg as u8, byte], &mut buffer);
-        }
-    */
 }
 
 struct SeqStepEnables {

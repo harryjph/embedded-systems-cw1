@@ -7,12 +7,13 @@ const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
-    pub id: i32,
+    pub url: String,
+    pub id: Option<i32>,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Config { id: 43 }
+        Config { id: Some(43), url: "https://localhost:1234".to_string() }
     }
 }
 
@@ -34,8 +35,12 @@ impl Config {
     }
 
     fn write_to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
-        fs::write(Config::config_path(), toml::to_string(&self)?)?;
+        fs::write(path, toml::to_string(&self)?)?;
         Ok(())
+    }
+
+    pub fn write_default(&self) -> Result<(), Box<dyn Error>> {
+        self.write_to_file(Config::config_path())
     }
 
     pub fn load_default() -> Result<Config, Box<dyn Error>> {

@@ -4,25 +4,16 @@ use super::Result;
 
 const DEFAULT_ADDRESS: u8 = 0x29;
 
-/// dummy
 pub struct VL53L0x<I2C: I2CDevice> {
     device: I2C,
-    /// dummy
     pub revision_id: u8,
     io_mode2v8: bool,
     stop_variable: u8,
     measurement_timing_budget_microseconds: u32,
 }
 
-impl<I2C> VL53L0x<I2C>
-    where
-        I2C: I2CDevice,
-{
-    /// Creates new driver with default address.
-    pub fn new(i2c: I2C) -> Result<VL53L0x<I2C>>
-        where
-            I2C: I2CDevice,
-    {
+impl<I2C> VL53L0x<I2C> where I2C: I2CDevice {
+    pub fn new(i2c: I2C) -> Result<VL53L0x<I2C>> where I2C: I2CDevice {
         let mut chip = VL53L0x {
             device: i2c,
             revision_id: 0x00,
@@ -174,7 +165,6 @@ impl<I2C> VL53L0x<I2C>
         Ok((count, type_is_aperture))
     }
 
-    /// startContinuous
     pub fn start_continuous(&mut self, period_millis: u32) -> Result<()> {
         self.write_byte(0x80, 0x01)?;
         self.write_byte(0xFF, 0x01)?;
@@ -212,7 +202,6 @@ impl<I2C> VL53L0x<I2C>
         Ok(())
     }
 
-    /// stopContinuous()
     pub fn stop_continuous(&mut self) -> Result<()> {
         // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
         self.write_register(Register::SYSRANGE_START, 0x01)?;
@@ -225,22 +214,7 @@ impl<I2C> VL53L0x<I2C>
         Ok(())
     }
 
-    /// reads and returns range measurement or nb::Error::WouldBlock if it's not ready yet
-    pub fn read_range_mm(&mut self) -> Result<u16> {
-        let r = self.read_register(Register::RESULT_INTERRUPT_STATUS)?;
-        if (r & 0x07) == 0 {
-            Err("would block".into())
-        } else {
-            let range = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10)?;
-            self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
-            Ok(range)
-        }
-    }
-
-    /// readRangeContinuousMillimeters (blocking)
-    pub fn read_range_continuous_millimeters_blocking(
-        &mut self,
-    ) -> Result<u16> {
+    pub fn read_range_continuous_millimeters(&mut self) -> Result<u16> {
         let mut c = 0;
         while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
             c += 1;
@@ -248,15 +222,14 @@ impl<I2C> VL53L0x<I2C>
                 return Err("Timeout".into());
             }
         }
-        let range_err = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10);
+        let range_err = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10)?;
         // don't use ? to cleanup
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
 
         Ok(range_err?)
     }
 
-    /// readRangeSingleMillimeters (blocking)
-    pub fn read_range_single_millimeters_blocking(&mut self, ) -> Result<u16> {
+    pub fn read_range_single_millimeters(&mut self) -> Result<u16> {
         self.write_byte(0x80, 0x01)?;
         self.write_byte(0xFF, 0x01)?;
         self.write_byte(0x00, 0x00)?;
@@ -279,17 +252,11 @@ impl<I2C> VL53L0x<I2C>
         self.read_range_continuous_millimeters_blocking()
     }
 
-    // performSingleRefCalibration(uint8_t vhvInitByte)
-    fn perform_single_ref_calibration(
-        &mut self,
-        vhv_init_byte: u8,
-    ) -> Result<()> {
+    fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
         // VL53L0X_REG_SYSRANGE_MODE_START_STOP
         self.write_register(Register::SYSRANGE_START, 0x01 | vhv_init_byte)?;
         let mut c = 0;
-        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07)
-            == 0
-        {
+        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
             c += 1;
             if c == 10000 {
                 return Err("Timeout".into());
@@ -302,13 +269,10 @@ impl<I2C> VL53L0x<I2C>
     }
 
     fn init_hardware(&mut self) -> Result<()> {
-        // VL53L0X_DataInit() begin
-
         // Sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
         if self.io_mode2v8 {
             // set bit 0
-            let ext_sup_hv = self
-                .read_register(Register::VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV)?;
+            let ext_sup_hv = self.read_register(Register::VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV)?;
             self.write_register(
                 Register::VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
                 ext_sup_hv | 0x01,
@@ -334,26 +298,18 @@ impl<I2C> VL53L0x<I2C>
 
         self.write_register(Register::SYSTEM_SEQUENCE_CONFIG, 0xFF)?;
 
-        // VL53L0X_DataInit() end
-
-        // VL53L0X_StaticInit() begin
-
         // TODO fail to initialize on timeout of this
         let (spad_count, spad_type_is_aperture) = self.get_spad_info()?;
 
         // The SPAD map (RefGoodSpadMap) is read by VL53L0X_get_info_from_device() in the API,
         // but the same data seems to be more easily readable from GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
-        let mut ref_spad_map =
-            self.read_6bytes(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0)?;
+        let mut ref_spad_map = self.read_6bytes(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0)?;
 
         // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
 
         self.write_byte(0xFF, 0x01)?;
         self.write_register(Register::DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)?;
-        self.write_register(
-            Register::DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD,
-            0x2C,
-        )?;
+        self.write_register(Register::DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C, )?;
         self.write_byte(0xFF, 0x00)?;
         self.write_register(Register::GLOBAL_CONFIG_REF_EN_START_SELECT, 0xB4)?;
 
@@ -475,52 +431,23 @@ impl<I2C> VL53L0x<I2C>
         self.write_byte(0xFF, 0x00)?;
         self.write_byte(0x80, 0x00)?;
 
-        // -- VL53L0X_load_tuning_settings() end
-
-        // "Set interrupt config to new sample ready"
-        // -- VL53L0X_SetGpioConfig() begin
-
         self.write_register(Register::SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04)?;
-        // active low
         let high = self.read_register(Register::GPIO_HV_MUX_ACTIVE_HIGH)?;
         self.write_register(Register::GPIO_HV_MUX_ACTIVE_HIGH, high & !0x10)?;
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
 
-        // -- VL53L0X_SetGpioConfig() end
-        // "Disable MSRC and TCC by default"
-        // MSRC = Minimum Signal Rate Check
-        // TCC = Target CentreCheck
-        // -- VL53L0X_SetSequenceStepEnable() begin
-        self.measurement_timing_budget_microseconds =
-            self.get_measurement_timing_budget()?;
+        self.measurement_timing_budget_microseconds = self.get_measurement_timing_budget()?;
         self.write_register(Register::SYSTEM_SEQUENCE_CONFIG, 0xE8)?;
-
-        // -- VL53L0X_SetSequenceStepEnable() end
-
-        // "Recalculate timing budget"
         let mtbm = self.measurement_timing_budget_microseconds;
         self.set_measurement_timing_budget(mtbm)?;
 
-        // VL53L0X_StaticInit() end
-
-        // VL53L0X_PerformRefCalibration() begin (VL53L0X_perform_ref_calibration())
-
-        // -- VL53L0X_perform_vhv_calibration() begin
-
         self.write_register(Register::SYSTEM_SEQUENCE_CONFIG, 0x01)?;
         self.perform_single_ref_calibration(0x40)?;
-        // -- VL53L0X_perform_vhv_calibration() end
-        // -- VL53L0X_perform_phase_calibration() begin
 
         self.write_register(Register::SYSTEM_SEQUENCE_CONFIG, 0x02)?;
         self.perform_single_ref_calibration(0x00)?;
 
-        // -- VL53L0X_perform_phase_calibration() end
-
-        // "restore the previous Sequence Config"
         self.write_register(Register::SYSTEM_SEQUENCE_CONFIG, 0xE8)?;
-
-        // VL53L0X_PerformRefCalibration() end
         Ok(())
     }
 
@@ -535,10 +462,8 @@ impl<I2C> VL53L0x<I2C>
         }
     }
 
-    // getSequenceStepEnables(VL53L0XSequenceStepEnables* enables) {
     fn get_sequence_step_enables(&mut self) -> Result<SeqStepEnables> {
-        let sequence_config: u8 =
-            self.read_register(Register::SYSTEM_SEQUENCE_CONFIG)?;
+        let sequence_config = self.read_register(Register::SYSTEM_SEQUENCE_CONFIG)?;
         Ok(SeqStepEnables {
             tcc: ((sequence_config >> 4) & 0x1) == 1,
             dss: ((sequence_config >> 3) & 0x1) == 1,
@@ -548,7 +473,6 @@ impl<I2C> VL53L0x<I2C>
         })
     }
 
-    // getSequenceStepTimeouts(timeouts)
     fn get_sequence_step_timeouts(
         &mut self,
         enables: &SeqStepEnables,
@@ -562,12 +486,9 @@ impl<I2C> VL53L0x<I2C>
         if enables.pre_range {
             final_range_mclks -= pre_range_mclks;
         };
-        let pre_range_vcselperiod_pclks =
-            self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodPreRange)?;
-        let msrc_dss_tcc_mclks =
-            self.read_register(Register::MSRC_CONFIG_TIMEOUT_MACROP)? + 1;
-        let final_range_vcsel_period_pclks = self
-            .get_vcsel_pulse_period(VcselPeriodType::VcselPeriodFinalRange)?;
+        let pre_range_vcselperiod_pclks = self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodPreRange)?;
+        let msrc_dss_tcc_mclks = self.read_register(Register::MSRC_CONFIG_TIMEOUT_MACROP)? + 1;
+        let final_range_vcsel_period_pclks = self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodFinalRange)?;
         Ok(SeqStepTimeouts {
             pre_range_vcselperiod_pclks,
             msrc_dss_tcc_mclks,

@@ -33,7 +33,7 @@ impl Database {
         &mut self,
         latitude: f64,
         longitude: f64,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<i32, Box<dyn Error>> {
         let new_node = node::ActiveModel {
             latitude: ActiveValue::Set(latitude),
             longitude: ActiveValue::Set(longitude),
@@ -42,7 +42,7 @@ impl Database {
 
         let res = Node::insert(new_node).exec(&self.db).await?;
 
-        Ok(())
+        Ok(res.last_insert_id)
     }
 
     pub async fn get_nodes(&mut self) -> Result<(), Box<dyn Error>> {

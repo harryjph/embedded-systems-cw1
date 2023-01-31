@@ -17,14 +17,14 @@ mod mailer;
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
     let config = load_config();
-    let db = Database::new().await.unwrap();
+    let db = Arc::new(Database::new().await.unwrap());
     let mailer = Mailer::new(config.email.clone());
 
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));
 
     let http_server_handle = http_server::launch(config.clone(), lock.clone());
-    let grpc_server_handle = grpc_server::launch(config.clone(), data_in);
+    let grpc_server_handle = grpc_server::launch(config.clone(), data_in, db.clone());
 
     let data_handler_handle = spawn(async move {
         while let Some(data) = data_out.recv().await {

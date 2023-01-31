@@ -1,3 +1,4 @@
+use std::error::Error;
 use tokio::sync::mpsc::{Sender, Receiver};
 use tonic::codegen::StdError;
 use tonic::{Status, transport};
@@ -20,10 +21,9 @@ impl Client {
         Ok(Client { client: NodeApiClient::connect(endpoint).await? })
     }
 
-    pub async fn assign_id(&mut self, sender: Sender<u32>) -> Result<(), Status> {
-        let id = self.client.assign_id(grpc_generated::Empty{}).await?.into_inner();
-        sender.send(id.id).await;
-        println!("Got assigned an id: {}", id.id);
+    pub async fn assign_id(&mut self, sender: Sender<u32>) -> Result<(), Box<dyn Error>> {
+        let node_id = self.client.assign_id(grpc_generated::Empty{}).await?.into_inner();
+        sender.send(node_id.id).await?;
         Ok(())
     }
 

@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::path::Path;
 use std::result;
 use std::time::Duration;
@@ -7,8 +6,8 @@ use byteorder::{BigEndian, ByteOrder};
 use i2cdev::core::I2CDevice;
 use i2cdev::linux::{LinuxI2CDevice, LinuxI2CError};
 use tokio::time::sleep;
-use super::{HumiditySensor, TemperatureSensor};
-use super::Result;
+use crate::util::stringify_error;
+use super::{Result, HumiditySensor, TemperatureSensor};
 
 const MEASURE_TEMPERATURE_NO_HOLD: u8 = 0xF3;
 const MEASURE_HUMIDITY_NO_HOLD: u8 = 0xF5;
@@ -29,7 +28,8 @@ impl <D: I2CDevice> SI7021<D> {
         SI7021 { device }
     }
 
-    async fn take_measurement(&mut self, command: u8) -> Result<u16> {
+    /// Reads a register but waits for READ_DELAY_MS between requesting the read and actually reading the data.
+    async fn read_register_delayed(&mut self, command: u8) -> Result<u16> {
         self.device.write(&[command]).map_err(stringify_error)?;
         sleep(Duration::from_millis(READ_DELAY_MS)).await;
         let mut data = [0u8; 2];
@@ -41,28 +41,22 @@ impl <D: I2CDevice> SI7021<D> {
 #[async_trait]
 impl <D: I2CDevice + Send> TemperatureSensor for SI7021<D> {
     async fn read_temperature(&mut self) -> Result<f32> {
-        Ok(175.72 * self.take_measurement(MEASURE_TEMPERATURE_NO_HOLD).await? as f32 / 65536.0 - 46.85)
+        Ok(175.72 * self.read_register_delayed(MEASURE_TEMPERATURE_NO_HOLD).await? as f32 / 65536.0 - 46.85)
     }
 }
 
 #[async_trait]
 impl <D: I2CDevice + Send> HumiditySensor for SI7021<D> {
     async fn read_humidity(&mut self) -> Result<f32> {
-        Ok(125.0 * self.take_measurement(MEASURE_HUMIDITY_NO_HOLD).await? as f32 / 65536.0 - 6.0)
+        Ok(125.0 * self.read_register_delayed(MEASURE_HUMIDITY_NO_HOLD).await? as f32 / 65536.0 - 6.0)
     }
-}
-
-/// The i2cdev error types produce lifetime errors when you try to return them.
-/// This is a flaw of the crate's structure. This is a hack to work arount it.
-fn stringify_error<E: Error>(error: E) -> Box<dyn Error> {
-    format!("{error}").into()
 }
 
 #[cfg(test)]
 mod tests {
     use i2cdev::mock::MockI2CDevice;
-    use crate::sensors::si7021::{MEASURE_HUMIDITY_NO_HOLD, MEASURE_TEMPERATURE_NO_HOLD, SI7021};
-    use crate::sensors::{HumiditySensor, TemperatureSensor};
+    use super::{MEASURE_HUMIDITY_NO_HOLD, MEASURE_TEMPERATURE_NO_HOLD, SI7021};
+    use super::super::{HumiditySensor, TemperatureSensor};
 
     #[tokio::test]
     async fn test_sensor_driver() {

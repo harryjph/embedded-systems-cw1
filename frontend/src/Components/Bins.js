@@ -40,13 +40,22 @@ function Bins(props) {
 
           <div className='classes.actions'>
             <button className = 'btn' onClick={addHandler}>Add to Favorites</button>
-            <button className = 'btn' onClick={changeNameHandler}>Change Name</button>
+            <button className = 'btn' onClick={changeNameHandler}>Properties</button>
           </div>
           
           {binValue && <Modal ID = {props.ID} onCancel={closeHandler} onConfirm={closeHandler}/>}
           {(binValue) && <Backdrop onClick={closeHandler}/>}
 
-          {renameBinValue && <ModalWithRenameSupport ID={props.ID} onCancel={closeHandler} onConfirm={closeHandler}/>}
+          {renameBinValue && <ModalWithRenameSupport 
+                                ID={props.ID} 
+                                Name={props.Name} 
+                                Latitude={props.Latitude} 
+                                Longitude={props.Longitude} 
+                                Fullness={props.Fullness} 
+                                Threshold={props.Threshold} 
+                                onCancel={closeHandler} 
+                                onConfirm={closeHandler}/>
+          }
           {(renameBinValue) && <Backdrop onClick={closeHandler}/>}
         </Card>
     );

@@ -1,26 +1,85 @@
-function ModalWithRenameSupport(props) {
+//  MODAL RENAME NEW
 
-    function YesSelect(params) {
-        console.log('Rename Yes ' + props.ID);
-        props.onConfirm();
-    }
-    function NoSelect() {
-        console.log('Rename No ' + props.ID);
-        props.onCancel();
+import Card from './ui/Card'
+import classes from './AddNewBinsForm.module.css'
+
+import {useRef} from 'react';
+
+function ModalWithRenameSupport(props) {
+    const binIDInputRef = useRef();
+    const binNameInputRef = useRef();
+    const binLatInputRef = useRef();
+    const binLongInputRef = useRef();
+    const binFullnessInputRef = useRef();
+    const binFullnessThresholdRef = useRef();
+
+    function submitHandler(event) {
+        event.preventDefault();
+
+        const enteredID = binIDInputRef.current.value;
+        const enteredName = binNameInputRef.current.value;
+        const enteredLat = binLatInputRef.current.value;
+        const enteredLong = binLongInputRef.current.value;
+        const enteredFullness = binFullnessInputRef.current.value;
+        const enteredThreshold = binFullnessThresholdRef.current.value;
+
+        const binsData = {
+            id: enteredID,
+            config: {
+                name: enteredName,
+                latitude: enteredLat,
+                longitude: enteredLong,
+                full_threshold: enteredThreshold,
+            },
+            fullness: enteredFullness,
+        };
+
+        props.onAddBins(binsData);
+        console.log(props);
     }
 
     return(
         <div className="modal">
 
-                <label>
-                    <input type="text" id="renameVal"/>
-                </label>
+            <form className={classes.form} onSubmit={submitHandler}>
+                <div className={classes.control}>
 
-                <p>
-                    Are you sure?
-                    <button className = 'btn' onClick={YesSelect}>Yes</button>
-                    <button className = 'btn bttn--alt' onClick={NoSelect}>Cancel</button>
-                </p>
+                    <div className={classes.control}>
+                        <label htmlFor='title'>Bin ID</label>
+                        <input type="text" required id="id" value={props.ID} ref={binIDInputRef}/>
+                    </div>
+
+                    <div className={classes.control}>
+                        <label htmlFor='title'>Bin Username</label>
+                        <input type="text" required id="name" value={props.Name} ref={binNameInputRef}/>
+                    </div>
+
+                    <div className={classes.control}>
+                        <label htmlFor='title'>Bin Latitude</label>
+                        <input type="text" required id="latitude" value={props.Latitude} ref={binLatInputRef}/>
+                    </div>
+
+                    <div className={classes.control}>
+                        <label htmlFor='title'>Bin Longitude</label>
+                        <input type="text" required id="longitude" value={props.Longitude} ref={binLongInputRef}/>
+                    </div>
+
+                    <div className={classes.control}>
+                        <label htmlFor='title'>Bin Fullness</label>
+                        <input type="text" required id="fullness" value={Math.floor(props.Fullness)} ref={binFullnessInputRef}/>
+                    </div>
+
+                    <div className={classes.control}>
+                        <label htmlFor='title'>Bin Fullness Threshold</label>
+                        <input type="text" required id="threshold" value={props.Threshold} ref={binFullnessThresholdRef}/>
+                    </div>
+
+                    <div className={classes.control}>
+                    <button className = 'btn'>Add Bin</button>
+                    </div>
+
+                </div>
+            </form>
 
         </div>
     )

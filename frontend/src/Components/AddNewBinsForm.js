@@ -9,6 +9,7 @@ function AddNewBinsForm(props) {
     const binLatInputRef = useRef();
     const binLongInputRef = useRef();
     const binFullnessInputRef = useRef();
+    const binFullnessThresholdRef = useRef();
 
     function submitHandler(event) {
         event.preventDefault();
@@ -18,12 +19,16 @@ function AddNewBinsForm(props) {
         const enteredLat = binLatInputRef.current.value;
         const enteredLong = binLongInputRef.current.value;
         const enteredFullness = binFullnessInputRef.current.value;
+        const enteredThreshold = binFullnessThresholdRef.current.value;
 
         const binsData = {
             id: enteredID,
-            name: enteredName,
-            latitude: enteredLat,
-            longitude: enteredLong,
+            config: {
+                name: enteredName,
+                latitude: enteredLat,
+                longitude: enteredLong,
+                full_threshold: enteredThreshold,
+            },
             fullness: enteredFullness,
         };
 
@@ -57,6 +62,11 @@ function AddNewBinsForm(props) {
                 <div className={classes.control}>
                     <label htmlFor='title'>Bin Fullness</label>
                     <input type="text" required id="fullness" ref={binFullnessInputRef}/>
+                </div>
+
+                <div className={classes.control}>
+                    <label htmlFor='title'>Bin Fullness Threshold</label>
+                    <input type="text" required id="threshold" ref={binFullnessThresholdRef}/>
                 </div>
 
                 <div className={classes.control}>

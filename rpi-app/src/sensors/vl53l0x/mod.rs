@@ -1,17 +1,17 @@
 //! A VL53L0X driver based on https://github.com/copterust/vl53l0x
 
-use std::path::Path;
+use super::{ProximitySensor, Result};
+use crate::sensors::vl53l0x::device_setup::Register;
+use crate::util::stringify_error;
 use anyhow::Error;
 use async_trait::async_trait;
 use i2cdev::core::I2CDevice;
 use i2cdev::linux::LinuxI2CDevice;
-use crate::sensors::vl53l0x::device_setup::Register;
-use super::{Result, ProximitySensor};
-use crate::util::stringify_error;
+use std::path::Path;
 
-mod util;
 mod device_setup;
 mod io;
+mod util;
 
 pub struct VL53L0X<D> {
     device: D,
@@ -48,7 +48,7 @@ impl<D: I2CDevice> VL53L0X<D> {
 }
 
 #[async_trait]
-impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
+impl<D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
     async fn read_proximity(&mut self) -> Result<f32> {
         // Send a measure command
         self.write_register(0x80, 0x01)?;

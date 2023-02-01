@@ -1,13 +1,13 @@
-use std::env;
-use std::error::Error;
+use self::entity::node;
+use crate::db::migrations::Migrator;
 use sea_orm::prelude::*;
 use sea_orm::{ActiveValue, Database as SeaOrmDatabase};
 use sea_orm_migration::MigratorTrait;
-use crate::db::migrations::Migrator;
-use self::entity::node;
+use std::env;
+use std::error::Error;
 
-pub mod migrations;
 pub mod entity;
+pub mod migrations;
 
 const DB_PATH_ENV_NAME: &str = "DATABASE_PATH";
 
@@ -29,11 +29,7 @@ impl Database {
         Ok(Self { db })
     }
 
-    pub async fn insert_node(
-        &self,
-        latitude: f64,
-        longitude: f64,
-    ) -> Result<u64, Box<dyn Error>> {
+    pub async fn insert_node(&self, latitude: f64, longitude: f64) -> Result<u64, Box<dyn Error>> {
         let new_node = node::ActiveModel {
             latitude: ActiveValue::Set(latitude),
             longitude: ActiveValue::Set(longitude),

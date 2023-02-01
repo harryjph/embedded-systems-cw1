@@ -1,6 +1,6 @@
-use std::result;
 use anyhow::Error;
 use async_trait::async_trait;
+use std::result;
 
 pub mod si7021;
 pub mod vl53l0x;

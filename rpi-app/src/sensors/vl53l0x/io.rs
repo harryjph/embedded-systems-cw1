@@ -1,6 +1,6 @@
+use super::*;
 use byteorder::{BigEndian, ByteOrder};
 use i2cdev::core::I2CDevice;
-use super::*;
 
 impl<D: I2CDevice> VL53L0X<D> {
     pub fn read_register<R: Into<u8>>(&mut self, reg: R) -> Result<u8> {
@@ -11,7 +11,9 @@ impl<D: I2CDevice> VL53L0X<D> {
     }
 
     pub fn read_register_burst<R: Into<u8>>(&mut self, reg: R, buffer: &mut [u8]) -> Result<()> {
-        self.device.write(&[(reg.into())]).map_err(stringify_error)?;
+        self.device
+            .write(&[(reg.into())])
+            .map_err(stringify_error)?;
         self.device.read(buffer).map_err(stringify_error)
     }
 
@@ -22,11 +24,15 @@ impl<D: I2CDevice> VL53L0X<D> {
     }
 
     pub fn write_register<R: Into<u8>>(&mut self, reg: R, byte: u8) -> Result<()> {
-        self.device.write(&[reg.into(), byte]).map_err(stringify_error)
+        self.device
+            .write(&[reg.into(), byte])
+            .map_err(stringify_error)
     }
 
     pub fn write_register_burst<R: Into<u8>>(&mut self, reg: R, bytes: &[u8]) -> Result<()> {
-        self.device.write(&[&[reg.into()], bytes].concat()).map_err(stringify_error)
+        self.device
+            .write(&[&[reg.into()], bytes].concat())
+            .map_err(stringify_error)
     }
 
     pub fn write_register_u16<R: Into<u8>>(&mut self, reg: R, data: u16) -> Result<()> {

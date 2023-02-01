@@ -7,7 +7,7 @@ pub struct Stream<R> {
     receiver: R,
 }
 
-impl <R> Stream<R> {
+impl<R> Stream<R> {
     pub fn new(receiver: R) -> Self {
         Stream { receiver }
     }

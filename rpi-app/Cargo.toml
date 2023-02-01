@@ -9,14 +9,19 @@ strip = true
 lto = "fat"
 
 [dependencies]
+# Async
 tokio = { version = "1.24.2", features = ["full"] }
 futures = "0.3.25"
+async-trait = "0.1.63"
+# I2C
 i2cdev = "0.5.1"
-byteorder = "1.4.3"
+# gRPC
 tonic = "0.8.3"
 prost = "0.11.6"
-async-trait = "0.1.63"
-# Serialising
+# Utilities
+anyhow = "1.0.68"
+byteorder = "1.4.3"
+# serde
 serde = { version = "1.0.152", features = ["derive"] }
 toml = "0.7.0"
 

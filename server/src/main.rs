@@ -1,3 +1,6 @@
+use crate::config::Config;
+use crate::db::Database;
+use crate::mailer::Mailer;
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
@@ -5,17 +8,13 @@ use std::sync::Arc;
 use anyhow::Error;
 use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
-use crate::config::Config;
-use crate::db::Database;
-use crate::mailer::Mailer;
-use crate::user_manager::UserManager;
 
 mod config;
 mod db;
-mod user_manager;
-mod http_server;
 mod grpc_server;
+mod http_server;
 mod mailer;
+mod user_manager;
 mod utils;
 
 #[tokio::main(flavor = "multi_thread")]
@@ -49,19 +48,17 @@ async fn main() -> Result<(), Error> {
 fn load_config() -> Config {
     match Config::load_default() {
         Ok(config) => return config,
-        Err(e) => {
-            match e.downcast::<io::Error>() {
-                Ok(e) => {
-                    if e.kind() == ErrorKind::NotFound {
-                        eprintln!("No config found. Example Config:");
-                        eprintln!("{}", toml::to_string_pretty(&Config::default()).unwrap());
-                        exit(1);
-                    } else {
-                        eprintln!("Failed to load config: {e}")
-                    }
-                },
-                Err(e) => eprintln!("Failed to load config: {e}")
+        Err(e) => match e.downcast::<io::Error>() {
+            Ok(e) => {
+                if e.kind() == ErrorKind::NotFound {
+                    eprintln!("No config found. Example Config:");
+                    eprintln!("{}", toml::to_string_pretty(&Config::default()).unwrap());
+                    exit(1);
+                } else {
+                    eprintln!("Failed to load config: {e}")
+                }
             }
+            Err(e) => eprintln!("Failed to load config: {e}"),
         },
     }
 

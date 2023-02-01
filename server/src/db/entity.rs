@@ -1,8 +1,8 @@
 macro_rules! boilerplate {
     () => {
         use sea_orm::entity::prelude::*;
-        impl ActiveModelBehavior for ActiveModel { }
-    }
+        impl ActiveModelBehavior for ActiveModel {}
+    };
 }
 
 pub mod node {
@@ -53,5 +53,5 @@ pub mod user {
             Relation::Node.def()
         }
     }
+    pub enum Relation {}
 }
-

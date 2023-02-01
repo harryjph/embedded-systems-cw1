@@ -1,9 +1,9 @@
-use anyhow::Error;
-use lettre::{AsyncSmtpTransport, AsyncTransport, Tokio1Executor};
+use crate::config::{EmailConfig, EmailSecurity};
 use lettre::message::{Mailbox, MessageBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::client::{Tls, TlsParameters};
-use crate::config::{EmailConfig, EmailSecurity};
+use lettre::{AsyncSmtpTransport, AsyncTransport, Tokio1Executor};
+use anyhow::Error;
 
 pub struct Mailer {
     mailer: AsyncSmtpTransport<Tokio1Executor>,
@@ -17,11 +17,12 @@ impl Mailer {
             EmailSecurity::StartTLS => Tls::Required(tls_parameters),
             EmailSecurity::None => Tls::None,
         };
-        let mailer = AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(config.smtp_server_address)
-            .port(config.smtp_server_port)
-            .tls(tls)
-            .credentials(Credentials::new(config.smtp_username, config.smtp_password))
-            .build();
+        let mailer =
+            AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(config.smtp_server_address)
+                .port(config.smtp_server_port)
+                .tls(tls)
+                .credentials(Credentials::new(config.smtp_username, config.smtp_password))
+                .build();
         Ok(Mailer { mailer })
     }
 
@@ -31,15 +32,17 @@ impl Mailer {
         from_name: String,
         from_email: String,
         subject: String,
-        body: String
+        body: String,
     ) -> Result<(), Error> {
-        self.mailer.send(
-            MessageBuilder::new()
-                .to(Mailbox::new(None, to.parse()?))
-                .from(Mailbox::new(Some(from_name), from_email.parse()?))
-                .subject(subject)
-                .body(body)?
-        ).await?;
+        self.mailer
+            .send(
+                MessageBuilder::new()
+                    .to(Mailbox::new(None, to.parse()?))
+                    .from(Mailbox::new(Some(from_name), from_email.parse()?))
+                    .subject(subject)
+                    .body(body)?,
+            )
+            .await?;
         Ok(())
     }
 }

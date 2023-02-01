@@ -1,7 +1,7 @@
-use std::error::Error;
-use std::{env, fs};
-use std::path::Path;
 use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::path::Path;
+use std::{env, fs};
 
 const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 
@@ -13,19 +13,22 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config { id: Some(43), url: "https://es1-nodeapi.harryphillips.co.uk".to_string() }
+        Config {
+            id: Some(43),
+            url: "https://es1-nodeapi.harryphillips.co.uk".to_string(),
+        }
     }
 }
 
 impl Config {
     fn config_path() -> String {
-        if let Ok(value) = env::var(CONFIG_PATH_ENV_NAME) { 
-            value 
+        if let Ok(value) = env::var(CONFIG_PATH_ENV_NAME) {
+            value
         } else {
-           "config.toml".to_string() 
+            "config.toml".to_string()
         }
     }
-    
+
     fn load_from<S: AsRef<str>>(data: S) -> Result<Self, toml::de::Error> {
         toml::from_str(data.as_ref())
     }
@@ -46,15 +49,14 @@ impl Config {
     pub fn load_default() -> Result<Config, Box<dyn Error>> {
         Config::load_from_file(Config::config_path())
     }
-
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::config::{Config, CONFIG_PATH_ENV_NAME};
     use std::env;
     use std::io::Write;
     use tempfile::NamedTempFile;
-    use crate::config::{Config, CONFIG_PATH_ENV_NAME};
 
     #[test]
     fn test_config_save_load() {
@@ -66,9 +68,10 @@ mod tests {
     /// Returns the temp file as dropping it will delete the file, so it should be dropped at the end of the test.
     fn setup_default_config() -> NamedTempFile {
         let mut file = NamedTempFile::new().unwrap();
-        file.write_all(toml::to_string(&Config::default()).unwrap().as_bytes()).unwrap();
+        file.write_all(toml::to_string(&Config::default()).unwrap().as_bytes())
+            .unwrap();
         let file_path = file.path();
         env::set_var(CONFIG_PATH_ENV_NAME, file_path.to_str().unwrap());
         file
-    }    
+    }
 }

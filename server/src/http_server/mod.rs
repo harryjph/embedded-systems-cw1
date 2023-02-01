@@ -1,15 +1,15 @@
-use std::sync::Arc;
+use crate::config::Config;
+use crate::utils;
 use axum::extract::{Path, State};
-use axum::response::IntoResponse;
-use axum::{Json, Router};
 use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use axum::routing::get;
+use axum::{Json, Router};
 use itertools::Itertools;
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tower_http::cors::{Any, CorsLayer};
-use crate::config::Config;
-use crate::utils;
 
 mod entities;
 
@@ -22,7 +22,10 @@ struct ServerState {
 }
 
 async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
-    println!("Starting HTTP Server on http://localhost:{}", config.network.http_port);
+    println!(
+        "Starting HTTP Server on http://localhost:{}",
+        config.network.http_port
+    );
 
     let router = Router::new()
         .route("/data", get(get_data))
@@ -34,7 +37,8 @@ async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
 
     axum::Server::bind(&utils::all_interfaces(config.network.http_port))
         .serve(router.into_make_service())
-        .await.unwrap();
+        .await
+        .unwrap();
 }
 
 async fn get_data(State(state): State<Arc<ServerState>>) -> impl IntoResponse {
@@ -47,20 +51,30 @@ pub async fn get_all_bins() -> impl IntoResponse {
 }
 
 pub async fn get_bin(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
-    Ok(Json(entities::dummy_data().into_iter()
-        .find_or_first(|it| it.id == id)
-        .ok_or(StatusCode::NOT_FOUND)?))
+    Ok(Json(
+        entities::dummy_data()
+            .into_iter()
+            .find_or_first(|it| it.id == id)
+            .ok_or(StatusCode::NOT_FOUND)?,
+    ))
 }
 
 pub async fn get_bin_config(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
-    Ok(Json(entities::dummy_data().into_iter()
-        .find_or_first(|it| it.id == id)
-        .ok_or(StatusCode::NOT_FOUND)?
-        .config))
+    Ok(Json(
+        entities::dummy_data()
+            .into_iter()
+            .find_or_first(|it| it.id == id)
+            .ok_or(StatusCode::NOT_FOUND)?
+            .config,
+    ))
 }
 
-pub async fn set_bin_config(Path(id): Path<u64>, Json(new_config): Json<entities::BinConfig>) -> Result<impl IntoResponse, StatusCode> {
-    let mut bin = entities::dummy_data().into_iter()
+pub async fn set_bin_config(
+    Path(id): Path<u64>,
+    Json(new_config): Json<entities::BinConfig>,
+) -> Result<impl IntoResponse, StatusCode> {
+    let mut bin = entities::dummy_data()
+        .into_iter()
         .find_or_first(|it| it.id == id)
         .ok_or(StatusCode::NOT_FOUND)?;
     bin.config = new_config;

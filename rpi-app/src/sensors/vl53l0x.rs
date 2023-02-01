@@ -32,14 +32,6 @@ impl<D: I2CDevice> VL53L0X<D> {
         let who_am_i = driver.read_register(Register::WHO_AM_I)?;
         if who_am_i == 0xEE {
             driver.init_hardware()?;
-            // FIXME: return an error/optional
-            /*
-            chip.set_high_i2c_voltage(); // TODO: make configurable
-            chip.revision_id = chip.read_revision_id();
-            chip.reset();
-            chip.set_high_i2c_voltage();
-            chip.set_standard_i2c_mode(); // TODO: make configurable
-             */
             Ok(driver)
         } else {
             Err(format!("Invalid device: {who_am_i}").into())
@@ -250,7 +242,7 @@ impl<D: I2CDevice> VL53L0X<D> {
 
         self.write_register(Register::SYSRANGE_START, 0x01)?;
 
-        // "Wait until start bit has been cleared"
+        // Wait until start bit has been cleared
         let mut c = 0;
         while (self.read_register(Register::SYSRANGE_START)? & 0x01) != 0 {
             c += 1;
@@ -499,8 +491,6 @@ impl<D: I2CDevice> VL53L0X<D> {
         let msrc_dss_tcc_mclks = self.read_register(Register::MSRC_CONFIG_TIMEOUT_MACROP)? + 1;
         let final_range_vcsel_period_pclks = self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodFinalRange)?;
         Ok(SeqStepTimeouts {
-            pre_range_vcselperiod_pclks,
-            msrc_dss_tcc_mclks,
             msrc_dss_tcc_microseconds: timeout_mclks_to_microseconds(
                 msrc_dss_tcc_mclks as u16,
                 pre_range_vcselperiod_pclks,
@@ -510,7 +500,6 @@ impl<D: I2CDevice> VL53L0X<D> {
                 pre_range_mclks,
                 pre_range_vcselperiod_pclks,
             ),
-            final_range_mclks,
             final_range_vcsel_period_pclks,
             final_range_microseconds: timeout_mclks_to_microseconds(
                 final_range_mclks,
@@ -645,11 +634,8 @@ struct SeqStepEnables {
 }
 
 struct SeqStepTimeouts {
-    pre_range_vcselperiod_pclks: u8,
     final_range_vcsel_period_pclks: u8,
-    msrc_dss_tcc_mclks: u8,
     pre_range_mclks: u16,
-    final_range_mclks: u16,
     msrc_dss_tcc_microseconds: u32,
     pre_range_microseconds: u32,
     final_range_microseconds: u32,
@@ -710,11 +696,6 @@ fn decode_vcsel_period(register_value: u8) -> u8 {
     ((register_value) + 1) << 1
 }
 
-// Encode VCSEL pulse period register value from period in PCLKs based on VL53L0X_encode_vcsel_period()
-fn encode_vcsel_period(period_pclks: u8) -> u8 {
-    ((period_pclks) >> 1) - 1
-}
-
 #[allow(non_camel_case_types)]
 enum Register {
     SYSRANGE_START = 0x00,
@@ -731,19 +712,14 @@ enum Register {
     GPIO_HV_MUX_ACTIVE_HIGH = 0x84,
     SYSTEM_INTERRUPT_CLEAR = 0x0B,
     RESULT_INTERRUPT_STATUS = 0x13,
-    RESULT_RANGE_STATUS = 0x14,
     RESULT_RANGE_STATUS_plus_10 = 0x1e,
     OSC_CALIBRATE_VAL = 0xF8,
     SYSTEM_INTERMEASUREMENT_PERIOD = 0x04,
     FINAL_RANGE_CONFIG_VCSEL_PERIOD = 0x70,
     PRE_RANGE_CONFIG_VCSEL_PERIOD = 0x50,
     PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x51,
-    PRE_RANGE_CONFIG_TIMEOUT_MACROP_LO = 0x52,
     FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x71,
-    FINAL_RANGE_CONFIG_TIMEOUT_MACROP_LO = 0x72,
-    CROSSTALK_COMPENSATION_PEAK_RATE_MCPS = 0x20,
     MSRC_CONFIG_TIMEOUT_MACROP = 0x46,
-    I2C_SLAVE_DEVICE_ADDRESS = 0x8A,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -756,12 +732,5 @@ enum VcselPeriodType {
 impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
     async fn read_proximity(&mut self) -> Result<f32> {
         self.read_range_single().map(|it| it as f32)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[tokio::test]
-    async fn test_sensor_driver() {
     }
 }

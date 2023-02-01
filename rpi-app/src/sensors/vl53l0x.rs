@@ -87,7 +87,7 @@ impl<D: I2CDevice> VL53L0X<D> {
     fn read_16bit(&mut self, reg: Register) -> Result<u16> {
         let mut buffer: [u8; 2] = [0, 0];
         self.read_registers(reg, &mut buffer)?;
-        Ok(((buffer[0]) << 8) as u16 + buffer[1] as u16) // TODO byteorder
+        Ok(((buffer[0] as u16) << 8) + buffer[1] as u16) // TODO byteorder
     }
 
     fn write_byte(&mut self, reg: u8, byte: u8) -> Result<()> {
@@ -755,7 +755,7 @@ enum VcselPeriodType {
 #[async_trait]
 impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
     async fn read_proximity(&mut self) -> Result<f32> {
-        todo!()
+        self.read_range_single().map(|it| it as f32)
     }
 }
 

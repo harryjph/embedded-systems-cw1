@@ -1,6 +1,4 @@
-use std::net::SocketAddr;
 use crate::config::Config;
-use crate::utils;
 use axum::Router;
 use std::sync::Arc;
 use axum_sessions::async_session::MemoryStore;
@@ -10,6 +8,7 @@ use tokio::task::JoinHandle;
 use tower_http::cors::{Any, CorsLayer};
 use crate::db::Database;
 use crate::user_manager::UserManager;
+use crate::utils::all_interfaces;
 
 mod bins;
 mod user;
@@ -17,7 +16,7 @@ mod user;
 pub fn launch(config: Config, db: Arc<Database>, user_manager: Arc<UserManager>) -> JoinHandle<()> {
     println!("Starting HTTP Server on http://localhost:{}", config.network.http_port);
     let state = ServerState { db, user_manager };
-    tokio::spawn(start_server(utils::all_interfaces(config.network.http_port), Arc::new(state)))
+    tokio::spawn(start_server(config.network.http_port, Arc::new(state)))
 }
 
 struct ServerState {
@@ -25,7 +24,7 @@ struct ServerState {
     user_manager: Arc<UserManager>,
 }
 
-async fn start_server(address: SocketAddr, state: Arc<ServerState>) {
+async fn start_server(port: u16, state: Arc<ServerState>) {
     let store = MemoryStore::new();
     let secret: [u8; 128] = rand::thread_rng().gen();
     let session_layer = SessionLayer::new(store, &secret).with_secure(false);
@@ -37,7 +36,7 @@ async fn start_server(address: SocketAddr, state: Arc<ServerState>) {
         .layer(CorsLayer::new().allow_origin(Any))
         .layer(session_layer);
 
-    axum::Server::bind(&address)
+    axum::Server::bind(&all_interfaces(port))
         .serve(router.into_make_service())
         .await
         .unwrap();
@@ -46,7 +45,6 @@ async fn start_server(address: SocketAddr, state: Arc<ServerState>) {
 #[cfg(test)]
 mod test_utils {
     use std::collections::HashMap;
-    use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
     use std::sync::Arc;
     use reqwest::{Client, RequestBuilder};
     use crate::db::Database;
@@ -62,9 +60,8 @@ mod test_utils {
         let state = Arc::new(ServerState { db, user_manager });
 
         let port = portpicker::pick_unused_port().expect("No free TCP ports");
-        let address = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, port));
+        tokio::spawn(start_server(port, state.clone()));
 
-        tokio::spawn(start_server(address, state.clone()));
         let test_client = TestClient {
             client: Client::builder()
                 .cookie_store(true)

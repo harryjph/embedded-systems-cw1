@@ -28,11 +28,8 @@ pub mod user {
     #[sea_orm(table_name = "user")]
     pub struct Model {
         #[sea_orm(primary_key)]
-        pub id: u64,
-        pub username: String,
         pub email: String,
         pub password_hash: String,
-        pub password_salt: String,
     }
 
     #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

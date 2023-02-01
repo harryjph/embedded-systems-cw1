@@ -47,21 +47,24 @@ impl Database {
 
     pub async fn insert_user(
         &self,
-        username: String,
         email: String,
         password_hash: String,
-        password_salt: String,
     ) -> Result<(), Error> {
         let new_user = user::ActiveModel {
-            username: ActiveValue::Set(username),
-            email: ActiveValue::Set(email),
+            email: ActiveValue::Set(email.to_lowercase()),
             password_hash: ActiveValue::Set(password_hash),
-            password_salt: ActiveValue::Set(password_salt),
             ..Default::default()
         };
 
         user::Entity::insert(new_user).exec(&self.db).await?;
         Ok(())
+    }
+
+    pub async fn get_user(&self, email: String) -> Result<user::Model, Error> {
+        user::Entity::find()
+            .filter(user::Column::Email.eq(email.to_lowercase()))
+            .one(&self.db).await?
+            .ok_or(Error::msg("Could not find user"))
     }
 
     pub async fn get_nodes(&mut self) -> Result<(), Error> {

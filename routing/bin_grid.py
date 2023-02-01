@@ -61,7 +61,7 @@ class Link:
             return False
     
     def __str__(self):
-        return "cost: " + str(self.cost) +", node1: x: " + str(self.nodes[0].x_coord) + " y: "+ str(self.nodes[0].y_coord)+ ", node2: x: " + str(self.nodes[1].x_coord) + " y: "+ str(self.nodes[1].y_coord)+ "\n"
+        return "" + str(self.nodes[0].x_coord) + ""+ str(self.nodes[0].y_coord)+ "," + str(self.nodes[1].x_coord) + ""+ str(self.nodes[1].y_coord)+ "\n"
     
     def __eq__(self, other):
         if self.nodes == other.nodes and self.cost == other.cost: return True
@@ -216,83 +216,6 @@ class Network:
         if self.is_entered(node1, relaxed_links) and self.is_entered(node2, relaxed_links): return True
         else: return False
 
-
-    def relax_double(self, links: List[Link], nodes: List[Node]) -> List[Link]:
-        relaxed_nodes: List[Node] = []
-        relaxed_links: List[Link] = []
-        remaining_links: List[Link] = deepcopy(links)
-        remaining_nodes: List[Link] = deepcopy(nodes)
-        for link in links: 
-            print("relaxed so far")
-            for link_rel in relaxed_links: 
-                print(link_rel)
-            print("current lin", link)
-            print("is closing link? ", self.is_closing_link(link, relaxed_links))
-            if link in remaining_links:
-                node1, node2 = link.nodes
-                if node1 and node2 in relaxed_nodes:
-                    print("relaxed")
-                    continue 
-                # if it's the closing link it can't be relaxed (will be done at the end)
-                elif self.is_closing_link(link, relaxed_links) or node1 in relaxed_nodes or node2 in relaxed_nodes:
-                    # arbitrarily choose node1 as the one that we are going to substitute
-                    if node1 in relaxed_nodes: 
-                        node_rel = node1
-                        node_next = node2
-                    else: 
-                        node_rel = node2
-                        node_next = node1
-                    # get all the possible nodes that could be reached from node1 (that haven't been relaxed yet )
-                    # there should always be one becasue the previous part of the algorithm ensured that each node 
-                    # had an even number of connections 
-                    by_node = links_per_node(remaining_links, remaining_nodes, node_rel)
-                    node_rel_links = by_node[node_rel]
-                    node_rel_links = [link for link in node_rel_links if not self.is_closing_link(link, relaxed_links)]
-                    node_rel_links = [link for link in node_rel_links if node_next not in link.nodes]
-                    # get the shortest possible link from node1
-                    node_rel_links.sort(key=lambda x: x.cost)
-                    if len(node_rel_links) == 0: 
-                        # it means the only available ones are closing nodes 
-                        continue 
-                    node_rel_neighbour = node_rel_links[0]
-                    # get the nearest non-relaxed neighbour of node1
-                    node_alt = [node for node in node_rel_neighbour.nodes if node != node_rel][0]
-                    # get its link with node2 (this can be obtained among all the links)
-                    new_link = self.get_link(node_next, node_alt)
-                    print("node next" ,node_next )
-                    print("node alt" ,node_alt)
-                
-                    print("new link", new_link)
-                    relaxed_links.append(new_link)
-                    print("relaxed links", relaxed_links)
-                    # remove the two current links from the next possible ones
-                    remaining_links.remove(link)
-                    if new_link in remaining_links: remaining_links.remove(new_link)
-                    # check if any of the two nodes can now be relaxed 
-                    # (in which case remove from remaining links all the links between the relaxed nodes)
-                    if self.is_relaxed(node_alt, relaxed_links): 
-                        self.remove_links_relaxed(node_alt, remaining_links)
-                        relaxed_nodes.append(node_alt)
-                    if self.is_relaxed(node_next, relaxed_links):
-                        self.remove_links_relaxed(node_next, remaining_links)
-                        relaxed_nodes.append(node_next)
-                else: 
-                    print("base")
-                    relaxed_links.append(link)
-                    remaining_links.remove(link)
-                    # check if adding this made the nodes relaxed
-                    if self.is_relaxed(node1, relaxed_links): 
-                        self.remove_links_relaxed(node1, relaxed_nodes, remaining_links)
-                        relaxed_nodes.append(node1)
-                    if self.is_relaxed(node2, relaxed_links):
-                        self.remove_links_relaxed(node2, relaxed_nodes, remaining_links)
-                        relaxed_nodes.append(node2)
-        last_nodes = [node for node in nodes if node not in relaxed_nodes]
-        assert len(last_nodes) == 2
-        closing_link = self.get_link(last_nodes[0], last_nodes[1])
-        relaxed_links.append(closing_link)
-        return relaxed_links
-
     def christofides(self) -> List[Link]: 
         # prims to get mst 
         mst_links, mst_nodes = self.prims_mst()
@@ -316,18 +239,68 @@ class Network:
         mst_nodes.extend(nodes_odd)
         # do relaxation 
 
-    def euler_tour(self, links):
+    def is_dead_end(self, links, start_node, node, link) -> bool:
+        # this funcion checks if the current link brings to a node whose only other link is the final link
+        other = link.other_node(node)
+        nodes = []
+        nodes.append(other)
+        nodes.append(start_node)
+        by_node = links_per_node(links, nodes)
+        if len(by_node[start_node]) == 1: 
+            final_link = by_node[start_node][0]
+            other_node_links = [other_link for other_link in by_node[other] if other_link != link]
+            if len(other_node_links) == 1 and final_link == other_node_links[0]: return True
+        return False 
+    
+    def beginning_of_end(self, start_node, links) -> Tuple[Node, List[Link]]:
+        forced_path = True
+        path = []
+        next_node = deepcopy(start_node)
+        available_links = deepcopy(links)
+        boe = start_node
+        while forced_path and len(available_links) != 0:
+            by_node = links_per_node(available_links, [next_node])
+            links_from_node = by_node[next_node]
+            if len(links_from_node) > 1:
+                forced_path = False 
+            else: 
+                link = links_from_node[0]
+                #print("adding to path", link)
+                path.append(link)
+                #for pathho in path: print("pattho", pathho)
+                available_links.remove(link)
+                boe = link.other_node(next_node)
+                next_node = boe
+        return boe, path
+                
+
+            
+
+
+    def euler_tour(self, links_all):
+        links = []
+        #eliminate duplicates TODO figure out how to handle them
+        for link in links_all: 
+            if link not in links: links.append(link)
         sorted_links = [links[0]]
-        start_node = links[0]
         last_node = links[0].nodes[0]
+        start_node = last_node
         links = [link for link in links if link != links[0]]
         while len(links) != 0: 
+            boe, path_to_end = self.beginning_of_end(start_node, links)
+            #print("sorted so far")
+            #for slink in sorted_links: print(slink)
             other = sorted_links[-1].other_node(last_node)
-            possible_links = [link for link in links if other in link.nodes and last_node not in link.nodes]
+            possible_links = [link for link in links if other in link.nodes and last_node not in link.nodes and link not in path_to_end]
+            if len(possible_links) == 0: 
+                path_to_end.reverse()
+                for last_link in path_to_end:
+                    sorted_links.append(last_link)
+                break
             next_link = possible_links[0]
             sorted_links.append(next_link)
             # this should also handle double links to make a proper Euler tour
-            links = [link for link in links if link != next_link]
+            links = [av_link for av_link in links if av_link != next_link]
             last_node  = other 
         
         return sorted_links

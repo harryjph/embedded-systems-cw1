@@ -61,23 +61,6 @@ def test_get_odd():
     assert Link((nodes[2], nodes[3]), 1) in odd_links
     assert nodes[2] not in odd_nodes
 
-#def test_relaxing():
-#    links , nodes = get_instances_2()
-#    all_links = []
-#    nw = Network(nodes, links, nodes[0])
-#    all_links.append(nw.get_link(nodes[0], nodes[1]))
-#    all_links.append(nw.get_link(nodes[0], nodes[2]))
-#    all_links.append(nw.get_link(nodes[0], nodes[3]))
-#    all_links.append(nw.get_link(nodes[0], nodes[4]))
-#    all_links.append(nw.get_link(nodes[1], nodes[2]))
-#    all_links.append(nw.get_link(nodes[3], nodes[4]))
-#    final_links = nw.relax_double(all_links, nodes)
-#    assert nw.get_link(nodes[0], nodes[1]) in final_links
-#    assert nw.get_link(nodes[0], nodes[2]) in final_links
-#    assert nw.get_link(nodes[0], nodes[3]) in final_links
-#    assert nw.get_link(nodes[0], nodes[4]) in final_links
-#    assert nw.get_link(nodes[3], nodes[4]) in final_links
-#    assert nw.get_link(nodes[1], nodes[2]) in final_links
 
 def test_euler_1():
     links, nodes = get_instances_2()
@@ -110,7 +93,7 @@ def test_euler_2():
     euler_tour = nw.euler_tour(all_links)
     assert len(euler_tour) == 6
 
-def test_hamilton():
+def test_hamilton_1():
     links, nodes = get_instances_2()
     nw = Network(nodes, links, nodes[0])
     all_links = []
@@ -132,4 +115,26 @@ def test_hamilton():
     for node, links in by_node.items(): 
         assert len(links) == 2
 
-test_get_odd()
+def test_hamilton_2():
+    links, nodes = get_instances_3()
+    nw = Network(nodes, links, nodes[0])
+    all_links = []
+    nw = Network(nodes, links, nodes[0])
+    all_links.append(nw.get_link(nodes[0], nodes[1]))
+    all_links.append(nw.get_link(nodes[0], nodes[2]))
+    all_links.append(nw.get_link(nodes[0], nodes[3]))
+    all_links.append(nw.get_link(nodes[0], nodes[4]))
+    all_links.append(nw.get_link(nodes[1], nodes[2]))
+    all_links.append(nw.get_link(nodes[3], nodes[4]))
+    all_links.append(nw.get_link(nodes[1], nodes[3]))
+    all_links.append(nw.get_link(nodes[3], nodes[5]))
+    all_links.append(nw.get_link(nodes[1], nodes[5]))
+    for link in all_links: print(link)
+    euler_tour = nw.euler_tour(all_links)
+    for euler in euler_tour: print("sorted", euler)
+    hamiltonian_cycle = nw.hamiltonian_cycle(euler_tour)
+    for link in hamiltonian_cycle:
+        print(link) 
+    by_node = links_per_node(hamiltonian_cycle, nodes)
+    for node, links in by_node.items(): 
+        assert len(links) == 2

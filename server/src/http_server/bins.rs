@@ -4,10 +4,12 @@ use axum::http::StatusCode;
 use axum::{Json, Router};
 use axum::response::IntoResponse;
 use axum::routing::get;
+use axum_sessions::extractors::ReadableSession;
 use itertools::Itertools;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use crate::http_server::ServerState;
+use crate::http_server::user::get_signed_in_email;
 
 pub(super) fn router() -> Router<Arc<ServerState>> {
     Router::new()
@@ -32,7 +34,8 @@ struct BinConfig {
     pub full_threshold: f64,
 }
 
-async fn get_one(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
+async fn get_one(Path(id): Path<u64>, session: ReadableSession) -> Result<impl IntoResponse, StatusCode> {
+    let user_email = get_signed_in_email(&session)?;
     Ok(Json(
         dummy_data()
             .into_iter()
@@ -41,11 +44,13 @@ async fn get_one(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
     ))
 }
 
-async fn get_all() -> impl IntoResponse {
+async fn get_all(session: ReadableSession) -> impl IntoResponse {
+    let user_email = get_signed_in_email(&session)?;
     Json(dummy_data())
 }
 
-async fn get_config(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
+async fn get_config(Path(id): Path<u64>, session: ReadableSession) -> Result<impl IntoResponse, StatusCode> {
+    let user_email = get_signed_in_email(&session)?;
     Ok(Json(
         dummy_data()
             .into_iter()
@@ -57,8 +62,10 @@ async fn get_config(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode
 
 async fn set_config(
     Path(id): Path<u64>,
+    session: ReadableSession,
     Json(new_config): Json<BinConfig>,
 ) -> Result<impl IntoResponse, StatusCode> {
+    let user_email = get_signed_in_email(&session)?;
     let mut bin = dummy_data()
         .into_iter()
         .find_or_first(|it| it.id == id)

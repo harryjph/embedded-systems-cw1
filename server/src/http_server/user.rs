@@ -5,15 +5,25 @@ use axum::response::IntoResponse;
 use axum::{Form, Router};
 use axum::extract::State;
 use axum::routing::post;
-use axum_sessions::extractors::WritableSession;
+use axum_sessions::extractors::{ReadableSession, WritableSession};
 use serde::Deserialize;
 use crate::http_server::ServerState;
+
+const SESSION_EMAIL_KEY: &str = "signed_in_to";
 
 pub(super) fn router() -> Router<Arc<ServerState>> {
     Router::new()
         .route("/register", post(register_and_login))
         .route("/login", post(login))
         .route("/logout", post(logout))
+}
+
+pub fn get_signed_in_email(session: &ReadableSession) -> Result<String, StatusCode> {
+    if let Some(email) = session.get::<String>(SESSION_EMAIL_KEY) {
+        Ok(email)
+    } else {
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 #[derive(Deserialize)]
@@ -23,7 +33,7 @@ struct LoginForm {
 }
 
 async fn set_logged_in(session: &mut WritableSession, email: &str) -> Result<(), Error> {
-    session.insert("signed_in_to", email)?;
+    session.insert(SESSION_EMAIL_KEY, email)?;
     Ok(())
 }
 

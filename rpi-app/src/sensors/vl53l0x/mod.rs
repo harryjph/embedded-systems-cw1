@@ -1,3 +1,5 @@
+//! A VL53L0X driver based on https://github.com/copterust/vl53l0x
+
 use std::path::Path;
 use async_trait::async_trait;
 use i2cdev::core::I2CDevice;
@@ -61,22 +63,10 @@ impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
         self.write_byte(0x80, 0x00)?;
 
         self.write_register(Register::SYSRANGE_START, 0x01)?;
-        let mut c = 0;
-        while (self.read_register(Register::SYSRANGE_START)? & 0x01) != 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
+        self.wait_for(|s| Ok((s.read_register(Register::SYSRANGE_START)? & 0x01) == 0))?;
 
         // Read the result
-        let mut c = 0;
-        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
+        self.wait_for(|s| Ok((s.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) != 0))?;
         let range_err = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10);
         // Clear this before checking error
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;

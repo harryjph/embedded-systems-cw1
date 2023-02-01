@@ -24,8 +24,8 @@ impl <D: I2CDevice> VL53L0X<D> {
         self.write_byte(0x00, 0x00)?;
 
         self.write_byte(0xFF, 0x06)?;
-        let mut tmp83 = self.read_byte(0x83)?;
-        self.write_byte(0x83, tmp83 | 0x04)?;
+        let tmp = self.read_byte(0x83)?;
+        self.write_byte(0x83, tmp | 0x04)?;
         self.write_byte(0xFF, 0x07)?;
         self.write_byte(0x81, 0x01)?;
 
@@ -34,13 +34,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         self.write_byte(0x94, 0x6b)?;
         self.write_byte(0x83, 0x00)?;
 
-        let mut c = 0;
-        while self.read_byte(0x83)? == 0x00 {
-            c += 1;
-            if c == 65535 {
-                return Err("Timeout".into());
-            }
-        }
+        self.wait_for(|s| Ok(s.read_byte(0x83)? != 0))?;
 
         self.write_byte(0x83, 0x01)?;
         let tmp = self.read_byte(0x92)?;
@@ -50,8 +44,8 @@ impl <D: I2CDevice> VL53L0X<D> {
 
         self.write_byte(0x81, 0x00)?;
         self.write_byte(0xFF, 0x06)?;
-        tmp83 = self.read_byte(0x83)?;
-        self.write_byte(0x83, tmp83 & !0x04)?;
+        let tmp = self.read_byte(0x83)?;
+        self.write_byte(0x83, tmp & !0x04)?;
         self.write_byte(0xFF, 0x01)?;
         self.write_byte(0x00, 0x01)?;
 
@@ -63,16 +57,9 @@ impl <D: I2CDevice> VL53L0X<D> {
 
     pub fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
         self.write_register(Register::SYSRANGE_START, 0x01 | vhv_init_byte)?;
-        let mut c = 0;
-        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
+        self.wait_for(|s| Ok((s.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) != 0))?;
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
         self.write_register(Register::SYSRANGE_START, 0x00)?;
-
         Ok(())
     }
 
@@ -106,14 +93,11 @@ impl <D: I2CDevice> VL53L0X<D> {
 
         self.write_register(Register::SYSTEM_SEQUENCE_CONFIG, 0xFF)?;
 
-        // TODO fail to initialize on timeout of this
         let (spad_count, spad_type_is_aperture) = self.get_spad_info()?;
 
         // The SPAD map (RefGoodSpadMap) is read by VL53L0X_get_info_from_device() in the API,
         // but the same data seems to be more easily readable from GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
         let mut ref_spad_map = self.read_6bytes(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0)?;
-
-        // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
 
         self.write_byte(0xFF, 0x01)?;
         self.write_register(Register::DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)?;

@@ -30,10 +30,8 @@ impl<D: I2CDevice> VL53L0X<D> {
         reg: Register,
         buffer: &mut [u8],
     ) -> Result<()> {
-        // const I2C_AUTO_INCREMENT: u8 = 1 << 7;
-        const I2C_AUTO_INCREMENT: u8 = 0;
         self.write_read(
-            &[(reg as u8) | I2C_AUTO_INCREMENT],
+            &[(reg as u8)],
             buffer,
         )?;
 
@@ -62,5 +60,16 @@ impl<D: I2CDevice> VL53L0X<D> {
         let msb = (word >> 8) as u8; // TODO byteorder
         let lsb = (word & 0xFF) as u8;
         self.device.write(&[reg as u8, msb, lsb]).map_err(stringify_error)
+    }
+
+    /// Waits for a condition to be achieved, or times out if that takes too long.
+    /// The condition is achieved when the predicate returns true
+    pub fn wait_for<F: Fn(&mut Self) -> Result<bool>>(&mut self, predicate: F) -> Result<()> {
+        for _ in 0..10000 {
+            if predicate(self)? {
+                return Ok(())
+            }
+        }
+        Err("Timeout".into())
     }
 }

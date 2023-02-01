@@ -15,6 +15,7 @@ futures-util = "0.3.25"
 # HTTP Server
 axum = "0.6.4"
 tower-http = { version = "0.3.5", features = ["cors"] }
+async-session = "3.0.0"
 # gRPC Server
 tonic = "0.8.3"
 tonic-reflection = "0.6.0"

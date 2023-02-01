@@ -21,6 +21,7 @@ impl MigrationTrait for Migration {
                         .auto_increment()
                         .primary_key()
                 )
+                .col(ColumnDef::new(Node::Owner).string().null())
                 .col(ColumnDef::new(Node::Latitude).double().not_null())
                 .col(ColumnDef::new(Node::Longitude).double().not_null())
                 .to_owned()
@@ -46,6 +47,7 @@ impl MigrationTrait for Migration {
 pub enum Node {
     Table,
     Id,
+    Owner,
     Latitude,
     Longitude,
 }

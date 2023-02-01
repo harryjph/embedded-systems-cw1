@@ -49,7 +49,7 @@ impl Database {
         };
 
         match user::Entity::insert(new_user).exec(&self.db).await {
-            Err(DbErr::Exec(r)) => {
+            Err(DbErr::Exec(_)) => {
                 return Err(Error::msg("Email already registered"));
             }
             other => {

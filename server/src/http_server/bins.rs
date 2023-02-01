@@ -1,15 +1,30 @@
+use std::sync::Arc;
+use axum::extract::Path;
+use axum::http::StatusCode;
+use axum::{Json, Router};
+use axum::response::IntoResponse;
+use axum::routing::get;
+use itertools::Itertools;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use crate::http_server::ServerState;
+
+pub(super) fn router() -> Router<Arc<ServerState>> {
+    Router::new()
+        .route("/", get(get_all))
+        .route("/:id", get(get_one))
+        .route("/:id/config", get(get_config).post(set_config))
+}
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Bin {
+struct Bin {
     pub id: u64,
     pub config: BinConfig,
     pub fullness: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct BinConfig {
+struct BinConfig {
     pub name: String,
     pub latitude: f64,
     pub longitude: f64,
@@ -17,7 +32,42 @@ pub struct BinConfig {
     pub full_threshold: f64,
 }
 
-pub fn dummy_data() -> [Bin; 5] {
+async fn get_one(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
+    Ok(Json(
+        dummy_data()
+            .into_iter()
+            .find_or_first(|it| it.id == id)
+            .ok_or(StatusCode::NOT_FOUND)?,
+    ))
+}
+
+async fn get_all() -> impl IntoResponse {
+    Json(dummy_data())
+}
+
+async fn get_config(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
+    Ok(Json(
+        dummy_data()
+            .into_iter()
+            .find_or_first(|it| it.id == id)
+            .ok_or(StatusCode::NOT_FOUND)?
+            .config,
+    ))
+}
+
+async fn set_config(
+    Path(id): Path<u64>,
+    Json(new_config): Json<BinConfig>,
+) -> Result<impl IntoResponse, StatusCode> {
+    let mut bin = dummy_data()
+        .into_iter()
+        .find_or_first(|it| it.id == id)
+        .ok_or(StatusCode::NOT_FOUND)?;
+    bin.config = new_config;
+    Ok(())
+}
+
+fn dummy_data() -> [Bin; 5] {
     let mut rng = rand::thread_rng();
     [
         Bin {

@@ -28,7 +28,7 @@ async fn main() -> Result<(), Error> {
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));
 
-    let http_server_handle = http_server::launch(config.clone(), lock.clone());
+    let http_server_handle = http_server::launch(config.clone(), db.clone());
     let grpc_server_handle = grpc_server::launch(config.clone(), data_in, db.clone());
 
     let data_handler_handle = spawn(async move {

@@ -1,4 +1,5 @@
 use std::time::{Duration, SystemTime};
+use anyhow::Error;
 use crate::sensors::vl53l0x::VL53L0X;
 use super::super::Result;
 
@@ -13,7 +14,7 @@ impl <D> VL53L0X<D> {
                 return Ok(())
             }
         }
-        Err("Timeout".into())
+        Err(Error::msg("Timeout"))
     }
 }
 

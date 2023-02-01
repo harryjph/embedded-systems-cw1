@@ -1,6 +1,7 @@
 //! A VL53L0X driver based on https://github.com/copterust/vl53l0x
 
 use std::path::Path;
+use anyhow::Error;
 use async_trait::async_trait;
 use i2cdev::core::I2CDevice;
 use i2cdev::linux::LinuxI2CDevice;
@@ -41,12 +42,14 @@ impl<D: I2CDevice> VL53L0X<D> {
             driver.init_hardware()?;
             Ok(driver)
         } else {
-            Err(format!("Invalid device: {who_am_i}").into())
+            Err(Error::msg(format!("Invalid device: {who_am_i}")))
         }
     }
+}
 
-    /// Synchronously reads the proximity from the device
-    fn read_proximity_sync(&mut self) -> Result<f32> {
+#[async_trait]
+impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
+    async fn read_proximity(&mut self) -> Result<f32> {
         // Send a measure command
         self.write_register(0x80, 0x01)?;
         self.write_register(0xFF, 0x01)?;
@@ -66,12 +69,5 @@ impl<D: I2CDevice> VL53L0X<D> {
         // Clear this before checking error
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
         Ok(range_err? as f32 / 1000.0)
-    }
-}
-
-#[async_trait]
-impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
-    async fn read_proximity(&mut self) -> Result<f32> {
-        self.read_proximity_sync()
     }
 }

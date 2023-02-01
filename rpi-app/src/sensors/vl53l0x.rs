@@ -100,14 +100,6 @@ impl<D: I2CDevice> VL53L0X<D> {
         self.device.write(&[reg as u8, msb, lsb]).map_err(util::stringify_error)
     }
 
-    fn write_32bit(&mut self, reg: Register, word: u32) -> Result<()> {
-        let v1 = (word & 0xFF) as u8; // TODO byteorder
-        let v2 = ((word >> 8) & 0xFF) as u8;
-        let v3 = ((word >> 16) & 0xFF) as u8;
-        let v4 = ((word >> 24) & 0xFF) as u8;
-        self.device.write(&[reg as u8, v1, v2, v3, v4]).map_err(util::stringify_error)
-    }
-
     fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
         if limit < 0.0 || limit > 511.99 {
             Ok(false)
@@ -162,95 +154,6 @@ impl<D: I2CDevice> VL53L0X<D> {
         self.write_byte(0x80, 0x00)?;
 
         Ok((count, type_is_aperture))
-    }
-
-    pub fn start_continuous(&mut self, period_millis: u32) -> Result<()> {
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
-        let sv = self.stop_variable;
-        self.write_byte(0x91, sv)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
-
-        let mut period_millis = period_millis;
-        if period_millis != 0 {
-            // continuous timed mode
-            // VL53L0X_SetInterMeasurementPeriodMilliSeconds() begin
-            let osc_calibrate_value =
-                self.read_16bit(Register::OSC_CALIBRATE_VAL)?;
-
-            if osc_calibrate_value != 0 {
-                period_millis *= osc_calibrate_value as u32;
-            }
-
-            self.write_32bit(
-                Register::SYSTEM_INTERMEASUREMENT_PERIOD,
-                period_millis,
-            )?;
-            // VL53L0X_SetInterMeasurementPeriodMilliSeconds() end
-            // VL53L0X_REG_SYSRANGE_MODE_TIMED
-            self.write_register(Register::SYSRANGE_START, 0x04)?;
-        } else {
-            // continuous back-to-back mode
-            // VL53L0X_REG_SYSRANGE_MODE_BACKTOBACK
-            self.write_register(Register::SYSRANGE_START, 0x02)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn stop_continuous(&mut self) -> Result<()> {
-        // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
-        self.write_register(Register::SYSRANGE_START, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
-        self.write_byte(0x91, 0x00)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-
-        Ok(())
-    }
-
-    /// Reads the range (in millimeters) in continuous mode
-    pub fn read_range_continuous(&mut self) -> Result<u16> {
-        let mut c = 0;
-        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
-        let range_err = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10);
-        // don't use ? to cleanup
-        self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
-
-        Ok(range_err?)
-    }
-
-    /// Reads the range (in millimeters) in single mode
-    pub fn read_range_single(&mut self) -> Result<u16> {
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
-        let sv = self.stop_variable;
-        self.write_byte(0x91, sv)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
-
-        self.write_register(Register::SYSRANGE_START, 0x01)?;
-
-        // Wait until start bit has been cleared
-        let mut c = 0;
-        while (self.read_register(Register::SYSRANGE_START)? & 0x01) != 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
-        self.read_range_continuous()
     }
 
     fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
@@ -713,8 +616,6 @@ enum Register {
     SYSTEM_INTERRUPT_CLEAR = 0x0B,
     RESULT_INTERRUPT_STATUS = 0x13,
     RESULT_RANGE_STATUS_plus_10 = 0x1e,
-    OSC_CALIBRATE_VAL = 0xF8,
-    SYSTEM_INTERMEASUREMENT_PERIOD = 0x04,
     FINAL_RANGE_CONFIG_VCSEL_PERIOD = 0x70,
     PRE_RANGE_CONFIG_VCSEL_PERIOD = 0x50,
     PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x51,
@@ -731,6 +632,37 @@ enum VcselPeriodType {
 #[async_trait]
 impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
     async fn read_proximity(&mut self) -> Result<f32> {
-        self.read_range_single().map(|it| it as f32)
+        self.write_byte(0x80, 0x01)?;
+        self.write_byte(0xFF, 0x01)?;
+        self.write_byte(0x00, 0x00)?;
+        let sv = self.stop_variable;
+        self.write_byte(0x91, sv)?;
+        self.write_byte(0x00, 0x01)?;
+        self.write_byte(0xFF, 0x00)?;
+        self.write_byte(0x80, 0x00)?;
+
+        self.write_register(Register::SYSRANGE_START, 0x01)?;
+
+        // Wait until start bit has been cleared
+        let mut c = 0;
+        while (self.read_register(Register::SYSRANGE_START)? & 0x01) != 0 {
+            c += 1;
+            if c == 10000 {
+                return Err("Timeout".into());
+            }
+        }
+
+        let mut c = 0;
+        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
+            c += 1;
+            if c == 10000 {
+                return Err("Timeout".into());
+            }
+        }
+        let range_err = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10);
+        // don't use ? to cleanup
+        self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
+
+        Ok(range_err? as f32)
     }
 }

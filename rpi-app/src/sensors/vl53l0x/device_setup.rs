@@ -4,7 +4,7 @@ use super::super::Result;
 use super::util::*;
 
 impl <D: I2CDevice> VL53L0X<D> {
-    pub fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
+    fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
         if limit < 0.0 || limit > 511.99 {
             Ok(false)
         } else {
@@ -17,7 +17,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         }
     }
 
-    pub fn get_spad_info(&mut self) -> Result<(u8, u8)> {
+    fn get_spad_info(&mut self) -> Result<(u8, u8)> {
         self.write_register(0x80, 0x01)?;
         self.write_register(0xFF, 0x01)?;
         self.write_register(0x00, 0x00)?;
@@ -54,7 +54,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         Ok((count, type_is_aperture))
     }
 
-    pub fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
+    fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
         self.write_register(Register::SYSRANGE_START, 0x01 | vhv_init_byte)?;
         self.wait_for(|s| Ok((s.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) != 0))?;
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
@@ -237,7 +237,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         Ok(())
     }
 
-    pub fn get_vcsel_pulse_period(&mut self, ty: VcselPeriodType) -> Result<u8> {
+    fn get_vcsel_pulse_period(&mut self, ty: VcselPeriodType) -> Result<u8> {
         match ty {
             VcselPeriodType::VcselPeriodPreRange => Ok(decode_vcsel_period(
                 self.read_register(Register::PRE_RANGE_CONFIG_VCSEL_PERIOD)?,
@@ -248,7 +248,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         }
     }
 
-    pub fn get_sequence_step_enables(&mut self) -> Result<SeqStepEnables> {
+    fn get_sequence_step_enables(&mut self) -> Result<SeqStepEnables> {
         let sequence_config = self.read_register(Register::SYSTEM_SEQUENCE_CONFIG)?;
         Ok(SeqStepEnables {
             tcc: ((sequence_config >> 4) & 0x1) == 1,
@@ -259,7 +259,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         })
     }
 
-    pub fn get_sequence_step_timeouts(
+    fn get_sequence_step_timeouts(
         &mut self,
         enables: &SeqStepEnables,
     ) -> Result<SeqStepTimeouts> {
@@ -293,7 +293,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         })
     }
 
-    pub fn get_measurement_timing_budget(&mut self) -> Result<u32> {
+    fn get_measurement_timing_budget(&mut self) -> Result<u32> {
         let start_overhead: u32 = 1910;
         let end_overhead: u32 = 960;
         let msrc_overhead: u32 = 660;
@@ -325,8 +325,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         Ok(budget_microseconds)
     }
 
-    /// setMeasurementTimingBudget(budget_microseconds)
-    pub fn set_measurement_timing_budget(
+    fn set_measurement_timing_budget(
         &mut self,
         budget_microseconds: u32,
     ) -> Result<bool> {

@@ -1,9 +1,9 @@
 use crate::config::{EmailConfig, EmailSecurity};
+use anyhow::Error;
 use lettre::message::{Mailbox, MessageBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::client::{Tls, TlsParameters};
 use lettre::{AsyncSmtpTransport, AsyncTransport, Tokio1Executor};
-use anyhow::Error;
 
 pub struct Mailer {
     mailer: AsyncSmtpTransport<Tokio1Executor>,

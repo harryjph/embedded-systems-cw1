@@ -20,7 +20,11 @@ pub mod node {
 
     #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
     pub enum Relation {
-        #[sea_orm(belongs_to = "super::user::Entity", from = "Column::Owner", to = "super::user::Column::Email")]
+        #[sea_orm(
+            belongs_to = "super::user::Entity",
+            from = "Column::Owner",
+            to = "super::user::Column::Email"
+        )]
         User,
     }
 
@@ -53,5 +57,4 @@ pub mod user {
             Relation::Node.def()
         }
     }
-    pub enum Relation {}
 }

@@ -1,10 +1,10 @@
-use std::sync::Arc;
+use crate::db::Database;
 use anyhow::Error;
 use lazy_regex::regex;
 use pbkdf2::password_hash::rand_core::OsRng;
 use pbkdf2::password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString};
 use pbkdf2::Pbkdf2;
-use crate::db::Database;
+use std::sync::Arc;
 
 const MIN_PASSWORD_LEN: usize = 8;
 
@@ -14,9 +14,7 @@ pub struct UserManager {
 
 impl UserManager {
     pub fn new(db: Arc<Database>) -> Self {
-        UserManager {
-            db
-        }
+        UserManager { db }
     }
 
     pub async fn register(&self, email: String, password: String) -> Result<(), Error> {
@@ -38,9 +36,12 @@ impl UserManager {
         }
 
         let password_salt = SaltString::generate(&mut OsRng);
-        let password_hash = Pbkdf2.hash_password(password.as_bytes(), &password_salt)
+        let password_hash = Pbkdf2
+            .hash_password(password.as_bytes(), &password_salt)
             .map_err(|e| Error::msg(e.to_string()))?;
-        self.db.insert_user(email, password_hash.to_string()).await?;
+        self.db
+            .insert_user(email, password_hash.to_string())
+            .await?;
         Ok(())
     }
 

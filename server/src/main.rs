@@ -1,11 +1,12 @@
 use crate::config::Config;
 use crate::db::Database;
 use crate::mailer::Mailer;
+use crate::user_manager::UserManager;
+use anyhow::Error;
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::sync::Arc;
-use anyhow::Error;
 use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
 

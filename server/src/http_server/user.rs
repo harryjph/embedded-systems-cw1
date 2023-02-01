@@ -79,10 +79,58 @@ async fn logout(mut session: WritableSession, ) -> impl IntoResponse {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use crate::http_server::test_utils::start_test_server;
 
     #[tokio::test]
-    async fn test_register_and_login() {
-        let client = start_test_server().await;
+    async fn test_register_and_logout() {
+        let (client, _) = start_test_server("/user").await;
+
+        let mut params = HashMap::new();
+        params.insert("email", TEST_EMAIL);
+        params.insert("password", TEST_PASSWORD);
+
+        client.post("/register")
+            .form(&params)
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap();
+
+        client.post("/logout")
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap();
     }
+
+    #[tokio::test]
+    async fn test_register_and_login() {
+        let (client, state) = start_test_server("/user").await;
+        state.user_manager.register(TEST_EMAIL, TEST_PASSWORD).await.unwrap();
+
+        let mut params = HashMap::new();
+        params.insert("email", TEST_EMAIL);
+        params.insert("password", TEST_PASSWORD);
+
+        client.post("/login")
+            .form(&params)
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap();
+
+        client.post("/logout")
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap();
+    }
+
+    const TEST_EMAIL: &str = "test@example.com";
+    const TEST_PASSWORD: &str = "Passw0rd";
 }

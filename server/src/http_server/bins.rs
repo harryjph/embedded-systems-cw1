@@ -44,9 +44,9 @@ async fn get_one(Path(id): Path<u64>, session: ReadableSession) -> Result<impl I
     ))
 }
 
-async fn get_all(session: ReadableSession) -> impl IntoResponse {
+async fn get_all(session: ReadableSession) -> Result<impl IntoResponse, StatusCode> {
     let user_email = get_signed_in_email(&session)?;
-    Json(dummy_data())
+    Ok(Json(dummy_data()))
 }
 
 async fn get_config(Path(id): Path<u64>, session: ReadableSession) -> Result<impl IntoResponse, StatusCode> {

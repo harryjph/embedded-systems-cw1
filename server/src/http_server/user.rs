@@ -76,3 +76,13 @@ async fn login(
 async fn logout(mut session: WritableSession, ) -> impl IntoResponse {
     session.destroy()
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::http_server::test_utils::start_test_server;
+
+    #[tokio::test]
+    async fn test_register_and_login() {
+        let client = start_test_server().await;
+    }
+}

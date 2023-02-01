@@ -8,7 +8,7 @@ const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub url: String,
-    pub id: Option<i32>,
+    pub id: Option<u64>,
 }
 
 impl Default for Config {

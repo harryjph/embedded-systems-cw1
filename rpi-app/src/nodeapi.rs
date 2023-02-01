@@ -21,7 +21,7 @@ impl Client {
         Ok(Client { client: NodeApiClient::connect(endpoint).await? })
     }
 
-    pub async fn assign_id(&mut self) -> Result<i32, Box<dyn Error>> {
+    pub async fn assign_id(&mut self) -> Result<u64, Box<dyn Error>> {
         let node_id = self.client.assign_id(grpc_generated::Empty{}).await?.into_inner();
         Ok(node_id.id)
     }

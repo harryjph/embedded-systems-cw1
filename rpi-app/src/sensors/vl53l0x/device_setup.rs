@@ -1,106 +1,11 @@
-use std::path::Path;
-use async_trait::async_trait;
 use i2cdev::core::I2CDevice;
-use i2cdev::linux::LinuxI2CDevice;
-use crate::util;
-use super::{Result, ProximitySensor};
+use crate::sensors::vl53l0x::VL53L0X;
+use super::super::Result;
+use super::util::*;
+use super::types::*;
 
-pub struct VL53L0X<D> {
-    device: D,
-    pub revision_id: u8,
-    io_mode2v8: bool,
-    stop_variable: u8,
-    measurement_timing_budget_microseconds: u32,
-}
-
-impl VL53L0X<LinuxI2CDevice> {
-    pub fn new_from_descriptor<P: AsRef<Path>>(path: P, slave_address: u16) -> Result<Self> {
-        Ok(VL53L0X::new(LinuxI2CDevice::new(path, slave_address)?)?)
-    }
-}
-
-impl<D: I2CDevice> VL53L0X<D> {
-    pub fn new(device: D) -> Result<Self> {
-        let mut driver = VL53L0X {
-            device,
-            revision_id: 0x00,
-            io_mode2v8: true,
-            stop_variable: 0,
-            measurement_timing_budget_microseconds: 0,
-        };
-
-        let who_am_i = driver.read_register(Register::WHO_AM_I)?;
-        if who_am_i == 0xEE {
-            driver.init_hardware()?;
-            Ok(driver)
-        } else {
-            Err(format!("Invalid device: {who_am_i}").into())
-        }
-    }
-
-    fn write_read(&mut self, bytes: &[u8], buffer: &mut [u8]) -> Result<()> {
-        self.device.write(bytes).map_err(util::stringify_error)?;
-        self.device.read(buffer).map_err(util::stringify_error)
-    }
-
-    fn read_byte(&mut self, reg: u8) -> Result<u8> {
-        let mut data = [0];
-        self.device.write(&[reg]).map_err(util::stringify_error)?;
-        self.device.read(&mut data).map_err(util::stringify_error)?;
-        Ok(data[0])
-    }
-
-    fn read_register(&mut self, reg: Register) -> Result<u8> {
-        self.read_byte(reg as u8)
-    }
-
-    fn read_6bytes(&mut self, reg: Register) -> Result<[u8; 6]> {
-        let mut ret: [u8; 6] = Default::default();
-        self.read_registers(reg, &mut ret)?;
-
-        Ok(ret)
-    }
-
-    fn read_registers(
-        &mut self,
-        reg: Register,
-        buffer: &mut [u8],
-    ) -> Result<()> {
-        // const I2C_AUTO_INCREMENT: u8 = 1 << 7;
-        const I2C_AUTO_INCREMENT: u8 = 0;
-        self.write_read(
-            &[(reg as u8) | I2C_AUTO_INCREMENT],
-            buffer,
-        )?;
-
-        Ok(())
-    }
-
-    fn read_16bit(&mut self, reg: Register) -> Result<u16> {
-        let mut buffer: [u8; 2] = [0, 0];
-        self.read_registers(reg, &mut buffer)?;
-        Ok(((buffer[0] as u16) << 8) + buffer[1] as u16) // TODO byteorder
-    }
-
-    fn write_byte(&mut self, reg: u8, byte: u8) -> Result<()> {
-        self.device.write(&[reg, byte]).map_err(util::stringify_error)
-    }
-
-    fn write_register(&mut self, reg: Register, byte: u8) -> Result<()> {
-        self.write_byte(reg as u8, byte)
-    }
-
-    fn write_6bytes(&mut self, reg: Register, bytes: [u8; 6]) -> Result<()> {
-        self.device.write(&[reg as u8, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]]).map_err(util::stringify_error)
-    }
-
-    fn write_16bit(&mut self, reg: Register, word: u16) -> Result<()> {
-        let msb = (word >> 8) as u8; // TODO byteorder
-        let lsb = (word & 0xFF) as u8;
-        self.device.write(&[reg as u8, msb, lsb]).map_err(util::stringify_error)
-    }
-
-    fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
+impl <D: I2CDevice> VL53L0X<D> {
+    pub fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
         if limit < 0.0 || limit > 511.99 {
             Ok(false)
         } else {
@@ -113,7 +18,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         }
     }
 
-    fn get_spad_info(&mut self) -> Result<(u8, u8)> {
+    pub fn get_spad_info(&mut self) -> Result<(u8, u8)> {
         self.write_byte(0x80, 0x01)?;
         self.write_byte(0xFF, 0x01)?;
         self.write_byte(0x00, 0x00)?;
@@ -156,8 +61,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         Ok((count, type_is_aperture))
     }
 
-    fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
-        // VL53L0X_REG_SYSRANGE_MODE_START_STOP
+    pub fn perform_single_ref_calibration(&mut self, vhv_init_byte: u8) -> Result<()> {
         self.write_register(Register::SYSRANGE_START, 0x01 | vhv_init_byte)?;
         let mut c = 0;
         while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
@@ -172,7 +76,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         Ok(())
     }
 
-    fn init_hardware(&mut self) -> Result<()> {
+    pub fn init_hardware(&mut self) -> Result<()> {
         // Sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
         if self.io_mode2v8 {
             // set bit 0
@@ -236,9 +140,6 @@ impl<D: I2CDevice> VL53L0X<D> {
             ref_spad_map,
         )?;
 
-        // -- VL53L0X_set_reference_spads() end
-
-        // -- VL53L0X_load_tuning_settings() begin
         // DefaultTuningSettings from vl53l0x_tuning.h
 
         self.write_byte(0xFF, 0x01)?;
@@ -355,7 +256,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         Ok(())
     }
 
-    fn get_vcsel_pulse_period(&mut self, ty: VcselPeriodType) -> Result<u8> {
+    pub fn get_vcsel_pulse_period(&mut self, ty: VcselPeriodType) -> Result<u8> {
         match ty {
             VcselPeriodType::VcselPeriodPreRange => Ok(decode_vcsel_period(
                 self.read_register(Register::PRE_RANGE_CONFIG_VCSEL_PERIOD)?,
@@ -366,7 +267,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         }
     }
 
-    fn get_sequence_step_enables(&mut self) -> Result<SeqStepEnables> {
+    pub fn get_sequence_step_enables(&mut self) -> Result<SeqStepEnables> {
         let sequence_config = self.read_register(Register::SYSTEM_SEQUENCE_CONFIG)?;
         Ok(SeqStepEnables {
             tcc: ((sequence_config >> 4) & 0x1) == 1,
@@ -377,7 +278,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         })
     }
 
-    fn get_sequence_step_timeouts(
+    pub fn get_sequence_step_timeouts(
         &mut self,
         enables: &SeqStepEnables,
     ) -> Result<SeqStepTimeouts> {
@@ -411,8 +312,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         })
     }
 
-    // uint32_t VL53L0X::getMeasurementTimingBudget() {
-    fn get_measurement_timing_budget(&mut self) -> Result<u32> {
+    pub fn get_measurement_timing_budget(&mut self) -> Result<u32> {
         let start_overhead: u32 = 1910;
         let end_overhead: u32 = 960;
         let msrc_overhead: u32 = 660;
@@ -427,26 +327,20 @@ impl<D: I2CDevice> VL53L0X<D> {
         // "Start and end overhead times always present"
         let mut budget_microseconds = start_overhead + end_overhead;
         if enables.tcc {
-            budget_microseconds +=
-                timeouts.msrc_dss_tcc_microseconds + tcc_overhead;
+            budget_microseconds += timeouts.msrc_dss_tcc_microseconds + tcc_overhead;
         }
         if enables.dss {
-            budget_microseconds +=
-                2 * (timeouts.msrc_dss_tcc_microseconds + dss_overhead);
+            budget_microseconds += 2 * (timeouts.msrc_dss_tcc_microseconds + dss_overhead);
         } else if enables.msrc {
-            budget_microseconds +=
-                timeouts.msrc_dss_tcc_microseconds + msrc_overhead;
+            budget_microseconds += timeouts.msrc_dss_tcc_microseconds + msrc_overhead;
         }
         if enables.pre_range {
-            budget_microseconds +=
-                timeouts.pre_range_microseconds + pre_range_overhead;
+            budget_microseconds += timeouts.pre_range_microseconds + pre_range_overhead;
         }
         if enables.final_range {
-            budget_microseconds +=
-                timeouts.final_range_microseconds + final_range_overhead;
+            budget_microseconds += timeouts.final_range_microseconds + final_range_overhead;
         }
 
-        // store for internal reuse
         Ok(budget_microseconds)
     }
 
@@ -488,12 +382,6 @@ impl<D: I2CDevice> VL53L0X<D> {
             use_budget_microseconds += final_range_overhead;
         }
 
-        // "Note that the final range timeout is determined by the timing
-        // budget and the sum of all other timeouts within the sequence.
-        // If there is no room for the final range timeout, then an error
-        // will be set. Otherwise the remaining time will be applied to
-        // the final range."
-
         if use_budget_microseconds > budget_microseconds {
             // "Requested timeout too small."
             return Ok(false);
@@ -501,12 +389,6 @@ impl<D: I2CDevice> VL53L0X<D> {
 
         let final_range_timeout_microseconds: u32 = budget_microseconds - use_budget_microseconds;
 
-        // set_sequence_step_timeout() begin
-        // (SequenceStepId == VL53L0X_SEQUENCESTEP_FINAL_RANGE)
-        // "For the final range timeout, the pre-range timeout
-        // must be added. To do this both final and pre-range
-        // timeouts must be expressed in macro periods MClks
-        // because they have different vcsel periods."
         let mut final_range_timeout_mclks: u16 = timeout_microseconds_to_mclks(
             final_range_timeout_microseconds,
             timeouts.final_range_vcsel_period_pclks,
@@ -521,148 +403,7 @@ impl<D: I2CDevice> VL53L0X<D> {
             encode_timeout(final_range_timeout_mclks),
         )?;
 
-        // set_sequence_step_timeout() end
-        // store for internal reuse
         self.measurement_timing_budget_microseconds = budget_microseconds;
         Ok(true)
-    }
-}
-
-struct SeqStepEnables {
-    tcc: bool,
-    dss: bool,
-    msrc: bool,
-    pre_range: bool,
-    final_range: bool,
-}
-
-struct SeqStepTimeouts {
-    final_range_vcsel_period_pclks: u8,
-    pre_range_mclks: u16,
-    msrc_dss_tcc_microseconds: u32,
-    pre_range_microseconds: u32,
-    final_range_microseconds: u32,
-}
-
-fn decode_timeout(register_value: u16) -> u16 {
-    // format: "(LSByte * 2^MSByte) + 1"
-    ((register_value & 0x00FF) << (((register_value & 0xFF00) as u16) >> 8))
-        as u16
-        + 1
-}
-
-fn encode_timeout(timeout_mclks: u16) -> u16 {
-    if timeout_mclks == 0 {
-        return 0;
-    }
-    let mut ls_byte: u32;
-    let mut ms_byte: u16 = 0;
-
-    ls_byte = (timeout_mclks as u32) - 1;
-
-    while (ls_byte & 0xFFFFFF00) > 0 {
-        ls_byte >>= 1;
-        ms_byte += 1;
-    }
-
-    return (ms_byte << 8) | ((ls_byte & 0xFF) as u16);
-}
-
-fn calc_macro_period(vcsel_period_pclks: u8) -> u32 {
-    ((2304u32 * (vcsel_period_pclks as u32) * 1655u32) + 500u32) / 1000u32
-}
-
-fn timeout_mclks_to_microseconds(
-    timeout_period_mclks: u16,
-    vcsel_period_pclks: u8,
-) -> u32 {
-    let macro_period_nanoseconds: u32 =
-        calc_macro_period(vcsel_period_pclks) as u32;
-    (((timeout_period_mclks as u32) * macro_period_nanoseconds)
-        + (macro_period_nanoseconds / 2))
-        / 1000
-}
-
-fn timeout_microseconds_to_mclks(
-    timeout_period_microseconds: u32,
-    vcsel_period_pclks: u8,
-) -> u32 {
-    let macro_period_nanoseconds: u32 =
-        calc_macro_period(vcsel_period_pclks) as u32;
-
-    ((timeout_period_microseconds * 1000) + (macro_period_nanoseconds / 2))
-        / macro_period_nanoseconds
-}
-
-// Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs from register value based on VL53L0X_decode_vcsel_period()
-fn decode_vcsel_period(register_value: u8) -> u8 {
-    ((register_value) + 1) << 1
-}
-
-#[allow(non_camel_case_types)]
-enum Register {
-    SYSRANGE_START = 0x00,
-    WHO_AM_I = 0xC0,
-    VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV = 0x89,
-    MSRC_CONFIG_CONTROL = 0x60,
-    SYSTEM_SEQUENCE_CONFIG = 0x01,
-    FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT = 0x44,
-    GLOBAL_CONFIG_SPAD_ENABLES_REF_0 = 0xB0,
-    DYNAMIC_SPAD_REF_EN_START_OFFSET = 0x4F,
-    DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD = 0x4E,
-    GLOBAL_CONFIG_REF_EN_START_SELECT = 0xB6,
-    SYSTEM_INTERRUPT_CONFIG_GPIO = 0x0A,
-    GPIO_HV_MUX_ACTIVE_HIGH = 0x84,
-    SYSTEM_INTERRUPT_CLEAR = 0x0B,
-    RESULT_INTERRUPT_STATUS = 0x13,
-    RESULT_RANGE_STATUS_plus_10 = 0x1e,
-    FINAL_RANGE_CONFIG_VCSEL_PERIOD = 0x70,
-    PRE_RANGE_CONFIG_VCSEL_PERIOD = 0x50,
-    PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x51,
-    FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI = 0x71,
-    MSRC_CONFIG_TIMEOUT_MACROP = 0x46,
-}
-
-#[derive(Debug, Copy, Clone)]
-enum VcselPeriodType {
-    VcselPeriodPreRange = 0,
-    VcselPeriodFinalRange = 1,
-}
-
-#[async_trait]
-impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
-    async fn read_proximity(&mut self) -> Result<f32> {
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
-        let sv = self.stop_variable;
-        self.write_byte(0x91, sv)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
-
-        self.write_register(Register::SYSRANGE_START, 0x01)?;
-
-        // Wait until start bit has been cleared
-        let mut c = 0;
-        while (self.read_register(Register::SYSRANGE_START)? & 0x01) != 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
-
-        let mut c = 0;
-        while (self.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) == 0 {
-            c += 1;
-            if c == 10000 {
-                return Err("Timeout".into());
-            }
-        }
-        let range_err = self.read_16bit(Register::RESULT_RANGE_STATUS_plus_10);
-        // don't use ? to cleanup
-        self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
-
-        Ok(range_err? as f32)
     }
 }

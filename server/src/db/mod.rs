@@ -66,7 +66,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn get_user(&self, email: String) -> Result<user::Model, Error> {
+    pub async fn get_user(&self, email: &str) -> Result<user::Model, Error> {
         user::Entity::find()
             .filter(user::Column::Email.eq(email.to_lowercase()))
             .one(&self.db)

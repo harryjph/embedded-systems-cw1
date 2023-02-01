@@ -36,7 +36,7 @@ async fn register_and_login(
     mut session: WritableSession,
     Form(input): Form<LoginForm>,
 ) -> Result<impl IntoResponse, (StatusCode, impl IntoResponse)> {
-    state.user_manager.register(input.email.clone(), input.password)
+    state.user_manager.register(input.email.as_str(), input.password.as_str())
         .await
         .map_err(bad_request)?;
 
@@ -52,7 +52,7 @@ async fn login(
     mut session: WritableSession,
     Form(input): Form<LoginForm>,
 ) -> Result<impl IntoResponse, (StatusCode, impl IntoResponse)> {
-    state.user_manager.login(input.email.clone(), input.password)
+    state.user_manager.login(input.email.as_str(), input.password.as_str())
         .await
         .map_err(bad_request)?;
 

@@ -33,7 +33,6 @@ rand = "0.8.5"
 
 [build-dependencies]
 # gRPC
-tokio = { version = "1.24.2", features = ["full"] }
 tonic-build = "0.8"
 
 [dev-dependencies]

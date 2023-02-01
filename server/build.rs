@@ -2,8 +2,7 @@ use std::env;
 use std::error::Error;
 use std::path::PathBuf;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     // Generate gRPC Server

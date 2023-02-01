@@ -4,10 +4,10 @@ use sea_orm::prelude::*;
 use sea_orm::{ActiveValue, Database as SeaOrmDatabase};
 use sea_orm_migration::MigratorTrait;
 use crate::db::migrations::Migrator;
-use self::entities::{prelude::*, *};
+use self::entity::node;
 
 pub mod migrations;
-pub mod entities;
+pub mod entity;
 
 const DB_PATH_ENV_NAME: &str = "DATABASE_PATH";
 
@@ -33,20 +33,20 @@ impl Database {
         &self,
         latitude: f64,
         longitude: f64,
-    ) -> Result<i32, Box<dyn Error>> {
+    ) -> Result<u64, Box<dyn Error>> {
         let new_node = node::ActiveModel {
             latitude: ActiveValue::Set(latitude),
             longitude: ActiveValue::Set(longitude),
             ..Default::default()
         };
 
-        let res = Node::insert(new_node).exec(&self.db).await?;
+        let res = node::Entity::insert(new_node).exec(&self.db).await?;
 
         Ok(res.last_insert_id)
     }
 
     pub async fn get_nodes(&mut self) -> Result<(), Box<dyn Error>> {
-        let nodes: Vec<node::Model> = Node::find().all(&self.db).await?;
+        let nodes: Vec<node::Model> = node::Entity::find().all(&self.db).await?;
 
         for node in nodes {
             println!("Longitude: {}, Latitude: {}", node.longitude, node.latitude);

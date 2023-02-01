@@ -27,7 +27,7 @@ impl Database {
 
     /// Creates a new in-memory database. Contents will be lost when the last connection is closed.
     pub async fn new_in_memory() -> Result<Self, Error> {
-        Database::new("sqlite::memory:")
+        Database::new("sqlite::memory:").await
     }
 
     async fn new<C: Into<ConnectOptions>>(db_url: C) -> Result<Self, Error> {

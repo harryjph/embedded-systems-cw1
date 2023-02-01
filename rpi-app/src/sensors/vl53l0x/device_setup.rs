@@ -10,7 +10,7 @@ impl <D: I2CDevice> VL53L0X<D> {
             Ok(false)
         } else {
             // Q9.7 fixed point format (9 integer bits, 7 fractional bits)
-            self.write_16bit(
+            self.write_u16(
                 Register::FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT,
                 (limit * ((1 << 7) as f32)) as u16,
             )?;
@@ -97,7 +97,8 @@ impl <D: I2CDevice> VL53L0X<D> {
 
         // The SPAD map (RefGoodSpadMap) is read by VL53L0X_get_info_from_device() in the API,
         // but the same data seems to be more easily readable from GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
-        let mut ref_spad_map = self.read_6bytes(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0)?;
+        let mut ref_spad_map = [0u8; 6];
+        self.read_registers(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0, &mut ref_spad_map)?;
 
         self.write_byte(0xFF, 0x01)?;
         self.write_register(Register::DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)?;
@@ -119,10 +120,7 @@ impl <D: I2CDevice> VL53L0X<D> {
             }
         }
 
-        self.write_6bytes(
-            Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0,
-            ref_spad_map,
-        )?;
+        self.write_register_burst(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0, &ref_spad_map)?;
 
         // DefaultTuningSettings from vl53l0x_tuning.h
 
@@ -267,10 +265,10 @@ impl <D: I2CDevice> VL53L0X<D> {
         enables: &SeqStepEnables,
     ) -> Result<SeqStepTimeouts> {
         let pre_range_mclks = decode_timeout(
-            self.read_16bit(Register::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
+            self.read_u16(Register::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
         );
         let mut final_range_mclks = decode_timeout(
-            self.read_16bit(Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
+            self.read_u16(Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
         );
         if enables.pre_range {
             final_range_mclks -= pre_range_mclks;
@@ -382,7 +380,7 @@ impl <D: I2CDevice> VL53L0X<D> {
             final_range_timeout_mclks += timeouts.pre_range_mclks;
         }
 
-        self.write_16bit(
+        self.write_u16(
             Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI,
             encode_timeout(final_range_timeout_mclks),
         )?;

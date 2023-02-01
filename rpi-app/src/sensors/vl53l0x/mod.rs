@@ -65,7 +65,7 @@ impl<D: I2CDevice> VL53L0X<D> {
         let range_err = self.read_register_u16(Register::RESULT_RANGE_STATUS_plus_10);
         // Clear this before checking error
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
-        Ok(range_err? as f32)
+        Ok(range_err? as f32 / 1000.0)
     }
 }
 

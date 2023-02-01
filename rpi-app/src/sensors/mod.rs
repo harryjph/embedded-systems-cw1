@@ -21,6 +21,6 @@ pub trait HumiditySensor {
 
 #[async_trait]
 pub trait ProximitySensor {
-    /// Reads the proximity in millimeters
+    /// Reads the proximity in meters
     async fn read_proximity(&mut self) -> Result<f32>;
 }

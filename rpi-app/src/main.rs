@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut prox_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)?;
     loop {
-        println!("Distance: {}mm", prox_sensor.read_proximity().await?);
+        println!("Distance: {}m", prox_sensor.read_proximity().await?);
         sleep(Duration::from_millis(100)).await;
     }
 

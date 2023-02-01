@@ -6,6 +6,7 @@ use axum::Router;
 use axum_sessions::async_session::MemoryStore;
 use axum_sessions::SessionLayer;
 use rand::Rng;
+use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tower_http::cors::{Any, CorsLayer};
@@ -19,7 +20,8 @@ pub fn launch(config: Config, db: Arc<Database>, user_manager: Arc<UserManager>)
         config.network.http_port
     );
     let state = ServerState { db, user_manager };
-    tokio::spawn(start_server(config.network.http_port, Arc::new(state)))
+    let socket_addr = all_interfaces(config.network.http_port);
+    tokio::spawn(start_server(socket_addr, Arc::new(state)))
 }
 
 struct ServerState {
@@ -27,7 +29,7 @@ struct ServerState {
     user_manager: Arc<UserManager>,
 }
 
-async fn start_server(port: u16, state: Arc<ServerState>) {
+async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
     let store = MemoryStore::new();
     let secret: [u8; 128] = rand::thread_rng().gen();
     let session_layer = SessionLayer::new(store, &secret).with_secure(false);
@@ -39,7 +41,7 @@ async fn start_server(port: u16, state: Arc<ServerState>) {
         .layer(CorsLayer::new().allow_origin(Any))
         .layer(session_layer);
 
-    axum::Server::bind(&all_interfaces(port))
+    axum::Server::bind(&socket_addr)
         .serve(router.into_make_service())
         .await
         .unwrap();
@@ -53,6 +55,7 @@ mod test_utils {
     use crate::user_manager::UserManager;
     use reqwest::{Client, RequestBuilder};
     use std::collections::HashMap;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
     /// Starts the HTTP server with a blank database and returns a test client to use it
@@ -62,7 +65,8 @@ mod test_utils {
         let state = Arc::new(ServerState { db, user_manager });
 
         let port = portpicker::pick_unused_port().expect("No free TCP ports");
-        tokio::spawn(start_server(port, state.clone()));
+        let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port);
+        tokio::spawn(start_server(address, state.clone()));
 
         let test_client = TestClient {
             client: Client::builder().cookie_store(true).build().unwrap(),

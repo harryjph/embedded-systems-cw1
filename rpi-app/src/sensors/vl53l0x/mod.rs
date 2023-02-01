@@ -4,13 +4,12 @@ use std::path::Path;
 use async_trait::async_trait;
 use i2cdev::core::I2CDevice;
 use i2cdev::linux::LinuxI2CDevice;
+use crate::sensors::vl53l0x::device_setup::Register;
 use super::{Result, ProximitySensor};
 use crate::util::stringify_error;
-use types::*;
 
 mod util;
 mod device_setup;
-mod types;
 mod io;
 
 pub struct VL53L0X<D> {
@@ -45,13 +44,9 @@ impl<D: I2CDevice> VL53L0X<D> {
             Err(format!("Invalid device: {who_am_i}").into())
         }
     }
-}
 
-
-
-#[async_trait]
-impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
-    async fn read_proximity(&mut self) -> Result<f32> {
+    /// Synchronously reads the proximity from the device
+    fn read_proximity_sync(&mut self) -> Result<f32> {
         // Send a measure command
         self.write_register(0x80, 0x01)?;
         self.write_register(0xFF, 0x01)?;
@@ -71,5 +66,12 @@ impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
         // Clear this before checking error
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
         Ok(range_err? as f32)
+    }
+}
+
+#[async_trait]
+impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
+    async fn read_proximity(&mut self) -> Result<f32> {
+        self.read_proximity_sync()
     }
 }

@@ -1,3 +1,22 @@
+use std::time::{Duration, SystemTime};
+use crate::sensors::vl53l0x::VL53L0X;
+use super::super::Result;
+
+impl <D> VL53L0X<D> {
+    /// Waits for a condition to be achieved, or times out if that takes too long.
+    /// The condition is achieved when the predicate returns true.
+    /// The timeout is 1 second.
+    pub fn wait_for<F>(&mut self, predicate: F) -> Result<()> where F: Fn(&mut Self) -> Result<bool> {
+        let start = SystemTime::now();
+        while SystemTime::now().duration_since(start)? < Duration::from_secs(1) {
+            if predicate(self)? {
+                return Ok(())
+            }
+        }
+        Err("Timeout".into())
+    }
+}
+
 pub fn decode_timeout(register_value: u16) -> u16 {
     // format: "(LSByte * 2^MSByte) + 1"
     ((register_value & 0x00FF) << (((register_value & 0xFF00) as u16) >> 8))

@@ -70,13 +70,26 @@ impl Database {
             .ok_or(Error::msg("Could not find user"))
     }
 
-    pub async fn get_nodes(&mut self) -> Result<(), Error> {
-        let nodes: Vec<node::Model> = node::Entity::find().all(&self.db).await?;
+    pub async fn get_nodes(&mut self, owner_email: Option<String>) -> Result<Vec<node::Model>, Error> {
+        let filter = if let Some(owner_email) = owner_email {
+            node::Column::Owner.eq(owner_email)
+        } else {
+            node::Column::Owner.is_null()
+        };
 
-        for node in nodes {
-            println!("Longitude: {}, Latitude: {}", node.longitude, node.latitude);
-        }
+        Ok(node::Entity::find()
+            .filter(filter)
+            .all(&self.db).await?)
+    }
 
+    pub async fn set_node_owner(&mut self, node_id: u64, owner_email: Option<String>) -> Result<(), Error> {
+        node::Entity::update(node::ActiveModel {
+            owner: ActiveValue::Set(owner_email),
+            ..Default::default()
+        })
+            .filter(node::Column::Id.eq(node_id))
+            .exec(&self.db)
+            .await?;
         Ok(())
     }
 }

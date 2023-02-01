@@ -74,6 +74,33 @@ async fn set_config(
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::http_server::test_utils::start_test_server;
+
+    #[tokio::test]
+    async fn test_get_bins_is_secured() {
+        let (client, _) = start_test_server("/bins").await;
+
+        // Try accessing bins without login
+        client.get("/")
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .expect_err("Accessed bins without being logged in");
+
+        // Try accessing bins with login
+        client.register_and_login().await;
+        client.get("/")
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap();
+    }
+}
+
 fn dummy_data() -> [Bin; 5] {
     let mut rng = rand::thread_rng();
     [

@@ -58,7 +58,7 @@ impl UserManager {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use std::sync::Arc;
     use crate::db::Database;
     use crate::user_manager::UserManager;
@@ -129,6 +129,6 @@ mod tests {
         UserManager::new(Arc::new(Database::new_in_memory().await.unwrap()))
     }
 
-    const TEST_EMAIL: &str = "test@example.com";
-    const TEST_PASSWORD: &str = "Passw0rd";
+    pub const TEST_EMAIL: &str = "test@example.com";
+    pub const TEST_PASSWORD: &str = "Passw0rd";
 }

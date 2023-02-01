@@ -81,6 +81,7 @@ async fn logout(mut session: WritableSession, ) -> impl IntoResponse {
 mod tests {
     use std::collections::HashMap;
     use crate::http_server::test_utils::start_test_server;
+    use crate::user_manager::tests::{TEST_EMAIL, TEST_PASSWORD};
 
     #[tokio::test]
     async fn test_register_and_logout() {
@@ -130,7 +131,4 @@ mod tests {
             .error_for_status()
             .unwrap();
     }
-
-    const TEST_EMAIL: &str = "test@example.com";
-    const TEST_PASSWORD: &str = "Passw0rd";
 }

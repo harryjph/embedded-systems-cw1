@@ -45,11 +45,13 @@ async fn start_server(address: SocketAddr, state: Arc<ServerState>) {
 
 #[cfg(test)]
 mod test_utils {
+    use std::collections::HashMap;
     use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
     use std::sync::Arc;
     use reqwest::{Client, RequestBuilder};
     use crate::db::Database;
     use crate::http_server::{ServerState, start_server};
+    use crate::user_manager::tests::{TEST_EMAIL, TEST_PASSWORD};
     use crate::user_manager::UserManager;
 
     /// Starts the HTTP server with a blank database and returns a test client to use it
@@ -64,8 +66,12 @@ mod test_utils {
 
         tokio::spawn(start_server(address, state.clone()));
         let test_client = TestClient {
-            client: Client::new(),
-            host: format!("http://127.0.0.1:{port}{nested_path}"),
+            client: Client::builder()
+                .cookie_store(true)
+                .build()
+                .unwrap(),
+            host: format!("http://127.0.0.1:{port}"),
+            nested_path: nested_path.to_string(),
         };
         (test_client, state)
     }
@@ -73,15 +79,31 @@ mod test_utils {
     pub struct TestClient {
         client: Client,
         host: String,
+        nested_path: String,
     }
 
     impl TestClient {
         pub fn get(&self, path: &str) -> RequestBuilder {
-            self.client.get(format!("{}{path}", self.host))
+            self.client.get(format!("{}{}{path}", self.host, self.nested_path))
         }
 
         pub fn post(&self, path: &str) -> RequestBuilder {
-            self.client.post(format!("{}{path}", self.host))
+            self.client.post(format!("{}{}{path}", self.host, self.nested_path))
+        }
+
+        /// Registers a new account and logs the test client in
+        pub async fn register_and_login(&self) {
+            let mut params = HashMap::new();
+            params.insert("email", TEST_EMAIL);
+            params.insert("password", TEST_PASSWORD);
+
+            self.client.post(format!("{}/user/register", self.host))
+                .form(&params)
+                .send()
+                .await
+                .unwrap()
+                .error_for_status()
+                .unwrap();
         }
     }
 }

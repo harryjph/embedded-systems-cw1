@@ -1,9 +1,9 @@
-use i2cdev::core::I2CDevice;
-use crate::sensors::vl53l0x::VL53L0X;
 use super::super::Result;
 use super::util::*;
+use crate::sensors::vl53l0x::VL53L0X;
+use i2cdev::core::I2CDevice;
 
-impl <D: I2CDevice> VL53L0X<D> {
+impl<D: I2CDevice> VL53L0X<D> {
     fn set_signal_rate_limit(&mut self, limit: f32) -> Result<bool> {
         if limit < 0.0 || limit > 511.99 {
             Ok(false)
@@ -97,17 +97,19 @@ impl <D: I2CDevice> VL53L0X<D> {
         // The SPAD map (RefGoodSpadMap) is read by VL53L0X_get_info_from_device() in the API,
         // but the same data seems to be more easily readable from GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
         let mut ref_spad_map = [0u8; 6];
-        self.read_register_burst(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0, &mut ref_spad_map)?;
+        self.read_register_burst(
+            Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0,
+            &mut ref_spad_map,
+        )?;
 
         self.write_register(0xFF, 0x01)?;
         self.write_register(Register::DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)?;
-        self.write_register(Register::DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C, )?;
+        self.write_register(Register::DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C)?;
         self.write_register(0xFF, 0x00)?;
         self.write_register(Register::GLOBAL_CONFIG_REF_EN_START_SELECT, 0xB4)?;
 
         // 12 is the first aperture spad
-        let first_spad_to_enable =
-            if spad_type_is_aperture != 0 { 12 } else { 0 };
+        let first_spad_to_enable = if spad_type_is_aperture != 0 { 12 } else { 0 };
         let mut spads_enabled: u8 = 0;
 
         for i in 0..48 {
@@ -259,22 +261,19 @@ impl <D: I2CDevice> VL53L0X<D> {
         })
     }
 
-    fn get_sequence_step_timeouts(
-        &mut self,
-        enables: &SeqStepEnables,
-    ) -> Result<SeqStepTimeouts> {
-        let pre_range_mclks = decode_timeout(
-            self.read_register_u16(Register::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
-        );
-        let mut final_range_mclks = decode_timeout(
-            self.read_register_u16(Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
-        );
+    fn get_sequence_step_timeouts(&mut self, enables: &SeqStepEnables) -> Result<SeqStepTimeouts> {
+        let pre_range_mclks =
+            decode_timeout(self.read_register_u16(Register::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI)?);
+        let mut final_range_mclks =
+            decode_timeout(self.read_register_u16(Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)?);
         if enables.pre_range {
             final_range_mclks -= pre_range_mclks;
         };
-        let pre_range_vcselperiod_pclks = self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodPreRange)?;
+        let pre_range_vcselperiod_pclks =
+            self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodPreRange)?;
         let msrc_dss_tcc_mclks = self.read_register(Register::MSRC_CONFIG_TIMEOUT_MACROP)? + 1;
-        let final_range_vcsel_period_pclks = self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodFinalRange)?;
+        let final_range_vcsel_period_pclks =
+            self.get_vcsel_pulse_period(VcselPeriodType::VcselPeriodFinalRange)?;
         Ok(SeqStepTimeouts {
             msrc_dss_tcc_microseconds: timeout_mclks_to_microseconds(
                 msrc_dss_tcc_mclks as u16,
@@ -325,10 +324,7 @@ impl <D: I2CDevice> VL53L0X<D> {
         Ok(budget_microseconds)
     }
 
-    fn set_measurement_timing_budget(
-        &mut self,
-        budget_microseconds: u32,
-    ) -> Result<bool> {
+    fn set_measurement_timing_budget(&mut self, budget_microseconds: u32) -> Result<bool> {
         // note that these are different than values in get_
         let start_overhead: u32 = 1320;
         let end_overhead: u32 = 960;

@@ -66,7 +66,7 @@ mod test_utils {
 
         let test_client = TestClient {
             client: Client::builder().cookie_store(true).build().unwrap(),
-            host: format!("http://127.0.0.1:{port}"),
+            host: format!("http://localhost:{port}"),
             nested_path: nested_path.to_string(),
         };
         (test_client, state)

@@ -45,6 +45,7 @@ class Node:
         if fill_level == 0.0: # might have to change this based on how it is conveyed that the bin has been emptied 
             self.last_emptied = datetime.now()
 
+
 @dataclass
 class Link: 
     def __init__(self, nodes, cost = None):
@@ -76,7 +77,9 @@ class Link:
         if node2 is None: 
             if node1 in self.nodes: return True
             else: return False 
-        if node1 in self.nodes and node2 in self.nodes : return True 
+        cond1 = node1 in self.nodes
+        cond2 = node2 in self.nodes
+        if cond1 and cond2: return True 
         else: return False
     
     def other_node(self, node): 
@@ -152,13 +155,14 @@ class Network:
         costs: Dict[Node, Tuple[float, Link]] = self.init_costs(active_nodes)
         while len(active_nodes) != 0: 
             if len(mst_nodes) == 0: 
-                costs: Dict[Node, Tuple[float, Link]] = self.init_costs(active_nodes)
                 mst_nodes.append(self.start_point)
                 active_nodes.remove(self.start_point)
+                costs: Dict[Node, Tuple[float, Link]] = self.init_costs(active_nodes)
             else:
                 min_cost_node = self.min_cost(costs)
                 print("min cost node", min_cost_node)
                 link = costs[min_cost_node][1]
+                print("link", link)
                 node1, node2 = link.nodes
                 mst_links.append(link)
                 # by appending them both it will be easier to keep track of 
@@ -172,11 +176,14 @@ class Network:
 
     
     def get_odd(self, links: List[Link], nodes: List[Node]) -> Tuple[List[Node], List[Link]]:
-        links_by_node = links_per_node(links, nodes)
-        odd_nodes: List[Node] = [node for node in nodes if len(links_by_node[node]) % 2 != 0]
+        mst_links_by_node = links_per_node(links, nodes)
+        all_links_by_node = links_per_node(self.links, nodes)
+        for node in nodes: print("node", node)
+        odd_nodes: List[Node] = [node for node in nodes if len(mst_links_by_node[node]) % 2 != 0]
         odd_links = []
         for node in odd_nodes: 
-            odd_links.extend(links_by_node[node])
+            all_links = [link for link in all_links_by_node[node] if link.other_node(node) in odd_nodes]
+            odd_links.extend(all_links)
         return (odd_nodes, odd_links)
         # need to find out which algorithm can be used to find minimum weight perfect matching tree
         # right now looking at edmond's blossom algorithm but seems quite complex (LP formulation)
@@ -220,7 +227,9 @@ class Network:
         # prims to get mst 
         mst_links, mst_nodes = self.prims_mst()
         # get all vertices with odd number of connections 
-        links_odd, nodes_odd = self.get_odd(mst_links, mst_nodes)
+        nodes_odd, links_odd = self.get_odd(mst_links, self.nodes)
+        for link in links_odd: print("link", link)
+        for node in nodes_odd: print("node", node)
         # instantiate networx graph 
         graph = nx.Graph()
         # add nodes 
@@ -233,11 +242,15 @@ class Network:
         mwpf_links = []
         for (node1, node2) in min_w: 
             link = self.get_link(node1, node2)    
+            print("mwsp", link)
             mwpf_links.append(link)    
         # add nodes and links to mst nodes and links 
         mst_links.extend(mwpf_links)
         mst_nodes.extend(nodes_odd)
         # do relaxation 
+        euler = self.euler_tour(mst_links)
+        hamilton = self.hamiltonian_cycle(euler)
+        return hamilton
 
     def is_dead_end(self, links, start_node, node, link) -> bool:
         # this funcion checks if the current link brings to a node whose only other link is the final link

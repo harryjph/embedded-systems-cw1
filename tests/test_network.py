@@ -55,10 +55,8 @@ def test_get_odd():
     odd_nodes, odd_links = nw.get_odd(links, nodes)
     assert len(odd_nodes) == 4 
     assert Link((nodes[0], nodes[1]), 1) in odd_links
-    assert Link((nodes[0], nodes[2]), 1) in odd_links
     assert Link((nodes[0], nodes[3]), 1) in odd_links
     assert Link((nodes[3], nodes[4]), 1) in odd_links
-    assert Link((nodes[2], nodes[3]), 1) in odd_links
     assert nodes[2] not in odd_nodes
 
 
@@ -138,3 +136,16 @@ def test_hamilton_2():
     by_node = links_per_node(hamiltonian_cycle, nodes)
     for node, links in by_node.items(): 
         assert len(links) == 2
+
+
+def test_christofides():
+    links, nodes = get_instances_4()
+    nw = Network(nodes, links, nodes[0])
+    hamilton = nw.christofides()
+    for link in hamilton:
+        print(link)
+    by_node = links_per_node(hamilton, nodes)
+    for node, links in by_node.items(): 
+        assert len(links) == 2
+
+test_christofides()

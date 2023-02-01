@@ -38,6 +38,12 @@ pub enum Register {
     MSRC_CONFIG_TIMEOUT_MACROP = 0x46,
 }
 
+impl From<Register> for u8 {
+    fn from(value: Register) -> Self {
+        value as u8
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum VcselPeriodType {
     VcselPeriodPreRange = 0,

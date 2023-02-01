@@ -10,7 +10,7 @@ impl <D: I2CDevice> VL53L0X<D> {
             Ok(false)
         } else {
             // Q9.7 fixed point format (9 integer bits, 7 fractional bits)
-            self.write_u16(
+            self.write_register_u16(
                 Register::FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT,
                 (limit * ((1 << 7) as f32)) as u16,
             )?;
@@ -19,38 +19,38 @@ impl <D: I2CDevice> VL53L0X<D> {
     }
 
     pub fn get_spad_info(&mut self) -> Result<(u8, u8)> {
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
+        self.write_register(0x80, 0x01)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x00, 0x00)?;
 
-        self.write_byte(0xFF, 0x06)?;
-        let tmp = self.read_byte(0x83)?;
-        self.write_byte(0x83, tmp | 0x04)?;
-        self.write_byte(0xFF, 0x07)?;
-        self.write_byte(0x81, 0x01)?;
+        self.write_register(0xFF, 0x06)?;
+        let tmp = self.read_register(0x83)?;
+        self.write_register(0x83, tmp | 0x04)?;
+        self.write_register(0xFF, 0x07)?;
+        self.write_register(0x81, 0x01)?;
 
-        self.write_byte(0x80, 0x01)?;
+        self.write_register(0x80, 0x01)?;
 
-        self.write_byte(0x94, 0x6b)?;
-        self.write_byte(0x83, 0x00)?;
+        self.write_register(0x94, 0x6b)?;
+        self.write_register(0x83, 0x00)?;
 
-        self.wait_for(|s| Ok(s.read_byte(0x83)? != 0))?;
+        self.wait_for(|s| Ok(s.read_register(0x83)? != 0))?;
 
-        self.write_byte(0x83, 0x01)?;
-        let tmp = self.read_byte(0x92)?;
+        self.write_register(0x83, 0x01)?;
+        let tmp = self.read_register(0x92)?;
 
         let count: u8 = tmp & 0x7f;
         let type_is_aperture: u8 = (tmp >> 7) & 0x01;
 
-        self.write_byte(0x81, 0x00)?;
-        self.write_byte(0xFF, 0x06)?;
-        let tmp = self.read_byte(0x83)?;
-        self.write_byte(0x83, tmp & !0x04)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x01)?;
+        self.write_register(0x81, 0x00)?;
+        self.write_register(0xFF, 0x06)?;
+        let tmp = self.read_register(0x83)?;
+        self.write_register(0x83, tmp & !0x04)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x00, 0x01)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x80, 0x00)?;
 
         Ok((count, type_is_aperture))
     }
@@ -75,14 +75,14 @@ impl <D: I2CDevice> VL53L0X<D> {
         }
 
         // "Set I2C standard mode"
-        self.write_byte(0x88, 0x00)?;
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
-        self.stop_variable = self.read_byte(0x91)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
+        self.write_register(0x88, 0x00)?;
+        self.write_register(0x80, 0x01)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x00, 0x00)?;
+        self.stop_variable = self.read_register(0x91)?;
+        self.write_register(0x00, 0x01)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x80, 0x00)?;
 
         // disable SIGNAL_RATE_MSRC (bit 1) and SIGNAL_RATE_PRE_RANGE (bit 4) limit checks
         let config = self.read_register(Register::MSRC_CONFIG_CONTROL)?;
@@ -100,10 +100,10 @@ impl <D: I2CDevice> VL53L0X<D> {
         let mut ref_spad_map = [0u8; 6];
         self.read_registers(Register::GLOBAL_CONFIG_SPAD_ENABLES_REF_0, &mut ref_spad_map)?;
 
-        self.write_byte(0xFF, 0x01)?;
+        self.write_register(0xFF, 0x01)?;
         self.write_register(Register::DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)?;
         self.write_register(Register::DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C, )?;
-        self.write_byte(0xFF, 0x00)?;
+        self.write_register(0xFF, 0x00)?;
         self.write_register(Register::GLOBAL_CONFIG_REF_EN_START_SELECT, 0xB4)?;
 
         // 12 is the first aperture spad
@@ -124,99 +124,99 @@ impl <D: I2CDevice> VL53L0X<D> {
 
         // DefaultTuningSettings from vl53l0x_tuning.h
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x00, 0x00)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x09, 0x00)?;
-        self.write_byte(0x10, 0x00)?;
-        self.write_byte(0x11, 0x00)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x09, 0x00)?;
+        self.write_register(0x10, 0x00)?;
+        self.write_register(0x11, 0x00)?;
 
-        self.write_byte(0x24, 0x01)?;
-        self.write_byte(0x25, 0xFF)?;
-        self.write_byte(0x75, 0x00)?;
+        self.write_register(0x24, 0x01)?;
+        self.write_register(0x25, 0xFF)?;
+        self.write_register(0x75, 0x00)?;
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x4E, 0x2C)?;
-        self.write_byte(0x48, 0x00)?;
-        self.write_byte(0x30, 0x20)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x4E, 0x2C)?;
+        self.write_register(0x48, 0x00)?;
+        self.write_register(0x30, 0x20)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x30, 0x09)?;
-        self.write_byte(0x54, 0x00)?;
-        self.write_byte(0x31, 0x04)?;
-        self.write_byte(0x32, 0x03)?;
-        self.write_byte(0x40, 0x83)?;
-        self.write_byte(0x46, 0x25)?;
-        self.write_byte(0x60, 0x00)?;
-        self.write_byte(0x27, 0x00)?;
-        self.write_byte(0x50, 0x06)?;
-        self.write_byte(0x51, 0x00)?;
-        self.write_byte(0x52, 0x96)?;
-        self.write_byte(0x56, 0x08)?;
-        self.write_byte(0x57, 0x30)?;
-        self.write_byte(0x61, 0x00)?;
-        self.write_byte(0x62, 0x00)?;
-        self.write_byte(0x64, 0x00)?;
-        self.write_byte(0x65, 0x00)?;
-        self.write_byte(0x66, 0xA0)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x30, 0x09)?;
+        self.write_register(0x54, 0x00)?;
+        self.write_register(0x31, 0x04)?;
+        self.write_register(0x32, 0x03)?;
+        self.write_register(0x40, 0x83)?;
+        self.write_register(0x46, 0x25)?;
+        self.write_register(0x60, 0x00)?;
+        self.write_register(0x27, 0x00)?;
+        self.write_register(0x50, 0x06)?;
+        self.write_register(0x51, 0x00)?;
+        self.write_register(0x52, 0x96)?;
+        self.write_register(0x56, 0x08)?;
+        self.write_register(0x57, 0x30)?;
+        self.write_register(0x61, 0x00)?;
+        self.write_register(0x62, 0x00)?;
+        self.write_register(0x64, 0x00)?;
+        self.write_register(0x65, 0x00)?;
+        self.write_register(0x66, 0xA0)?;
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x22, 0x32)?;
-        self.write_byte(0x47, 0x14)?;
-        self.write_byte(0x49, 0xFF)?;
-        self.write_byte(0x4A, 0x00)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x22, 0x32)?;
+        self.write_register(0x47, 0x14)?;
+        self.write_register(0x49, 0xFF)?;
+        self.write_register(0x4A, 0x00)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x7A, 0x0A)?;
-        self.write_byte(0x7B, 0x00)?;
-        self.write_byte(0x78, 0x21)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x7A, 0x0A)?;
+        self.write_register(0x7B, 0x00)?;
+        self.write_register(0x78, 0x21)?;
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x23, 0x34)?;
-        self.write_byte(0x42, 0x00)?;
-        self.write_byte(0x44, 0xFF)?;
-        self.write_byte(0x45, 0x26)?;
-        self.write_byte(0x46, 0x05)?;
-        self.write_byte(0x40, 0x40)?;
-        self.write_byte(0x0E, 0x06)?;
-        self.write_byte(0x20, 0x1A)?;
-        self.write_byte(0x43, 0x40)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x23, 0x34)?;
+        self.write_register(0x42, 0x00)?;
+        self.write_register(0x44, 0xFF)?;
+        self.write_register(0x45, 0x26)?;
+        self.write_register(0x46, 0x05)?;
+        self.write_register(0x40, 0x40)?;
+        self.write_register(0x0E, 0x06)?;
+        self.write_register(0x20, 0x1A)?;
+        self.write_register(0x43, 0x40)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x34, 0x03)?;
-        self.write_byte(0x35, 0x44)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x34, 0x03)?;
+        self.write_register(0x35, 0x44)?;
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x31, 0x04)?;
-        self.write_byte(0x4B, 0x09)?;
-        self.write_byte(0x4C, 0x05)?;
-        self.write_byte(0x4D, 0x04)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x31, 0x04)?;
+        self.write_register(0x4B, 0x09)?;
+        self.write_register(0x4C, 0x05)?;
+        self.write_register(0x4D, 0x04)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x44, 0x00)?;
-        self.write_byte(0x45, 0x20)?;
-        self.write_byte(0x47, 0x08)?;
-        self.write_byte(0x48, 0x28)?;
-        self.write_byte(0x67, 0x00)?;
-        self.write_byte(0x70, 0x04)?;
-        self.write_byte(0x71, 0x01)?;
-        self.write_byte(0x72, 0xFE)?;
-        self.write_byte(0x76, 0x00)?;
-        self.write_byte(0x77, 0x00)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x44, 0x00)?;
+        self.write_register(0x45, 0x20)?;
+        self.write_register(0x47, 0x08)?;
+        self.write_register(0x48, 0x28)?;
+        self.write_register(0x67, 0x00)?;
+        self.write_register(0x70, 0x04)?;
+        self.write_register(0x71, 0x01)?;
+        self.write_register(0x72, 0xFE)?;
+        self.write_register(0x76, 0x00)?;
+        self.write_register(0x77, 0x00)?;
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x0D, 0x01)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x0D, 0x01)?;
 
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0x01, 0xF8)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x80, 0x01)?;
+        self.write_register(0x01, 0xF8)?;
 
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x8E, 0x01)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x8E, 0x01)?;
+        self.write_register(0x00, 0x01)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x80, 0x00)?;
 
         self.write_register(Register::SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04)?;
         let high = self.read_register(Register::GPIO_HV_MUX_ACTIVE_HIGH)?;
@@ -265,10 +265,10 @@ impl <D: I2CDevice> VL53L0X<D> {
         enables: &SeqStepEnables,
     ) -> Result<SeqStepTimeouts> {
         let pre_range_mclks = decode_timeout(
-            self.read_u16(Register::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
+            self.read_register_u16(Register::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
         );
         let mut final_range_mclks = decode_timeout(
-            self.read_u16(Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
+            self.read_register_u16(Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)?,
         );
         if enables.pre_range {
             final_range_mclks -= pre_range_mclks;
@@ -380,7 +380,7 @@ impl <D: I2CDevice> VL53L0X<D> {
             final_range_timeout_mclks += timeouts.pre_range_mclks;
         }
 
-        self.write_u16(
+        self.write_register_u16(
             Register::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI,
             encode_timeout(final_range_timeout_mclks),
         )?;

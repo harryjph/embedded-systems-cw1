@@ -53,21 +53,21 @@ impl<D: I2CDevice> VL53L0X<D> {
 impl <D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
     async fn read_proximity(&mut self) -> Result<f32> {
         // Send a measure command
-        self.write_byte(0x80, 0x01)?;
-        self.write_byte(0xFF, 0x01)?;
-        self.write_byte(0x00, 0x00)?;
+        self.write_register(0x80, 0x01)?;
+        self.write_register(0xFF, 0x01)?;
+        self.write_register(0x00, 0x00)?;
         let sv = self.stop_variable;
-        self.write_byte(0x91, sv)?;
-        self.write_byte(0x00, 0x01)?;
-        self.write_byte(0xFF, 0x00)?;
-        self.write_byte(0x80, 0x00)?;
+        self.write_register(0x91, sv)?;
+        self.write_register(0x00, 0x01)?;
+        self.write_register(0xFF, 0x00)?;
+        self.write_register(0x80, 0x00)?;
 
         self.write_register(Register::SYSRANGE_START, 0x01)?;
         self.wait_for(|s| Ok((s.read_register(Register::SYSRANGE_START)? & 0x01) == 0))?;
 
         // Read the result
         self.wait_for(|s| Ok((s.read_register(Register::RESULT_INTERRUPT_STATUS)? & 0x07) != 0))?;
-        let range_err = self.read_u16(Register::RESULT_RANGE_STATUS_plus_10);
+        let range_err = self.read_register_u16(Register::RESULT_RANGE_STATUS_plus_10);
         // Clear this before checking error
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
         Ok(range_err? as f32)

@@ -1,10 +1,13 @@
 use std::env;
-use std::error::Error;
+use anyhow::Error;
+use pbkdf2::password_hash::rand_core::OsRng;
+use pbkdf2::password_hash::{PasswordHasher, SaltString};
+use pbkdf2::Pbkdf2;
 use sea_orm::prelude::*;
 use sea_orm::{ActiveValue, Database as SeaOrmDatabase};
 use sea_orm_migration::MigratorTrait;
 use crate::db::migrations::Migrator;
-use self::entity::node;
+use self::entity::{node, user};
 
 pub mod migrations;
 pub mod entity;
@@ -16,7 +19,7 @@ pub struct Database {
 }
 
 impl Database {
-    pub async fn new() -> Result<Self, Box<dyn Error>> {
+    pub async fn new() -> Result<Self, Error> {
         let db_url = if let Ok(db_file) = env::var(DB_PATH_ENV_NAME) {
             format!("sqlite://{db_file}?mode=rwc")
         } else {
@@ -33,7 +36,7 @@ impl Database {
         &self,
         latitude: f64,
         longitude: f64,
-    ) -> Result<u64, Box<dyn Error>> {
+    ) -> Result<u64, Error> {
         let new_node = node::ActiveModel {
             latitude: ActiveValue::Set(latitude),
             longitude: ActiveValue::Set(longitude),
@@ -45,7 +48,30 @@ impl Database {
         Ok(res.last_insert_id)
     }
 
-    pub async fn get_nodes(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn insert_user(
+        &self,
+        username: String,
+        email: String,
+        password: String,
+    ) -> Result<u64, Error> {
+        let salt = SaltString::generate(&mut OsRng);
+        let password_hash = Pbkdf2.hash_password(password.as_bytes(), &salt)
+            .map_err(|e| Error::msg(e.to_string()))?;
+
+        let new_user = user::ActiveModel {
+            username: ActiveValue::Set(username),
+            email: ActiveValue::Set(email),
+            password_hash: ActiveValue::Set(password_hash.to_string()),
+            password_salt: ActiveValue::Set(salt.to_string()),
+            ..Default::default()
+        };
+
+        let res = user::Entity::insert(new_user).exec(&self.db).await?;
+
+        Ok(res.last_insert_id)
+    }
+
+    pub async fn get_nodes(&mut self) -> Result<(), Error> {
         let nodes: Vec<node::Model> = node::Entity::find().all(&self.db).await?;
 
         for node in nodes {

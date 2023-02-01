@@ -30,6 +30,8 @@ sea-orm-migration = "0.10.7"
 # Utilities
 itertools = "0.10.5"
 rand = "0.8.5"
+pbkdf2 = "0.11.0"
+anyhow = "1.0.68"
 
 [build-dependencies]
 # gRPC

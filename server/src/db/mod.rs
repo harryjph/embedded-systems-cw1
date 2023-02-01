@@ -1,8 +1,5 @@
 use std::env;
 use anyhow::Error;
-use pbkdf2::password_hash::rand_core::OsRng;
-use pbkdf2::password_hash::{PasswordHasher, SaltString};
-use pbkdf2::Pbkdf2;
 use sea_orm::prelude::*;
 use sea_orm::{ActiveValue, Database as SeaOrmDatabase};
 use sea_orm_migration::MigratorTrait;
@@ -52,23 +49,19 @@ impl Database {
         &self,
         username: String,
         email: String,
-        password: String,
-    ) -> Result<u64, Error> {
-        let salt = SaltString::generate(&mut OsRng);
-        let password_hash = Pbkdf2.hash_password(password.as_bytes(), &salt)
-            .map_err(|e| Error::msg(e.to_string()))?;
-
+        password_hash: String,
+        password_salt: String,
+    ) -> Result<(), Error> {
         let new_user = user::ActiveModel {
             username: ActiveValue::Set(username),
             email: ActiveValue::Set(email),
-            password_hash: ActiveValue::Set(password_hash.to_string()),
-            password_salt: ActiveValue::Set(salt.to_string()),
+            password_hash: ActiveValue::Set(password_hash),
+            password_salt: ActiveValue::Set(password_salt),
             ..Default::default()
         };
 
-        let res = user::Entity::insert(new_user).exec(&self.db).await?;
-
-        Ok(res.last_insert_id)
+        user::Entity::insert(new_user).exec(&self.db).await?;
+        Ok(())
     }
 
     pub async fn get_nodes(&mut self) -> Result<(), Error> {

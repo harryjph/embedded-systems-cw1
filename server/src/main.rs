@@ -2,24 +2,28 @@ use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::sync::Arc;
+use anyhow::Error;
 use tokio::spawn;
 use tokio::sync::{mpsc, RwLock};
 use crate::config::Config;
 use crate::db::Database;
 use crate::mailer::Mailer;
+use crate::user_manager::UserManager;
 
 mod config;
 mod db;
+mod user_manager;
 mod http_server;
 mod grpc_server;
 mod mailer;
 mod utils;
 
 #[tokio::main(flavor = "multi_thread")]
-async fn main() {
+async fn main() -> Result<(), Error> {
     let config = load_config();
-    let db = Arc::new(Database::new().await.unwrap());
-    let mailer = Mailer::new(config.email.clone());
+    let db = Arc::new(Database::new().await?);
+    let mailer = Mailer::new(config.email.clone())?;
+    let user_manager = UserManager::new(db.clone());
 
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));

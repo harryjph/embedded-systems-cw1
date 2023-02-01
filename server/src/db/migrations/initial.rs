@@ -28,14 +28,7 @@ impl MigrationTrait for Migration {
         manager.create_table(
             Table::create()
                 .table(User::Table)
-                .col(
-                    ColumnDef::new(User::Id)
-                        .big_unsigned()
-                        .not_null()
-                        .auto_increment()
-                        .primary_key()
-                )
-                .col(ColumnDef::new(User::Username).string().not_null())
+                .col(ColumnDef::new(User::Username).string().not_null().primary_key())
                 .col(ColumnDef::new(User::Email).string().not_null())
                 .col(ColumnDef::new(User::PasswordHash).string().not_null())
                 .col(ColumnDef::new(User::PasswordSalt).string().not_null())
@@ -62,7 +55,6 @@ pub enum Node {
 #[derive(Iden)]
 pub enum User {
     Table,
-    Id,
     Username,
     Email,
     PasswordHash,

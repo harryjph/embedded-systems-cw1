@@ -32,6 +32,8 @@ itertools = "0.10.5"
 rand = "0.8.5"
 pbkdf2 = "0.11.0"
 anyhow = "1.0.68"
+regex = "1.7.1"
+lazy-regex = "2.4.1"
 
 [build-dependencies]
 # gRPC

@@ -56,7 +56,10 @@ impl Database {
             ..Default::default()
         };
 
-        user::Entity::insert(new_user).exec(&self.db).await?;
+        match user::Entity::insert(new_user).exec(&self.db).await {
+            Err(DbErr::Exec(r)) => { return Err(Error::msg("Email already registered")); },
+            other => { other?; },
+        }
         Ok(())
     }
 

@@ -1,3 +1,4 @@
+use std::error::Error;
 use tokio::sync::mpsc::Receiver;
 use tonic::codegen::StdError;
 use tonic::{Status, transport};
@@ -18,6 +19,11 @@ impl Client {
     pub async fn new<E: TryInto<transport::Endpoint>>(endpoint: E) -> Result<Self, transport::Error>
         where E::Error: Into<StdError> {
         Ok(Client { client: NodeApiClient::connect(endpoint).await? })
+    }
+
+    pub async fn assign_id(&mut self) -> Result<i32, Box<dyn Error>> {
+        let node_id = self.client.assign_id(grpc_generated::Empty{}).await?.into_inner();
+        Ok(node_id.id)
     }
 
     pub async fn report_environment(&mut self, receiver: Receiver<EnvironmentData>) -> Result<(), Status> {

@@ -13,7 +13,8 @@ lto = "fat"
 tokio = { version = "1.24.2", features = ["full"] }
 futures-util = "0.3.25"
 # HTTP Server
-warp = "0.3.3"
+axum = "0.6.4"
+tower-http = { version = "0.3.5", features = ["cors"] }
 # gRPC Server
 tonic = "0.8.3"
 tonic-reflection = "0.6.0"
@@ -26,6 +27,9 @@ lettre = { version = "0.10.2", default-features = false, features = ["tokio1", "
 # Database
 sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-rustls"] }
 sea-orm-migration = "0.10.7"
+# Utilities
+itertools = "0.10.5"
+rand = "0.8.5"
 
 [build-dependencies]
 # gRPC

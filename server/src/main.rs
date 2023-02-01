@@ -21,7 +21,7 @@ mod utils;
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Error> {
     let config = load_config();
-    let db = Arc::new(Database::new().await?);
+    let db = Arc::new(Database::load_default().await?);
     let mailer = Mailer::new(config.email.clone())?;
     let user_manager = Arc::new(UserManager::new(db.clone()));
 

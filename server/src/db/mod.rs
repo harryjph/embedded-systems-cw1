@@ -2,7 +2,7 @@ use self::entity::{node, user};
 use crate::db::migrations::Migrator;
 use anyhow::Error;
 use sea_orm::prelude::*;
-use sea_orm::{ActiveValue, Database as SeaOrmDatabase};
+use sea_orm::{ActiveValue, ConnectOptions, Database as SeaOrmDatabase};
 use sea_orm_migration::MigratorTrait;
 use std::env;
 
@@ -16,16 +16,23 @@ pub struct Database {
 }
 
 impl Database {
-    pub async fn new() -> Result<Self, Error> {
-        let db_url = if let Ok(db_file) = env::var(DB_PATH_ENV_NAME) {
-            format!("sqlite://{db_file}?mode=rwc")
+    pub async fn load_default() -> Result<Self, Error> {
+        if let Ok(db_file) = env::var(DB_PATH_ENV_NAME) {
+            Database::new(format!("sqlite://{db_file}?mode=rwc")).await
         } else {
             eprintln!("Warning: Using in-memory database. Data will be lost when server stops");
-            "sqlite::memory:".to_string()
-        };
+            Database::new_in_memory().await
+        }
+    }
+
+    /// Creates a new in-memory database. Contents will be lost when the last connection is closed.
+    pub async fn new_in_memory() -> Result<Self, Error> {
+        Database::new("sqlite::memory:")
+    }
+
+    async fn new<C: Into<ConnectOptions>>(db_url: C) -> Result<Self, Error> {
         let db = SeaOrmDatabase::connect(db_url).await?;
         Migrator::up(&db, None).await?;
-
         Ok(Self { db })
     }
 

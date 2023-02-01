@@ -1,15 +1,15 @@
-use std::sync::Arc;
+use crate::http_server::user::get_signed_in_email;
+use crate::http_server::ServerState;
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::{Json, Router};
 use axum::response::IntoResponse;
 use axum::routing::get;
+use axum::{Json, Router};
 use axum_sessions::extractors::ReadableSession;
 use itertools::Itertools;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use crate::http_server::ServerState;
-use crate::http_server::user::get_signed_in_email;
+use std::sync::Arc;
 
 pub(super) fn router() -> Router<Arc<ServerState>> {
     Router::new()
@@ -34,7 +34,10 @@ struct BinConfig {
     pub full_threshold: f64,
 }
 
-async fn get_one(Path(id): Path<u64>, session: ReadableSession) -> Result<impl IntoResponse, StatusCode> {
+async fn get_one(
+    Path(id): Path<u64>,
+    session: ReadableSession,
+) -> Result<impl IntoResponse, StatusCode> {
     let user_email = get_signed_in_email(&session)?;
     Ok(Json(
         dummy_data()
@@ -49,7 +52,10 @@ async fn get_all(session: ReadableSession) -> Result<impl IntoResponse, StatusCo
     Ok(Json(dummy_data()))
 }
 
-async fn get_config(Path(id): Path<u64>, session: ReadableSession) -> Result<impl IntoResponse, StatusCode> {
+async fn get_config(
+    Path(id): Path<u64>,
+    session: ReadableSession,
+) -> Result<impl IntoResponse, StatusCode> {
     let user_email = get_signed_in_email(&session)?;
     Ok(Json(
         dummy_data()
@@ -83,7 +89,8 @@ mod tests {
         let (client, _) = start_test_server("/bins").await;
 
         // Try accessing bins without login
-        client.get("/")
+        client
+            .get("/")
             .send()
             .await
             .unwrap()
@@ -92,7 +99,8 @@ mod tests {
 
         // Try accessing bins with login
         client.register_and_login().await;
-        client.get("/")
+        client
+            .get("/")
             .send()
             .await
             .unwrap()

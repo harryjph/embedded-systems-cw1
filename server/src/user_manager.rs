@@ -59,14 +59,17 @@ impl UserManager {
 
 #[cfg(test)]
 pub mod tests {
-    use std::sync::Arc;
     use crate::db::Database;
     use crate::user_manager::UserManager;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_register_and_login() {
         let user_manager = create_user_manager().await;
-        user_manager.register(TEST_EMAIL, TEST_PASSWORD).await.unwrap();
+        user_manager
+            .register(TEST_EMAIL, TEST_PASSWORD)
+            .await
+            .unwrap();
         user_manager.login(TEST_EMAIL, TEST_PASSWORD).await.unwrap();
     }
 
@@ -78,14 +81,31 @@ pub mod tests {
         let bad_registrations = [
             ("invalid_email", "", "Invalid email"),
             ("test@example.com", "short", "Short password"),
-            ("test@example.com", "looooong", "Weak password (no uppercase or numbers)"),
+            (
+                "test@example.com",
+                "looooong",
+                "Weak password (no uppercase or numbers)",
+            ),
             ("test@example.com", "Looooong", "Weak password (no numbers)"),
-            ("test@example.com", "LOOOOONG", "Weak password (no lowercase or numbers)"),
-            ("test@example.com", "L00000NG", "Weak password (no lowercase)"),
-            ("test@example.com", "12345678", "Weak password (no lowercase or uppercase)"),
+            (
+                "test@example.com",
+                "LOOOOONG",
+                "Weak password (no lowercase or numbers)",
+            ),
+            (
+                "test@example.com",
+                "L00000NG",
+                "Weak password (no lowercase)",
+            ),
+            (
+                "test@example.com",
+                "12345678",
+                "Weak password (no lowercase or uppercase)",
+            ),
         ];
         for registration in bad_registrations {
-            user_manager.register(registration.0, registration.1)
+            user_manager
+                .register(registration.0, registration.1)
                 .await
                 .expect_err(format!("{} was OK", registration.2).as_str());
         }
@@ -96,13 +116,10 @@ pub mod tests {
         let user_manager = create_user_manager().await;
         let email = "test@email.com";
         user_manager.register(email, TEST_PASSWORD).await.unwrap();
-        let duplicate_emails = [
-            email,
-            "TEST@EMAIL.COM",
-            "Test@Email.Com",
-        ];
+        let duplicate_emails = [email, "TEST@EMAIL.COM", "Test@Email.Com"];
         for email in duplicate_emails {
-            user_manager.register(email, TEST_PASSWORD)
+            user_manager
+                .register(email, TEST_PASSWORD)
                 .await
                 .expect_err(format!("Duplicate email was registered: {email}").as_str());
         }
@@ -111,7 +128,10 @@ pub mod tests {
     #[tokio::test]
     async fn test_login_rejections() {
         let user_manager = create_user_manager().await;
-        user_manager.register(TEST_EMAIL, TEST_PASSWORD).await.unwrap();
+        user_manager
+            .register(TEST_EMAIL, TEST_PASSWORD)
+            .await
+            .unwrap();
 
         // List of invalid logins. Tuples contain: (email, password, problem)
         let bad_logins = [
@@ -119,7 +139,8 @@ pub mod tests {
             (TEST_EMAIL, "password", "Incorrect password"),
         ];
         for login in bad_logins {
-            user_manager.login(login.0, login.1)
+            user_manager
+                .login(login.0, login.1)
                 .await
                 .expect_err(format!("{} was OK", login.2).as_str());
         }

@@ -1,13 +1,13 @@
-use std::sync::Arc;
+use crate::http_server::ServerState;
 use anyhow::Error;
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::{Form, Router};
-use axum::extract::State;
 use axum::routing::post;
+use axum::{Form, Router};
 use axum_sessions::extractors::{ReadableSession, WritableSession};
 use serde::Deserialize;
-use crate::http_server::ServerState;
+use std::sync::Arc;
 
 const SESSION_EMAIL_KEY: &str = "signed_in_to";
 
@@ -46,7 +46,9 @@ async fn register_and_login(
     mut session: WritableSession,
     Form(input): Form<LoginForm>,
 ) -> Result<impl IntoResponse, (StatusCode, impl IntoResponse)> {
-    state.user_manager.register(input.email.as_str(), input.password.as_str())
+    state
+        .user_manager
+        .register(input.email.as_str(), input.password.as_str())
         .await
         .map_err(bad_request)?;
 
@@ -62,7 +64,9 @@ async fn login(
     mut session: WritableSession,
     Form(input): Form<LoginForm>,
 ) -> Result<impl IntoResponse, (StatusCode, impl IntoResponse)> {
-    state.user_manager.login(input.email.as_str(), input.password.as_str())
+    state
+        .user_manager
+        .login(input.email.as_str(), input.password.as_str())
         .await
         .map_err(bad_request)?;
 
@@ -73,15 +77,15 @@ async fn login(
     Ok(())
 }
 
-async fn logout(mut session: WritableSession, ) -> impl IntoResponse {
+async fn logout(mut session: WritableSession) -> impl IntoResponse {
     session.destroy()
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use crate::http_server::test_utils::start_test_server;
     use crate::user_manager::tests::{TEST_EMAIL, TEST_PASSWORD};
+    use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_register_and_logout() {
@@ -91,7 +95,8 @@ mod tests {
         params.insert("email", TEST_EMAIL);
         params.insert("password", TEST_PASSWORD);
 
-        client.post("/register")
+        client
+            .post("/register")
             .form(&params)
             .send()
             .await
@@ -99,7 +104,8 @@ mod tests {
             .error_for_status()
             .unwrap();
 
-        client.post("/logout")
+        client
+            .post("/logout")
             .send()
             .await
             .unwrap()
@@ -110,13 +116,18 @@ mod tests {
     #[tokio::test]
     async fn test_register_and_login() {
         let (client, state) = start_test_server("/user").await;
-        state.user_manager.register(TEST_EMAIL, TEST_PASSWORD).await.unwrap();
+        state
+            .user_manager
+            .register(TEST_EMAIL, TEST_PASSWORD)
+            .await
+            .unwrap();
 
         let mut params = HashMap::new();
         params.insert("email", TEST_EMAIL);
         params.insert("password", TEST_PASSWORD);
 
-        client.post("/login")
+        client
+            .post("/login")
             .form(&params)
             .send()
             .await
@@ -124,7 +135,8 @@ mod tests {
             .error_for_status()
             .unwrap();
 
-        client.post("/logout")
+        client
+            .post("/logout")
             .send()
             .await
             .unwrap()

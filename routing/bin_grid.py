@@ -146,8 +146,6 @@ class Network:
     def prims_mst(self) -> Tuple[List[Link], List[Node]]:
         self.check_emptying()
         active_nodes: List[Node] = [node for node in self.nodes if node.needs_emptying]
-        for node in active_nodes: 
-            print("active node", node)
         # starts with start_point, initialise the cost dict to hold all the distances from the start 
         mst_links: List[Link] = []
         mst_nodes: List[Node] = []
@@ -324,26 +322,84 @@ class Network:
         last_node = links[0].nodes[0]
         links = [link for link in links if link != links[0]]
         while len(links) != 0: 
-            print("relaxed so far")
-            for link in sorted_links: print(link)
             other = sorted_links[-1].other_node(last_node)
             possible_links = [link for link in links if other in link.nodes and last_node not in link.nodes]
             next_link = possible_links[0]
             sorted_links.append(next_link)
             # this should also handle double links to make a proper Euler tour
             links = [link for link in links if link != next_link]
-            print("links after filtering")
-            for link in links: print(link)
             last_node  = other 
         
         return sorted_links
+    
+    def get_common_node(self, link1, link2) -> Node:
+        node11, node12 = link1.nodes
+        if node11 in link2.nodes: return node11
+        elif node12 in link2.nodes: return node12
+        else: return None # should not happen when we are calling this function
+
+    
+    def hamiltonian_cycle(self, links: List[Link]) -> List[Link]:
+        visited_nodes: List[Node] = []
+        first_link = links[0]
+        relaxed_links: List[Link] = [first_link]
+        links.remove(first_link)
+        start_node = self.get_common_node(first_link, links[1])
+        visited_nodes.append(start_node)
+        prev_node = first_link.other_node(start_node)
+        visited_nodes.append(prev_node)
+        # use prev node when you need to do a shortening
+        needs_relaxation = False
+        for link in links: 
+            other = link.other_node(prev_node)
+            if other in visited_nodes:
+                print("invalid link", link)
+                #set up train of invalidity to do relaxation in future iteration (when possible)
+                if not needs_relaxation: 
+                    # if this is the first invalid link that is encountered 
+                    # otherwise need to keep the orphan as the original one
+                    # since in a train of invalid links
+                    orphan = prev_node
+                prev_node = other # needed to find the final destination when multiple invalid links are met in sequence
+                needs_relaxation = True
+            else: 
+                if needs_relaxation: 
+                    print("solving relaxation", link)
+                    # do relaxation
+                    new_link = self.get_link(orphan, other)
+                    relaxed_links.append(new_link)
+                    visited_nodes.append(other)
+                    prev_node = other
+                    needs_relaxation = False # relaxation resolved
+                else:
+                    print("appending normally", link)
+                    # add link normally
+                    relaxed_links.append(link)
+                    visited_nodes.append(other)
+                    prev_node = other
+        # get only two nodes with only one link and find closing link 
+        by_node = links_per_node(relaxed_links, visited_nodes)
+        incomplete_nodes = []
+        for node, links in by_node.items():
+            if len(links) < 2: 
+                incomplete_nodes.append(node) 
+                assert len(links) == 1
+        assert len(incomplete_nodes) == 2
+        closing_link = self.get_link(incomplete_nodes[0], incomplete_nodes[1])
+        relaxed_links.append(closing_link)
+        return relaxed_links
+
+                
+
+
+
 
 
 
        
 # TODO add this back to class, should not be needed outside
 def links_per_node(links: List[Link], nodes: List[Node], node_rel=None) -> Dict[Node, int]:
-    if nodes is not None:
+    if node_rel is not None:
         nodes.append(node_rel)
     links_by_node: Dict[Node, int] = {}
     for node in nodes: 

@@ -2,28 +2,25 @@ use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 use self::grpc_generated::{Empty, EnvironmentData, NodeId};
 use crate::config::Config;
 use crate::db::Database;
+use crate::utils::all_interfaces;
 use futures_util::StreamExt;
-use std::net::{Ipv4Addr, SocketAddrV4};
+use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, Streaming};
 
-pub fn launch<'a>(
-    config: Config,
-    data_sink: Sender<(f32, f32)>,
-    db: Arc<Database>,
-) -> JoinHandle<()> {
-    tokio::spawn(start_server(config, data_sink, db))
-}
-
-async fn start_server(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) {
+pub fn launch(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) -> JoinHandle<()> {
     println!(
         "Starting gRPC Server on http://localhost:{}",
         config.network.grpc_port
     );
+    let socket_addr = all_interfaces(config.network.http_port);
+    tokio::spawn(start_server(socket_addr, data_sink, db))
+}
 
+async fn start_server(socket_addr: SocketAddr, data_sink: Sender<(f32, f32)>, db: Arc<Database>) {
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(grpc_generated::FILE_DESCRIPTOR_SET)
         .build()
@@ -32,7 +29,7 @@ async fn start_server(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Dat
     Server::builder()
         .add_service(reflection_service)
         .add_service(NodeApiServer::new(NodeApiImpl { data_sink, db }))
-        .serve(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, config.network.grpc_port).into())
+        .serve(socket_addr)
         .await
         .unwrap();
 }

@@ -1,6 +1,8 @@
 use crate::config::Config;
 use crate::db::Database;
 use crate::mailer::Mailer;
+use crate::user_manager::UserManager;
+use anyhow::Error;
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
@@ -13,18 +15,20 @@ mod db;
 mod grpc_server;
 mod http_server;
 mod mailer;
+mod user_manager;
 mod utils;
 
 #[tokio::main(flavor = "multi_thread")]
-async fn main() {
+async fn main() -> Result<(), Error> {
     let config = load_config();
-    let db = Arc::new(Database::new().await.unwrap());
-    let mailer = Mailer::new(config.email.clone());
+    let db = Arc::new(Database::load_default().await?);
+    let mailer = Mailer::new(config.email.clone())?;
+    let user_manager = Arc::new(UserManager::new(db.clone()));
 
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));
 
-    let http_server_handle = http_server::launch(config.clone(), lock.clone());
+    let http_server_handle = http_server::launch(config.clone(), db.clone(), user_manager.clone());
     let grpc_server_handle = grpc_server::launch(config.clone(), data_in, db.clone());
 
     let data_handler_handle = spawn(async move {

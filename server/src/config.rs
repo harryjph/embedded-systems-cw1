@@ -1,5 +1,5 @@
+use anyhow::Error;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::path::Path;
 use std::{env, fs};
 
@@ -76,11 +76,11 @@ impl Config {
         toml::from_str(data.as_ref())
     }
 
-    fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Box<dyn Error>> {
+    fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Error> {
         Ok(Config::load_from(fs::read_to_string(path)?)?)
     }
 
-    pub fn load_default() -> Result<Config, Box<dyn Error>> {
+    pub fn load_default() -> Result<Config, Error> {
         let config_path = if let Ok(value) = env::var(CONFIG_PATH_ENV_NAME) {
             value
         } else {

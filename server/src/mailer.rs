@@ -1,16 +1,16 @@
 use crate::config::{EmailConfig, EmailSecurity};
+use anyhow::Error;
 use lettre::message::{Mailbox, MessageBuilder};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::client::{Tls, TlsParameters};
 use lettre::{AsyncSmtpTransport, AsyncTransport, Tokio1Executor};
-use std::error::Error;
 
 pub struct Mailer {
     mailer: AsyncSmtpTransport<Tokio1Executor>,
 }
 
 impl Mailer {
-    pub fn new(config: EmailConfig) -> Result<Mailer, Box<dyn Error>> {
+    pub fn new(config: EmailConfig) -> Result<Mailer, Error> {
         let tls_parameters = TlsParameters::new(config.smtp_server_address.clone())?;
         let tls = match config.smtp_security {
             EmailSecurity::TLS => Tls::Wrapper(tls_parameters),
@@ -33,7 +33,7 @@ impl Mailer {
         from_email: String,
         subject: String,
         body: String,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), Error> {
         self.mailer
             .send(
                 MessageBuilder::new()

@@ -15,6 +15,7 @@ futures-util = "0.3.25"
 # HTTP Server
 axum = "0.6.4"
 tower-http = { version = "0.3.5", features = ["cors"] }
+axum-sessions = "0.4.1"
 # gRPC Server
 tonic = "0.8.3"
 tonic-reflection = "0.6.0"
@@ -29,7 +30,11 @@ sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-rustls
 sea-orm-migration = "0.10.7"
 # Utilities
 itertools = "0.10.5"
-rand = "0.8.5"
+rand = { version = "0.8.5", features = ["min_const_gen"] }
+pbkdf2 = "0.11.0"
+anyhow = "1.0.68"
+regex = "1.7.1"
+lazy-regex = "2.4.1"
 
 [build-dependencies]
 # gRPC
@@ -37,3 +42,5 @@ tonic-build = "0.8"
 
 [dev-dependencies]
 tempfile = "3.3.0"
+reqwest = { version = "0.11.14", features = ["cookies"] }
+portpicker = "0.1.1"

@@ -1,82 +1,112 @@
 use crate::config::Config;
-use crate::utils;
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::routing::get;
-use axum::{Json, Router};
-use itertools::Itertools;
+use crate::db::Database;
+use crate::user_manager::UserManager;
+use crate::utils::all_interfaces;
+use axum::Router;
+use axum_sessions::async_session::MemoryStore;
+use axum_sessions::SessionLayer;
+use rand::Rng;
+use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tower_http::cors::{Any, CorsLayer};
 
-mod entities;
+mod bins;
+mod user;
 
-pub fn launch(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) -> JoinHandle<()> {
-    tokio::spawn(start_server(config, data_list))
-}
-
-struct ServerState {
-    data_list: Arc<RwLock<Vec<(f32, f32)>>>,
-}
-
-async fn start_server(config: Config, data_list: Arc<RwLock<Vec<(f32, f32)>>>) {
+pub fn launch(config: Config, db: Arc<Database>, user_manager: Arc<UserManager>) -> JoinHandle<()> {
     println!(
         "Starting HTTP Server on http://localhost:{}",
         config.network.http_port
     );
+    let state = ServerState { db, user_manager };
+    let socket_addr = all_interfaces(config.network.http_port);
+    tokio::spawn(start_server(socket_addr, Arc::new(state)))
+}
+
+struct ServerState {
+    db: Arc<Database>,
+    user_manager: Arc<UserManager>,
+}
+
+async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
+    let store = MemoryStore::new();
+    let secret: [u8; 128] = rand::thread_rng().gen();
+    let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
     let router = Router::new()
-        .route("/data", get(get_data))
-        .route("/bins", get(get_all_bins))
-        .route("/bins/:id", get(get_bin))
-        .route("/bins/:id/config", get(get_bin_config).post(set_bin_config))
-        .with_state(Arc::new(ServerState { data_list }))
-        .layer(CorsLayer::new().allow_origin(Any));
+        .nest("/bins", bins::router())
+        .nest("/user", user::router())
+        .with_state(state)
+        .layer(CorsLayer::new().allow_origin(Any))
+        .layer(session_layer);
 
-    axum::Server::bind(&utils::all_interfaces(config.network.http_port))
+    axum::Server::bind(&socket_addr)
         .serve(router.into_make_service())
         .await
         .unwrap();
 }
 
-async fn get_data(State(state): State<Arc<ServerState>>) -> impl IntoResponse {
-    let customers = state.data_list.read().await;
-    Json(customers.clone())
-}
+#[cfg(test)]
+mod test_utils {
+    use crate::db::Database;
+    use crate::http_server::{start_server, ServerState};
+    use crate::user_manager::tests::{TEST_EMAIL, TEST_PASSWORD};
+    use crate::user_manager::UserManager;
+    use reqwest::{Client, RequestBuilder};
+    use std::collections::HashMap;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::sync::Arc;
 
-pub async fn get_all_bins() -> impl IntoResponse {
-    Json(entities::dummy_data())
-}
+    /// Starts the HTTP server with a blank database and returns a test client to use it
+    pub(super) async fn start_test_server(nested_path: &str) -> (TestClient, Arc<ServerState>) {
+        let db = Arc::new(Database::new_in_memory().await.unwrap());
+        let user_manager = Arc::new(UserManager::new(db.clone()));
+        let state = Arc::new(ServerState { db, user_manager });
 
-pub async fn get_bin(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
-    Ok(Json(
-        entities::dummy_data()
-            .into_iter()
-            .find_or_first(|it| it.id == id)
-            .ok_or(StatusCode::NOT_FOUND)?,
-    ))
-}
+        let port = portpicker::pick_unused_port().expect("No free TCP ports");
+        let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port);
+        tokio::spawn(start_server(address, state.clone()));
 
-pub async fn get_bin_config(Path(id): Path<u64>) -> Result<impl IntoResponse, StatusCode> {
-    Ok(Json(
-        entities::dummy_data()
-            .into_iter()
-            .find_or_first(|it| it.id == id)
-            .ok_or(StatusCode::NOT_FOUND)?
-            .config,
-    ))
-}
+        let test_client = TestClient {
+            client: Client::builder().cookie_store(true).build().unwrap(),
+            host: format!("http://localhost:{port}"),
+            nested_path: nested_path.to_string(),
+        };
+        (test_client, state)
+    }
 
-pub async fn set_bin_config(
-    Path(id): Path<u64>,
-    Json(new_config): Json<entities::BinConfig>,
-) -> Result<impl IntoResponse, StatusCode> {
-    let mut bin = entities::dummy_data()
-        .into_iter()
-        .find_or_first(|it| it.id == id)
-        .ok_or(StatusCode::NOT_FOUND)?;
-    bin.config = new_config;
-    Ok(())
+    pub struct TestClient {
+        client: Client,
+        host: String,
+        nested_path: String,
+    }
+
+    impl TestClient {
+        pub fn get(&self, path: &str) -> RequestBuilder {
+            self.client
+                .get(format!("{}{}{path}", self.host, self.nested_path))
+        }
+
+        pub fn post(&self, path: &str) -> RequestBuilder {
+            self.client
+                .post(format!("{}{}{path}", self.host, self.nested_path))
+        }
+
+        /// Registers a new account and logs the test client in
+        pub async fn register_and_login(&self) {
+            let mut params = HashMap::new();
+            params.insert("email", TEST_EMAIL);
+            params.insert("password", TEST_PASSWORD);
+
+            self.client
+                .post(format!("{}/user/register", self.host))
+                .form(&params)
+                .send()
+                .await
+                .unwrap()
+                .error_for_status()
+                .unwrap();
+        }
+    }
 }

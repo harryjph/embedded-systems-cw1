@@ -22,9 +22,16 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
+                    .col(ColumnDef::new(Node::Name).string().not_null())
                     .col(ColumnDef::new(Node::Owner).string().null())
                     .col(ColumnDef::new(Node::Latitude).double().not_null())
                     .col(ColumnDef::new(Node::Longitude).double().not_null())
+                    .col(ColumnDef::new(Node::Fullness).float().not_null())
+                    .col(
+                        ColumnDef::new(Node::FullnessLastUpdated)
+                            .timestamp()
+                            .not_null(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -60,9 +67,12 @@ impl MigrationTrait for Migration {
 pub enum Node {
     Table,
     Id,
+    Name,
     Owner,
     Latitude,
     Longitude,
+    Fullness,
+    FullnessLastUpdated,
 }
 
 #[derive(Iden)]

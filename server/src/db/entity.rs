@@ -13,9 +13,12 @@ pub mod node {
     pub struct Model {
         #[sea_orm(primary_key)]
         pub id: u64,
+        pub name: String,
         pub owner: Option<String>,
         pub latitude: f64,
         pub longitude: f64,
+        pub fullness: f32,
+        pub fullness_last_updated: DateTimeUtc,
     }
 
     #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

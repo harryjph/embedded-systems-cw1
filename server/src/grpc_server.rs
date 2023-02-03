@@ -103,9 +103,11 @@ impl NodeApi for NodeApiImpl {
                         ))
                     })?;
             } else {
-                eprintln!("Node with id: {} does not exist within database yet is sent something.", distance_data.id);
+                eprintln!(
+                    "Node with id: {} does not exist within database yet is sent something.",
+                    distance_data.id
+                );
             }
-            
         }
         todo!()
     }

@@ -1,3 +1,4 @@
+use crate::http_server::util::{bad_request, ErrorResponse};
 use crate::http_server::ServerState;
 use anyhow::Error;
 use axum::extract::State;
@@ -7,7 +8,6 @@ use axum::{Form, Router};
 use axum_sessions::extractors::{ReadableSession, WritableSession};
 use serde::Deserialize;
 use std::sync::Arc;
-use crate::http_server::util::{bad_request, ErrorResponse};
 
 const SESSION_EMAIL_KEY: &str = "signed_in_to";
 

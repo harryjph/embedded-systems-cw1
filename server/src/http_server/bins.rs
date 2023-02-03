@@ -1,4 +1,7 @@
+use crate::db::entity::node;
+use crate::db::Database;
 use crate::http_server::user::get_signed_in_email;
+use crate::http_server::util::{bad_request, not_found, ErrorResponse};
 use crate::http_server::ServerState;
 use axum::extract::{Path, State};
 use axum::routing::get;
@@ -6,9 +9,6 @@ use axum::{Json, Router};
 use axum_sessions::extractors::ReadableSession;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use crate::db::Database;
-use crate::db::entity::node;
-use crate::http_server::util::{bad_request, ErrorResponse, not_found};
 
 pub(super) fn router() -> Router<Arc<ServerState>> {
     Router::new()
@@ -67,26 +67,24 @@ async fn get_one(
 ) -> Result<Json<Bin>, ErrorResponse> {
     let user_email = get_signed_in_email(&session)?;
     Ok(Json(
-        state.db
+        state
+            .db
             .get_node(node_id, Some(user_email.as_str()))
             .await
             .map_err(bad_request)?
             .ok_or(not_found())?
-            .into()
+            .into(),
     ))
 }
 
-async fn get_all(
-    db: &Arc<Database>,
-    owner: Option<&str>,
-) -> Result<Json<Vec<Bin>>, ErrorResponse> {
+async fn get_all(db: &Arc<Database>, owner: Option<&str>) -> Result<Json<Vec<Bin>>, ErrorResponse> {
     Ok(Json(
         db.get_nodes(owner)
             .await
             .map_err(bad_request)?
             .into_iter()
             .map(Into::into)
-            .collect()
+            .collect(),
     ))
 }
 
@@ -113,7 +111,9 @@ async fn take_ownership(
     Path(node_id): Path<u32>,
 ) -> Result<(), ErrorResponse> {
     let user_email = get_signed_in_email(&session)?;
-    state.db.set_node_owner(node_id, None, Some(user_email.as_str()))
+    state
+        .db
+        .set_node_owner(node_id, None, Some(user_email.as_str()))
         .await
         .map_err(bad_request)?;
     Ok(())
@@ -125,7 +125,9 @@ async fn release_ownership(
     Path(node_id): Path<u32>,
 ) -> Result<(), ErrorResponse> {
     let user_email = get_signed_in_email(&session)?;
-    state.db.set_node_owner(node_id, Some(user_email.as_str()), None)
+    state
+        .db
+        .set_node_owner(node_id, Some(user_email.as_str()), None)
         .await
         .map_err(bad_request)?;
     Ok(())
@@ -138,12 +140,13 @@ async fn get_config(
 ) -> Result<Json<BinConfig>, ErrorResponse> {
     let user_email = get_signed_in_email(&session)?;
     Ok(Json(
-        state.db
+        state
+            .db
             .get_node(node_id, Some(user_email.as_str()))
             .await
             .map_err(bad_request)?
             .ok_or(not_found())?
-            .into()
+            .into(),
     ))
 }
 
@@ -154,7 +157,8 @@ async fn set_config(
     Json(new_config): Json<BinConfig>,
 ) -> Result<(), ErrorResponse> {
     let user_email = get_signed_in_email(&session)?;
-    state.db
+    state
+        .db
         .set_node_config(
             node_id,
             Some(user_email.as_str()),

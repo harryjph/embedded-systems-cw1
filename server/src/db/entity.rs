@@ -18,6 +18,10 @@ pub mod node {
         pub owner: Option<String>,
         pub latitude: f64,
         pub longitude: f64,
+        /// The distance reading above which the bin is considered to be empty
+        pub empty_distance_reading: f32,
+        /// The distance reading below which the bin is considered to be full
+        pub full_distance_reading: f32,
         pub fullness: f32,
         pub fullness_last_updated: DateTimeUtc,
     }

@@ -44,6 +44,8 @@ impl Database {
             owner: ActiveValue::Set(None),
             latitude: ActiveValue::Set(0.0),
             longitude: ActiveValue::Set(0.0),
+            empty_distance_reading: ActiveValue::Set(1.0),
+            full_distance_reading: ActiveValue::Set(0.0),
             fullness: ActiveValue::Set(0.0),
             fullness_last_updated: ActiveValue::Set(DateTimeUtc::from_utc(
                 NaiveDateTime::from_timestamp_millis(0).unwrap(),
@@ -140,12 +142,16 @@ impl Database {
         name: S,
         latitude: f64,
         longitude: f64,
+        empty_distance_reading: f32,
+        full_distance_reading: f32,
     ) -> Result<(), Error> {
         node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             name: ActiveValue::Set(name.into()),
             latitude: ActiveValue::Set(latitude),
             longitude: ActiveValue::Set(longitude),
+            empty_distance_reading: ActiveValue::Set(empty_distance_reading),
+            full_distance_reading: ActiveValue::Set(full_distance_reading),
             ..Default::default()
         })
         .exec(&self.db)
@@ -241,14 +247,19 @@ mod tests {
         assert_eq!(node.name, "");
         assert_eq!(node.latitude, 0.0);
         assert_eq!(node.latitude, 0.0);
+        assert_eq!(node.empty_distance_reading, 1.0);
+        assert_eq!(node.full_distance_reading, 0.0);
 
         let name = "Jeff";
         let (lat, long) = (1.0, 2.0);
-        db.set_node_config(id, name, lat, long).await.unwrap();
+        let (empty_distance_reading, full_distance_reading) = (1.5, 0.5);
+        db.set_node_config(id, name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
         let node = db.get_node(id, None).await.unwrap().unwrap();
         assert_eq!(node.name, name);
         assert_eq!(node.latitude, lat);
         assert_eq!(node.longitude, long);
+        assert_eq!(node.empty_distance_reading, empty_distance_reading);
+        assert_eq!(node.full_distance_reading, full_distance_reading);
     }
 
     #[tokio::test]

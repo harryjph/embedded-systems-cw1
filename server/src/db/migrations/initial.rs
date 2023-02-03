@@ -26,6 +26,8 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Node::Owner).string().null())
                     .col(ColumnDef::new(Node::Latitude).double().not_null())
                     .col(ColumnDef::new(Node::Longitude).double().not_null())
+                    .col(ColumnDef::new(Node::EmptyDistanceReading).float().not_null())
+                    .col(ColumnDef::new(Node::FullDistanceReading).float().not_null())
                     .col(ColumnDef::new(Node::Fullness).float().not_null())
                     .col(
                         ColumnDef::new(Node::FullnessLastUpdated)
@@ -71,6 +73,8 @@ pub enum Node {
     Owner,
     Latitude,
     Longitude,
+    EmptyDistanceReading,
+    FullDistanceReading,
     Fullness,
     FullnessLastUpdated,
 }

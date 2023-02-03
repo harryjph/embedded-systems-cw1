@@ -10,9 +10,8 @@ import Bins from './Components/Bins.js';
 import Layout from './Components/Layout/Layout.js';
 
 //  Import Pages
-import AddBinsFormPage from './pages/AddBinsForm.js';
-import AllBinsPage from './pages/AllBins.js';
-import MyBinsPage from './pages/MyBins.js';
+import AllOfMyBinsPage from './pages/AllOfMyBins.js';
+import UnclaimedBinsPage from './pages/UnownedBins.js';
 
 import { Switch } from 'react-native-web';
 
@@ -43,9 +42,9 @@ function App() {
       <Layout />
       <Routes>
         {/* All avaliable bins (TODO: Home-page) */}
-          <Route path='/' element={<AllBinsPage/>} />
+          <Route path='/' element={<AllOfMyBinsPage/>} />
         {/* My Bins */}
-          <Route path='/my-bins' element={<MyBinsPage/>} />
+          <Route path='/my-bins' element={<UnclaimedBinsPage/>} />
       </Routes>
     </BrowserRouter>
   </div>

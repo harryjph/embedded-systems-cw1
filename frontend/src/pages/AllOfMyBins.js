@@ -1,7 +1,7 @@
 import BinsList from '../Components/BinsList.js';
 import {useEffect, useState} from "react";
 
-function AllBinsPage() {
+function AllOfMyBinsPage() {
     const [isLoading, setIsloading] = useState(true);
     const [loadedBins, setLoadedBins] = useState([]);
 
@@ -39,4 +39,4 @@ function AllBinsPage() {
     
 };
 
-export default AllBinsPage;
+export default AllOfMyBinsPage;

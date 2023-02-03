@@ -121,9 +121,12 @@ impl Database {
             .await?)
     }
 
+    /// Sets the owner of a node.
+    /// The node's current owner must be `old_owner_email` for the new owner to be set.
     pub async fn set_node_owner(
         &self,
         node_id: u32,
+        old_owner_email: Option<&str>,
         owner_email: Option<&str>,
     ) -> Result<(), Error> {
         node::Entity::update(node::ActiveModel {
@@ -131,6 +134,7 @@ impl Database {
             owner: ActiveValue::Set(owner_email.map(str::to_lowercase)),
             ..Default::default()
         })
+        .filter(node::Column::Owner.eq(old_owner_email.map(str::to_lowercase)))
         .exec(&self.db)
         .await?;
         Ok(())
@@ -207,7 +211,9 @@ mod tests {
         assert!(db.get_node(id, Some(DUPE_EMAIL)).await.unwrap().is_none());
         assert!(db.get_node(id, Some(WRONG_EMAIL)).await.unwrap().is_none());
 
-        db.set_node_owner(id, Some(EMAIL)).await.unwrap();
+        db.set_node_owner(id, Some(EMAIL), Some(EMAIL)).await
+            .expect_err("Node owner was set when previous owner was incorrect");
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
         assert!(db.get_node(id, None).await.unwrap().is_some());
         assert!(db.get_node(id, Some(EMAIL)).await.unwrap().is_some());
         assert!(db.get_node(id, Some(DUPE_EMAIL)).await.unwrap().is_some());
@@ -233,11 +239,13 @@ mod tests {
         // Check that there is 1 node with no owner
         assert_counts(&db, 1, 0).await;
         // Assign the owner
-        db.set_node_owner(id, Some(EMAIL)).await.unwrap();
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
         // Check that there is 1 node with an owner
         assert_counts(&db, 0, 1).await;
         // Assign no owner
-        db.set_node_owner(id, None).await.unwrap();
+        db.set_node_owner(id, None, None).await
+            .expect_err("Node owner was set when previous owner was incorrect");
+        db.set_node_owner(id, Some(EMAIL), None).await.unwrap();
         // Check that there is 1 node with no owner
         assert_counts(&db, 1, 0).await;
     }
@@ -268,7 +276,7 @@ mod tests {
         assert_eq!(node.full_distance_reading, full_distance_reading);
 
         // Test filtering by owner email works
-        db.set_node_owner(id, Some(EMAIL)).await.unwrap();
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
         db.set_node_config(id, None, name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
         db.set_node_config(id, Some(EMAIL), name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
         db.set_node_config(id, Some(DUPE_EMAIL), name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();

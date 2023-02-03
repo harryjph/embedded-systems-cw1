@@ -15,28 +15,8 @@ import UnclaimedBinsPage from './pages/UnownedBins.js';
 
 import { Switch } from 'react-native-web';
 
-const data = {
-  content: {
-    body: [
-      {
-        _uid: "1",
-        _val: "73",
-      },
-      {
-        _uid: "2",
-        _val: "25",
-      },
-      {
-        _uid: "3",
-        _val: "42",
-      }
-    ]
-  }
-};
-
 function App() {
   return (
-
   <div>
     <BrowserRouter>
       <Layout />

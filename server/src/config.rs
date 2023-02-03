@@ -44,10 +44,18 @@ pub struct EmailConfig {
     pub smtp_password: String,
 }
 
-fn default_http_port() -> u16 { 80 }
-fn default_grpc_port() -> u16 { 81 }
-fn default_smtp_port() -> u16 { 465 }
-fn default_smtp_security() -> EmailSecurity { EmailSecurity::TLS }
+fn default_http_port() -> u16 {
+    80
+}
+fn default_grpc_port() -> u16 {
+    81
+}
+fn default_smtp_port() -> u16 {
+    465
+}
+fn default_smtp_security() -> EmailSecurity {
+    EmailSecurity::TLS
+}
 
 impl Default for NetworkConfig {
     fn default() -> Self {

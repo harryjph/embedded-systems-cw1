@@ -8,12 +8,12 @@ function MainNavigation() {
       <nav>
         <ul>
           <li>
-            <Link to="/" exact>
+            <Link to="/my-bins">
               My Bins
             </Link>
           </li>
           <li>
-            <Link to="/my-bins">Unowned Bins</Link>
+            <Link to="/unowned-bins">Unowned Bins</Link>
           </li>
         </ul>
       </nav>

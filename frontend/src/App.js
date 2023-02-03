@@ -1,30 +1,25 @@
 import "./App.css";
 
 //  Page Routing Support
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-
-//  Import Components
-import Bins from "./Components/Bins/Bins.js";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //  Import Navigation
-import Layout from "./Components/Layout/Layout.js";
 
 //  Import Pages
+import LoginPage from "./pages/LoginPage.js";
 import AllOfMyBinsPage from "./pages/AllOfMyBins.js";
 import UnclaimedBinsPage from "./pages/UnownedBins.js";
-
-import { Switch } from "react-native-web";
 
 function App() {
   return (
     <div>
       <BrowserRouter>
-        <Layout />
         <Routes>
+          <Route path="/" element={<LoginPage />} />
           {/* All avaliable bins (TODO: Home-page) */}
-          <Route path="/" element={<AllOfMyBinsPage />} />
+          <Route path="/my-bins" element={<AllOfMyBinsPage />} />
           {/* My Bins */}
-          <Route path="/my-bins" element={<UnclaimedBinsPage />} />
+          <Route path="/unowned-bins" element={<UnclaimedBinsPage />} />
         </Routes>
       </BrowserRouter>
     </div>

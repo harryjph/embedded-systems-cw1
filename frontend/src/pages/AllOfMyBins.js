@@ -1,5 +1,7 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
+import Layout from "../Components/Layout/Layout";
+import {apiGet} from "../API";
 
 function AllOfMyBinsPage() {
   const [isLoading, setIsloading] = useState(true);
@@ -7,7 +9,7 @@ function AllOfMyBinsPage() {
 
   useEffect(() => {
     setIsloading(true);
-    fetch("https://es1.harryphillips.co.uk/bins")
+    apiGet("/bins")
       .then((response) => {
         return response.json();
       })
@@ -32,7 +34,10 @@ function AllOfMyBinsPage() {
     );
   }
 
-  return <BinsList AllData={loadedBins} />;
+  return <div>
+      <Layout />
+      <BinsList AllData={loadedBins} />
+    </div>;
 }
 
 export default AllOfMyBinsPage;

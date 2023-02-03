@@ -1,11 +1,11 @@
 use self::entity::{node, user};
 use crate::db::migrations::Migrator;
 use anyhow::Error;
+use chrono::{NaiveDateTime, Utc};
 use sea_orm::prelude::*;
 use sea_orm::{ActiveValue, ConnectOptions, Database as SeaOrmDatabase};
 use sea_orm_migration::MigratorTrait;
 use std::env;
-use chrono::{NaiveDateTime, Utc};
 
 pub mod entity;
 pub mod migrations;
@@ -45,9 +45,10 @@ impl Database {
             latitude: ActiveValue::Set(0.0),
             longitude: ActiveValue::Set(0.0),
             fullness: ActiveValue::Set(0.0),
-            fullness_last_updated: ActiveValue::Set(
-                DateTimeUtc::from_utc(NaiveDateTime::from_timestamp_millis(0).unwrap(), Utc)
-            ),
+            fullness_last_updated: ActiveValue::Set(DateTimeUtc::from_utc(
+                NaiveDateTime::from_timestamp_millis(0).unwrap(),
+                Utc,
+            )),
             ..Default::default()
         };
 
@@ -56,7 +57,11 @@ impl Database {
         Ok(res.last_insert_id)
     }
 
-    pub async fn insert_user<S: Into<String>>(&self, email: &str, password_hash: S) -> Result<(), Error> {
+    pub async fn insert_user<S: Into<String>>(
+        &self,
+        email: &str,
+        password_hash: S,
+    ) -> Result<(), Error> {
         let new_user = user::ActiveModel {
             email: ActiveValue::Set(email.to_lowercase()),
             password_hash: ActiveValue::Set(password_hash.into()),
@@ -97,9 +102,12 @@ impl Database {
     /// Gets a node by its id.
     /// Optionally filters by owner. If `owner_email` is Some, this will only return the
     /// node if its owner matches. If `owner_email` is None, this will not filter by owner.
-    pub async fn get_node(&self, node_id: u32, owner_email: Option<&str>) -> Result<Option<node::Model>, Error> {
-        let mut query = node::Entity::find()
-            .filter(node::Column::Id.eq(node_id));
+    pub async fn get_node(
+        &self,
+        node_id: u32,
+        owner_email: Option<&str>,
+    ) -> Result<Option<node::Model>, Error> {
+        let mut query = node::Entity::find().filter(node::Column::Id.eq(node_id));
 
         if let Some(owner_email) = owner_email {
             query = query.filter(node::Column::Owner.eq(owner_email.to_lowercase()));
@@ -107,7 +115,8 @@ impl Database {
 
         Ok(query
             .filter(node::Column::Id.eq(node_id))
-            .one(&self.db).await?)
+            .one(&self.db)
+            .await?)
     }
 
     pub async fn set_node_owner(
@@ -197,13 +206,15 @@ mod tests {
     async fn test_set_node_owner_and_get_nodes() {
         let db = Database::new_in_memory().await.unwrap();
 
-
         let id = db.insert_node().await.unwrap();
 
         async fn assert_counts(db: &Database, count_unowned: usize, count_owned: usize) {
             assert_eq!(db.get_nodes(None).await.unwrap().len(), count_unowned);
             assert_eq!(db.get_nodes(Some(EMAIL)).await.unwrap().len(), count_owned);
-            assert_eq!(db.get_nodes(Some(DUPE_EMAIL)).await.unwrap().len(), count_owned);
+            assert_eq!(
+                db.get_nodes(Some(DUPE_EMAIL)).await.unwrap().len(),
+                count_owned
+            );
             assert_eq!(db.get_nodes(Some(WRONG_EMAIL)).await.unwrap().len(), 0);
         }
 
@@ -265,7 +276,14 @@ mod tests {
         }
 
         // Reject bad values
-        let invalid_fullnesses = [-1.0, -0.0000001, 1.0000001, f32::NAN, f32::INFINITY, f32::NEG_INFINITY];
+        let invalid_fullnesses = [
+            -1.0,
+            -0.0000001,
+            1.0000001,
+            f32::NAN,
+            f32::INFINITY,
+            f32::NEG_INFINITY,
+        ];
         for fullness in invalid_fullnesses {
             db.set_node_fullness(ids[0], fullness)
                 .await

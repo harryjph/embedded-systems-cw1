@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { CircularProgressbar } from 'react-circular-progressbar';
-import 'react-circular-progressbar/dist/styles.css';
+import React, { useEffect, useState } from "react";
+import { CircularProgressbar } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
-function CircularProgressBar({upper_value}) {
-    const [percentage, setPercentage] = useState(0);
+function CircularProgressBar({ upper_value }) {
+  const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
     let timer = setTimeout(() => {
@@ -16,8 +16,6 @@ function CircularProgressBar({upper_value}) {
     };
   }, [percentage]);
 
-  return (
-    <CircularProgressbar value={percentage} text={`${percentage}%`} />
-  );
+  return <CircularProgressbar value={percentage} text={`${percentage}%`} />;
 }
 export default CircularProgressBar;

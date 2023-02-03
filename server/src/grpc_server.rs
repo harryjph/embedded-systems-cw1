@@ -1,5 +1,5 @@
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
-use self::grpc_generated::{Empty, EnvironmentData, NodeId};
+use self::grpc_generated::{DistanceData, Empty, EnvironmentData, NodeId};
 use crate::config::Config;
 use crate::db::Database;
 use crate::utils::all_interfaces;
@@ -70,5 +70,39 @@ impl NodeApi for NodeApiImpl {
             .await
             .map_err(|_| Status::aborted("Unable to insert into db"))?;
         Ok(Response::new(NodeId { id }))
+    }
+
+    async fn report_distance(
+        &self,
+        request: Request<Streaming<DistanceData>>,
+    ) -> Result<Response<Empty>, Status> {
+        let mut stream = request.into_inner();
+        while let Some(distance_data) = stream.next().await {
+            let distance_data = distance_data?;
+            if let Some(node) = self
+                .db
+                .get_node(distance_data.id, None)
+                .await
+                .map_err(|_| {
+                    Status::aborted(format!(
+                        "Unable to get node with id: {} from database.",
+                        distance_data.id
+                    ))
+                })?
+            {
+                let fullness = (distance_data.distance - node.empty_distance_reading)
+                    / (node.full_distance_reading - node.empty_distance_reading);
+                self.db
+                    .set_node_fullness(distance_data.id, fullness)
+                    .await
+                    .map_err(|_| {
+                        Status::aborted(format!(
+                            "Unable to update fullness of bin with id: {}.",
+                            distance_data.id
+                        ))
+                    })?;
+            }
+        }
+        todo!()
     }
 }

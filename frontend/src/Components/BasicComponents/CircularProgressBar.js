@@ -6,11 +6,14 @@ function CircularProgressBar({upper_value}) {
     const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
-    setTimeout(() => {
+    let timer = setTimeout(() => {
       if (percentage < upper_value) {
         setPercentage(percentage + 1);
       }
     }, 5);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [percentage]);
 
   return (

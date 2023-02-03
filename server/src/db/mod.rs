@@ -129,12 +129,17 @@ impl Database {
         old_owner_email: Option<&str>,
         owner_email: Option<&str>,
     ) -> Result<(), Error> {
+        let old_owner_filter = if let Some(old_owner_email) = old_owner_email {
+            node::Column::Owner.eq(Some(old_owner_email.to_lowercase()))
+        } else {
+            node::Column::Owner.is_null()
+        };
         node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             owner: ActiveValue::Set(owner_email.map(str::to_lowercase)),
             ..Default::default()
         })
-        .filter(node::Column::Owner.eq(old_owner_email.map(str::to_lowercase)))
+        .filter(old_owner_filter)
         .exec(&self.db)
         .await?;
         Ok(())
@@ -223,6 +228,11 @@ mod tests {
     #[tokio::test]
     async fn test_set_node_owner_and_get_nodes() {
         let db = Database::new_in_memory().await.unwrap();
+
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::DEBUG)
+            .with_test_writer()
+            .init();
 
         let id = db.insert_node().await.unwrap();
 

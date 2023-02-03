@@ -121,31 +121,44 @@ impl Database {
             .await?)
     }
 
+    /// Sets the owner of a node.
+    /// The node's current owner must be `old_owner_email` for the new owner to be set.
     pub async fn set_node_owner(
         &self,
         node_id: u32,
+        old_owner_email: Option<&str>,
         owner_email: Option<&str>,
     ) -> Result<(), Error> {
+        let old_owner_filter = if let Some(old_owner_email) = old_owner_email {
+            node::Column::Owner.eq(Some(old_owner_email.to_lowercase()))
+        } else {
+            node::Column::Owner.is_null()
+        };
         node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             owner: ActiveValue::Set(owner_email.map(str::to_lowercase)),
             ..Default::default()
         })
+        .filter(old_owner_filter)
         .exec(&self.db)
         .await?;
         Ok(())
     }
 
+    /// Sets node config.
+    /// Optionally filters by owner. If `owner_email` is Some, this will only set the node
+    /// config if its owner matches. If `owner_email` is None, this will not filter by owner.
     pub async fn set_node_config<S: Into<String>>(
         &self,
         node_id: u32,
+        owner_email: Option<&str>,
         name: S,
         latitude: f64,
         longitude: f64,
         empty_distance_reading: f32,
         full_distance_reading: f32,
     ) -> Result<(), Error> {
-        node::Entity::update(node::ActiveModel {
+        let mut query = node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             name: ActiveValue::Set(name.into()),
             latitude: ActiveValue::Set(latitude),
@@ -153,9 +166,11 @@ impl Database {
             empty_distance_reading: ActiveValue::Set(empty_distance_reading),
             full_distance_reading: ActiveValue::Set(full_distance_reading),
             ..Default::default()
-        })
-        .exec(&self.db)
-        .await?;
+        });
+        if let Some(owner_email) = owner_email {
+            query = query.filter(node::Column::Owner.eq(owner_email.to_lowercase()));
+        }
+        query.exec(&self.db).await?;
         Ok(())
     }
 
@@ -201,7 +216,10 @@ mod tests {
         assert!(db.get_node(id, Some(DUPE_EMAIL)).await.unwrap().is_none());
         assert!(db.get_node(id, Some(WRONG_EMAIL)).await.unwrap().is_none());
 
-        db.set_node_owner(id, Some(EMAIL)).await.unwrap();
+        db.set_node_owner(id, Some(EMAIL), Some(EMAIL))
+            .await
+            .expect_err("Node owner was set when previous owner was incorrect");
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
         assert!(db.get_node(id, None).await.unwrap().is_some());
         assert!(db.get_node(id, Some(EMAIL)).await.unwrap().is_some());
         assert!(db.get_node(id, Some(DUPE_EMAIL)).await.unwrap().is_some());
@@ -227,11 +245,14 @@ mod tests {
         // Check that there is 1 node with no owner
         assert_counts(&db, 1, 0).await;
         // Assign the owner
-        db.set_node_owner(id, Some(EMAIL)).await.unwrap();
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
         // Check that there is 1 node with an owner
         assert_counts(&db, 0, 1).await;
         // Assign no owner
-        db.set_node_owner(id, None).await.unwrap();
+        db.set_node_owner(id, None, None)
+            .await
+            .expect_err("Node owner was set when previous owner was incorrect");
+        db.set_node_owner(id, Some(EMAIL), None).await.unwrap();
         // Check that there is 1 node with no owner
         assert_counts(&db, 1, 0).await;
     }
@@ -255,6 +276,7 @@ mod tests {
         let (empty_distance_reading, full_distance_reading) = (1.5, 0.5);
         db.set_node_config(
             id,
+            None,
             name,
             lat,
             long,
@@ -269,6 +291,53 @@ mod tests {
         assert_eq!(node.longitude, long);
         assert_eq!(node.empty_distance_reading, empty_distance_reading);
         assert_eq!(node.full_distance_reading, full_distance_reading);
+
+        // Test filtering by owner email works
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
+        db.set_node_config(
+            id,
+            None,
+            name,
+            lat,
+            long,
+            empty_distance_reading,
+            full_distance_reading,
+        )
+        .await
+        .unwrap();
+        db.set_node_config(
+            id,
+            Some(EMAIL),
+            name,
+            lat,
+            long,
+            empty_distance_reading,
+            full_distance_reading,
+        )
+        .await
+        .unwrap();
+        db.set_node_config(
+            id,
+            Some(DUPE_EMAIL),
+            name,
+            lat,
+            long,
+            empty_distance_reading,
+            full_distance_reading,
+        )
+        .await
+        .unwrap();
+        db.set_node_config(
+            id,
+            Some(WRONG_EMAIL),
+            name,
+            lat,
+            long,
+            empty_distance_reading,
+            full_distance_reading,
+        )
+        .await
+        .expect_err("Setting node config by the wrong user was OK");
     }
 
     #[tokio::test]

@@ -13,6 +13,7 @@ use tower_http::cors::{Any, CorsLayer};
 
 mod bins;
 mod user;
+mod util;
 
 pub fn launch(config: Config, db: Arc<Database>, user_manager: Arc<UserManager>) -> JoinHandle<()> {
     println!(

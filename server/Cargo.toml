@@ -29,7 +29,6 @@ lettre = { version = "0.10.2", default-features = false, features = ["tokio1", "
 sea-orm = { version = "0.10.7", features = ["sqlx-sqlite", "runtime-tokio-rustls"] }
 sea-orm-migration = "0.10.7"
 # Utilities
-itertools = "0.10.5"
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 pbkdf2 = "0.11.0"
 anyhow = "1.0.68"

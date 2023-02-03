@@ -66,9 +66,9 @@ impl NodeApi for NodeApiImpl {
     async fn assign_id(&self, _request: Request<Empty>) -> Result<Response<NodeId>, Status> {
         let id = self
             .db
-            .insert_node(123.32, 123.321)
+            .insert_node()
             .await
             .map_err(|_| Status::aborted("Unable to insert into db"))?;
-        Ok(Response::new(NodeId { id: id }))
+        Ok(Response::new(NodeId { id }))
     }
 }

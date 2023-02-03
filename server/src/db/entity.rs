@@ -11,8 +11,9 @@ pub mod node {
     #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
     #[sea_orm(table_name = "node")]
     pub struct Model {
-        #[sea_orm(primary_key)]
-        pub id: u64,
+        /// ID must be u32 due to a limitation of SeaORM's SQLite implementation
+        #[sea_orm(primary_key, auto_increment = true)]
+        pub id: u32,
         pub name: String,
         pub owner: Option<String>,
         pub latitude: f64,

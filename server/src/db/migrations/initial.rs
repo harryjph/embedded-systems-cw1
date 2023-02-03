@@ -17,7 +17,7 @@ impl MigrationTrait for Migration {
                     .table(Node::Table)
                     .col(
                         ColumnDef::new(Node::Id)
-                            .big_unsigned()
+                            .unsigned()
                             .not_null()
                             .auto_increment()
                             .primary_key(),

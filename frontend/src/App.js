@@ -4,7 +4,7 @@ import './App.css';
 import {BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 //  Import Components
-import Bins from './Components/Bins.js';
+import Bins from './Components/Bins/Bins.js';
 
 //  Import Navigation
 import Layout from './Components/Layout/Layout.js';

@@ -1,4 +1,4 @@
-import Bins from '../Components/Bins.js';
+import Bins from './Bins.js';
 import classes from './BinsList.module.css';
 
 import {useEffect, useState} from "react";

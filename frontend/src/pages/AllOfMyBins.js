@@ -1,4 +1,4 @@
-import BinsList from '../Components/BinsList.js';
+import BinsList from '../Components/Bins/BinsList.js';
 import {useEffect, useState} from "react";
 
 function AllOfMyBinsPage() {

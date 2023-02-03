@@ -1,8 +1,8 @@
-import CircularProgressBar from './CircularProgressBar.js';
-import Modal from './Modal.js';
-import AddModalWithRenameSupport from './AddModalWithRenameSupport.js';
-import Backdrop from './Backdrop.js';
-import Card from './ui/Card.js';
+import CircularProgressBar from '../BasicComponents/CircularProgressBar.js';
+import Modal from '../BasicComponents/Modal.js';
+import AddModalWithRenameSupport from '../ModalWithRenameSupport/AddModalWithRenameSupport.js';
+import Backdrop from '../BasicComponents/Backdrop.js';
+import Card from '../ui/Card.js';
 
 import classes from './Bins.module.css';
 

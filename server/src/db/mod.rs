@@ -230,11 +230,6 @@ mod tests {
     async fn test_set_node_owner_and_get_nodes() {
         let db = Database::new_in_memory().await.unwrap();
 
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::DEBUG)
-            .with_test_writer()
-            .init();
-
         let id = db.insert_node().await.unwrap();
 
         async fn assert_counts(db: &Database, count_unowned: usize, count_owned: usize) {

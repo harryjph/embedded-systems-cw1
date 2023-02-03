@@ -6,12 +6,14 @@ use axum::{Json, Router};
 use axum_sessions::extractors::ReadableSession;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use crate::db::Database;
 use crate::db::entity::node;
 use crate::http_server::util::{bad_request, ErrorResponse, not_found};
 
 pub(super) fn router() -> Router<Arc<ServerState>> {
     Router::new()
-        .route("/", get(get_all))
+        .route("/", get(get_all_owned))
+        .route("/unowned", get(get_all_unowned))
         .route("/:node_id", get(get_one))
         .route("/:node_id/config", get(get_config).post(set_config))
 }
@@ -73,19 +75,34 @@ async fn get_one(
 }
 
 async fn get_all(
-    State(state): State<Arc<ServerState>>,
-    session: ReadableSession,
+    db: &Arc<Database>,
+    owner: Option<&str>,
 ) -> Result<Json<Vec<Bin>>, ErrorResponse> {
-    let user_email = get_signed_in_email(&session)?;
     Ok(Json(
-        state.db
-            .get_nodes(Some(user_email.as_str()))
+        db.get_nodes(owner)
             .await
             .map_err(bad_request)?
             .into_iter()
             .map(Into::into)
             .collect()
     ))
+}
+
+async fn get_all_owned(
+    State(state): State<Arc<ServerState>>,
+    session: ReadableSession,
+) -> Result<Json<Vec<Bin>>, ErrorResponse> {
+    let user_email = get_signed_in_email(&session)?;
+    get_all(&state.db, Some(user_email.as_str())).await
+}
+
+async fn get_all_unowned(
+    State(state): State<Arc<ServerState>>,
+    session: ReadableSession,
+) -> Result<Json<Vec<Bin>>, ErrorResponse> {
+    // Still require that the user is signed in but allow any account
+    let _ = get_signed_in_email(&session)?;
+    get_all(&state.db, None).await
 }
 
 async fn get_config(

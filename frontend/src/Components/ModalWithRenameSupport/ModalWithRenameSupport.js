@@ -33,13 +33,10 @@ function ModalWithRenameSupport(props) {
     };
 
     props.onAddBins(binsData);
-    console.log(props);
-    console.log("sent " + props.ID + " data to server");
     props.onConfirm();
   }
 
   function onCancel() {
-    console.log("Cancel update of " + props.ID);
     props.closeHandler();
   }
 

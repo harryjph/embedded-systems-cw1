@@ -1,10 +1,8 @@
 function Modal(props) {
   function YesSelect() {
-    console.log("Yes " + props.ID);
     props.onConfirm();
   }
   function NoSelect() {
-    console.log("No " + props.ID);
     props.onCancel();
   }
 

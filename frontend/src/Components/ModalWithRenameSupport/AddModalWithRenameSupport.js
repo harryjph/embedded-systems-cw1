@@ -14,7 +14,6 @@ function AddModalWithRenameSupport(props) {
         "Content-Type": "application/json",
       },
     }).then(() => {
-      console.log("posted form to rename");
       history("/");
     });
   }

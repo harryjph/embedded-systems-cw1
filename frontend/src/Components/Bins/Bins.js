@@ -14,18 +14,15 @@ function Bins(props) {
 
   function addHandler() {
     setBinValue(true);
-    console.log("add " + props.ID);
   }
 
   function changeNameHandler() {
     setRenameBinValue(true);
-    console.log("change name " + props.ID);
   }
 
   function closeHandler() {
     setBinValue(false);
     setRenameBinValue(false);
-    console.log("remove " + props.ID);
   }
 
   return (

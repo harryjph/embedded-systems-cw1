@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 function BinsList(props) {
   const [bins, setBins] = useState([]);
-  console.log(props.AllData);
 
   let binsWidgets = props.AllData.map((bin) => (
     <Bins

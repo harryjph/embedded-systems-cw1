@@ -6,7 +6,7 @@ function AddBinsFormPage() {
 
     function addMeetupHandler(binsData) {
         fetch(
-            'https://es1.harryphillips.co.uk/bins',
+            'https://embedded-systems-test-server-default-rtdb.europe-west1.firebasedatabase.app//bins.json',
             {
                 method: 'POST',
                 body: JSON.stringify(binsData),

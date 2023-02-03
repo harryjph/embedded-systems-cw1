@@ -8,13 +8,10 @@ function MainNavigation() {
         <nav>
             <ul>
             <li>
-                <Link to="/" exact>All Bins</Link>
+                <Link to="/" exact>My Bins</Link>
             </li>
             <li>
-                <Link to="/internal-tool-form">Internal Add Bins</Link>
-            </li>
-            <li>
-                <Link to="/my-bins">My Bins</Link>
+                <Link to="/my-bins">Unowned Bins</Link>
             </li>
             </ul>
         </nav>

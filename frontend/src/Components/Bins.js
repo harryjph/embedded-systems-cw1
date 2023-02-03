@@ -1,6 +1,6 @@
 import CircularProgressBar from './CircularProgressBar.js';
 import Modal from './Modal.js';
-import ModalWithRenameSupport from './ModalWithRenameSupport.js';
+import AddModalWithRenameSupport from './AddModalWithRenameSupport.js';
 import Backdrop from './Backdrop.js';
 import Card from './ui/Card.js';
 
@@ -23,7 +23,6 @@ function Bins(props) {
     }
 
     function closeHandler() {
-      {/* TODO: add code here that sends the username renaming in*/}
       setBinValue(false);
       setRenameBinValue(false);
       console.log('remove ' + props.ID);
@@ -39,14 +38,14 @@ function Bins(props) {
           </div>
 
           <div className='classes.actions'>
-            <button className = 'btn' onClick={addHandler}>Add to Favorites</button>
+            <button className = 'btn' onClick={addHandler}>Claim This Bin</button>
             <button className = 'btn' onClick={changeNameHandler}>Properties</button>
           </div>
           
           {binValue && <Modal ID = {props.ID} onCancel={closeHandler} onConfirm={closeHandler}/>}
           {(binValue) && <Backdrop onClick={closeHandler}/>}
 
-          {renameBinValue && <ModalWithRenameSupport 
+          {renameBinValue && <AddModalWithRenameSupport 
                                 ID={props.ID} 
                                 Name={props.Name} 
                                 Latitude={props.Latitude} 

@@ -6,7 +6,6 @@ import classes from './AddNewBinsForm.module.css'
 import {useRef} from 'react';
 
 function ModalWithRenameSupport(props) {
-    const binIDInputRef = useRef();
     const binNameInputRef = useRef();
     const binLatInputRef = useRef();
     const binLongInputRef = useRef();
@@ -16,7 +15,6 @@ function ModalWithRenameSupport(props) {
     function submitHandler(event) {
         event.preventDefault();
 
-        const enteredID = binIDInputRef.current.value;
         const enteredName = binNameInputRef.current.value;
         const enteredLat = binLatInputRef.current.value;
         const enteredLong = binLongInputRef.current.value;
@@ -24,7 +22,7 @@ function ModalWithRenameSupport(props) {
         const enteredThreshold = binFullnessThresholdRef.current.value;
 
         const binsData = {
-            id: enteredID,
+            id: props.ID,
             config: {
                 name: enteredName,
                 latitude: enteredLat,
@@ -36,6 +34,13 @@ function ModalWithRenameSupport(props) {
 
         props.onAddBins(binsData);
         console.log(props);
+        console.log("sent "+props.ID+" data to server")
+        props.onConfirm();
+    }
+
+    function onCancel(){
+        console.log('Cancel update of ' + props.ID);
+        props.closeHandler();
     }
 
     return(
@@ -45,28 +50,23 @@ function ModalWithRenameSupport(props) {
                 <div className={classes.control}>
 
                     <div className={classes.control}>
-                        <label htmlFor='title'>Bin ID</label>
-                        <input type="text" required id="id" value={props.ID} ref={binIDInputRef}/>
-                    </div>
-
-                    <div className={classes.control}>
-                        <label htmlFor='title'>Bin Username</label>
-                        <input type="text" required id="name" value={props.Name} ref={binNameInputRef}/>
+                        <label htmlFor='title'>Bin Name</label>
+                        <input type="text" required id="name" placeholder={props.Name} ref={binNameInputRef}/>
                     </div>
 
                     <div className={classes.control}>
                         <label htmlFor='title'>Bin Latitude</label>
-                        <input type="text" required id="latitude" value={props.Latitude} ref={binLatInputRef}/>
+                        <input type="text" required id="latitude" placeholder={props.Latitude} ref={binLatInputRef}/>
                     </div>
 
                     <div className={classes.control}>
                         <label htmlFor='title'>Bin Longitude</label>
-                        <input type="text" required id="longitude" value={props.Longitude} ref={binLongInputRef}/>
+                        <input type="text" required id="longitude" placeholder={props.Longitude} ref={binLongInputRef}/>
                     </div>
 
                     <div className={classes.control}>
                         <label htmlFor='title'>Bin Fullness</label>
-                        <input type="text" required id="fullness" value={Math.floor(props.Fullness)} ref={binFullnessInputRef}/>
+                        <input type="text" required id="fullness" placeholder={Math.floor(props.Fullness)} ref={binFullnessInputRef}/>
                     </div>
 
                     <div className={classes.control}>
@@ -75,7 +75,11 @@ function ModalWithRenameSupport(props) {
                     </div>
 
                     <div className={classes.control}>
-                    <button className = 'btn'>Add Bin</button>
+                    <button className = 'btn' onClick={submitHandler}>Save Changes</button>
+                    </div>
+
+                    <div className={classes.control}>
+                    <button className = 'btn' onClick={onCancel}>Cancel</button>
                     </div>
 
                 </div>

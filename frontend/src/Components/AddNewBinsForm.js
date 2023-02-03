@@ -40,11 +40,6 @@ function AddNewBinsForm(props) {
             <div className={classes.control}>
 
                 <div className={classes.control}>
-                    <label htmlFor='title'>Bin ID</label>
-                    <input type="text" required id="id" ref={binIDInputRef}/>
-                </div>
-
-                <div className={classes.control}>
                     <label htmlFor='title'>Bin Username</label>
                     <input type="text" required id="name" ref={binNameInputRef}/>
                 </div>

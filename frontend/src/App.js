@@ -46,8 +46,6 @@ function App() {
           <Route path='/' element={<AllBinsPage/>} />
         {/* My Bins */}
           <Route path='/my-bins' element={<MyBinsPage/>} />
-        {/* *Internal tool* Form page to add bins */}
-          <Route path='/internal-tool-form' element={<AddBinsFormPage/>} />
       </Routes>
     </BrowserRouter>
   </div>

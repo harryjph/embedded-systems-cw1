@@ -277,7 +277,9 @@ mod tests {
         let name = "Jeff";
         let (lat, long) = (1.0, 2.0);
         let (empty_distance_reading, full_distance_reading) = (1.5, 0.5);
-        db.set_node_config(id, None, name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
+        db.set_node_config(id, None, name, lat, long, empty_distance_reading, full_distance_reading)
+            .await
+            .unwrap();
         let node = db.get_node(id, None).await.unwrap().unwrap();
         assert_eq!(node.name, name);
         assert_eq!(node.latitude, lat);

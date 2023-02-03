@@ -25,7 +25,10 @@ pub trait ProximitySensor {
     async fn read_proximity(&mut self) -> Result<f32>;
 }
 
-async fn average_proximity<T: ProximitySensor>(sensor: &mut T, num_readings: usize) -> Result<f32> {
+pub async fn average_proximity<T: ProximitySensor>(
+    sensor: &mut T,
+    num_readings: usize,
+) -> Result<f32> {
     let mut sum = 0.0f32;
     for _ in 0..num_readings {
         sum += sensor.read_proximity().await?;

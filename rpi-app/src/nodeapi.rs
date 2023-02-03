@@ -1,7 +1,7 @@
-use anyhow::Error;
 use self::grpc_generated::node_api_client::NodeApiClient;
-use self::grpc_generated::EnvironmentData;
+use self::grpc_generated::{DistanceData, EnvironmentData};
 use crate::util::Stream;
+use anyhow::Error;
 use tokio::sync::mpsc::Receiver;
 use tonic::codegen::StdError;
 use tonic::transport::Channel;
@@ -32,6 +32,14 @@ impl Client {
             .await?
             .into_inner();
         Ok(node_id.id)
+    }
+
+    pub async fn report_distance(
+        &mut self,
+        receiver: Receiver<DistanceData>,
+    ) -> Result<(), Status> {
+        self.client.report_distance(Stream::new(receiver)).await?;
+        Ok(())
     }
 
     pub async fn report_environment(

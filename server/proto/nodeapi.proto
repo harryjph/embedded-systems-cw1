@@ -5,6 +5,7 @@ message Empty {}
 
 service NodeAPI {
   rpc ReportEnvironment(stream EnvironmentData) returns (Empty);
+  rpc ReportDistance(stream DistanceData) returns (Empty);
   rpc AssignId(Empty) returns (NodeId);
 }
 
@@ -15,4 +16,9 @@ message EnvironmentData {
 
 message NodeId{
   uint32 id = 1;
+}
+
+message DistanceData {
+  uint32 id = 1;
+  float distance = 2;
 }

@@ -1,9 +1,7 @@
 use crate::config::Config;
-use crate::nodeapi::grpc_generated::EnvironmentData;
+use crate::nodeapi::grpc_generated::DistanceData;
 use crate::nodeapi::Client;
-use crate::sensors::si7021::SI7021;
 use crate::sensors::vl53l0x::VL53L0X;
-use crate::sensors::{HumiditySensor, TemperatureSensor};
 use anyhow::Error;
 use std::io;
 use std::io::ErrorKind;
@@ -17,11 +15,12 @@ mod nodeapi;
 mod sensors;
 mod util;
 
+const NUM_PROXIMITY_READINGS: usize = 5;
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Error> {
     let mut config = load_config();
 
-    let mut environment_sensor = SI7021::new_from_descriptor("/dev/i2c-1", 0x40)?;
     let mut proximity_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)?;
 
     let mut client = Client::new(config.url.clone()).await?;
@@ -32,17 +31,15 @@ async fn main() -> Result<(), Error> {
 
     let (client_readings_in, client_readings_out) = mpsc::channel(1);
     tokio::spawn(async move {
-        client
-            .report_environment(client_readings_out)
-            .await
-            .unwrap();
+        client.report_distance(client_readings_out).await.unwrap();
     });
 
-    let mut interval_timer = time::interval(Duration::from_secs(1));
+    let mut interval_timer = time::interval(Duration::from_secs(5));
     loop {
-        let reading = EnvironmentData {
-            temperature: environment_sensor.read_temperature().await?,
-            relative_humidity: environment_sensor.read_humidity().await?,
+        let reading = DistanceData {
+            id: config.id.unwrap(),
+            distance: sensors::average_proximity(&mut proximity_sensor, NUM_PROXIMITY_READINGS)
+                .await?,
         };
         println!("Reading: {reading:?}");
         client_readings_in.send(reading).await?;

@@ -1,7 +1,7 @@
+use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::{env, fs};
-use anyhow::Error;
 
 const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 

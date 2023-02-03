@@ -16,6 +16,8 @@ pub(super) fn router() -> Router<Arc<ServerState>> {
         .route("/unowned", get(get_all_unowned))
         .route("/:node_id", get(get_one))
         .route("/:node_id/config", get(get_config).post(set_config))
+        .route("/:node_id/claim", get(take_ownership))
+        .route("/:node_id/release", get(release_ownership))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -103,6 +105,30 @@ async fn get_all_unowned(
     // Still require that the user is signed in but allow any account
     let _ = get_signed_in_email(&session)?;
     get_all(&state.db, None).await
+}
+
+async fn take_ownership(
+    State(state): State<Arc<ServerState>>,
+    session: ReadableSession,
+    Path(node_id): Path<u32>,
+) -> Result<(), ErrorResponse> {
+    let user_email = get_signed_in_email(&session)?;
+    state.db.set_node_owner(node_id, None, Some(user_email.as_str()))
+        .await
+        .map_err(bad_request)?;
+    Ok(())
+}
+
+async fn release_ownership(
+    State(state): State<Arc<ServerState>>,
+    session: ReadableSession,
+    Path(node_id): Path<u32>,
+) -> Result<(), ErrorResponse> {
+    let user_email = get_signed_in_email(&session)?;
+    state.db.set_node_owner(node_id, Some(user_email.as_str()), None)
+        .await
+        .map_err(bad_request)?;
+    Ok(())
 }
 
 async fn get_config(

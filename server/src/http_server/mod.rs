@@ -8,6 +8,7 @@ use axum_sessions::SessionLayer;
 use rand::Rng;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use axum::headers::HeaderValue;
 use tokio::task::JoinHandle;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -39,7 +40,9 @@ async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
         .nest("/bins", bins::router())
         .nest("/user", user::router())
         .with_state(state)
-        .layer(CorsLayer::new().allow_origin(Any))
+        .layer(CorsLayer::new()
+            .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+            .allow_credentials(true))
         .layer(session_layer);
 
     axum::Server::bind(&socket_addr)

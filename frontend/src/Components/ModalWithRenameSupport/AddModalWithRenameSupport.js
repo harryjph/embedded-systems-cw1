@@ -2,18 +2,13 @@
 
 import { useNavigate } from "react-router-dom";
 import ModalWithRenameSupport from "./ModalWithRenameSupport";
+import {apiPostJson} from "../../API";
 
 function AddModalWithRenameSupport(props) {
   const history = useNavigate();
 
   function modBinsHandler(binsData) {
-    fetch("https://es1.harryphillips.co.uk/bins/{props.ID}/config", {
-      method: "POST",
-      body: JSON.stringify(binsData),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(() => {
+    apiPostJson("/bins/" + props.ID + "/config", binsData).then(() => {
       history("/");
     });
   }

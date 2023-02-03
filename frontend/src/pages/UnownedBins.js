@@ -1,5 +1,10 @@
+import Layout from "../Components/Layout/Layout";
+
 function UnclaimedBinsPage() {
-  return <div>All unclaimed bins</div>;
+  return <div>
+    <Layout />
+    All unclaimed bins
+  </div>;
 }
 
 export default UnclaimedBinsPage;

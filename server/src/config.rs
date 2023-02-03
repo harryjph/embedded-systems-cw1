@@ -14,9 +14,9 @@ pub struct Config {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NetworkConfig {
-    #[serde(default)]
+    #[serde(default = "default_http_port")]
     pub http_port: u16,
-    #[serde(default)]
+    #[serde(default = "default_grpc_port")]
     pub grpc_port: u16,
 }
 
@@ -36,26 +36,31 @@ pub enum EmailSecurity {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EmailConfig {
     pub smtp_server_address: String,
-    #[serde(default)]
+    #[serde(default = "default_smtp_port")]
     pub smtp_server_port: u16,
-    #[serde(default)]
+    #[serde(default = "default_smtp_security")]
     pub smtp_security: EmailSecurity,
     pub smtp_username: String,
     pub smtp_password: String,
 }
 
+fn default_http_port() -> u16 { 80 }
+fn default_grpc_port() -> u16 { 81 }
+fn default_smtp_port() -> u16 { 465 }
+fn default_smtp_security() -> EmailSecurity { EmailSecurity::TLS }
+
 impl Default for NetworkConfig {
     fn default() -> Self {
         NetworkConfig {
-            http_port: 80,
-            grpc_port: 81,
+            http_port: default_http_port(),
+            grpc_port: default_grpc_port(),
         }
     }
 }
 
 impl Default for EmailSecurity {
     fn default() -> Self {
-        EmailSecurity::TLS
+        default_smtp_security()
     }
 }
 
@@ -63,7 +68,7 @@ impl Default for EmailConfig {
     fn default() -> Self {
         EmailConfig {
             smtp_server_address: "example.com".to_string(),
-            smtp_server_port: 465,
+            smtp_server_port: default_smtp_port(),
             smtp_security: Default::default(),
             smtp_username: "username".to_string(),
             smtp_password: "password".to_string(),

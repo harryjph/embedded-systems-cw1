@@ -55,7 +55,7 @@ mod test_utils {
     use crate::user_manager::UserManager;
     use reqwest::{Client, RequestBuilder};
     use std::collections::HashMap;
-    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
     /// Starts the HTTP server with a blank database and returns a test client to use it

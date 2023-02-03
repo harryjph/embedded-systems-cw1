@@ -14,5 +14,5 @@ message EnvironmentData {
 }
 
 message NodeId{
-  uint64 id = 1;
+  uint32 id = 1;
 }

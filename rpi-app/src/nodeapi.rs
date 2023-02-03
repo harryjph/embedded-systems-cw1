@@ -1,7 +1,7 @@
+use anyhow::Error;
 use self::grpc_generated::node_api_client::NodeApiClient;
 use self::grpc_generated::EnvironmentData;
 use crate::util::Stream;
-use std::error::Error;
 use tokio::sync::mpsc::Receiver;
 use tonic::codegen::StdError;
 use tonic::transport::Channel;
@@ -25,7 +25,7 @@ impl Client {
         })
     }
 
-    pub async fn assign_id(&mut self) -> Result<u64, Box<dyn Error>> {
+    pub async fn assign_id(&mut self) -> Result<u32, Error> {
         let node_id = self
             .client
             .assign_id(grpc_generated::Empty {})

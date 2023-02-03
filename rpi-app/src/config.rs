@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::path::Path;
 use std::{env, fs};
+use anyhow::Error;
 
 const CONFIG_PATH_ENV_NAME: &str = "CONFIG_PATH";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     pub url: String,
-    pub id: Option<u64>,
+    pub id: Option<u32>,
 }
 
 impl Default for Config {
@@ -33,20 +33,20 @@ impl Config {
         toml::from_str(data.as_ref())
     }
 
-    fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Box<dyn Error>> {
+    fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Error> {
         Ok(Config::load_from(fs::read_to_string(path)?)?)
     }
 
-    fn write_to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
+    fn write_to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Error> {
         fs::write(path, toml::to_string(&self)?)?;
         Ok(())
     }
 
-    pub fn write_default(&self) -> Result<(), Box<dyn Error>> {
+    pub fn write_default(&self) -> Result<(), Error> {
         self.write_to_file(Config::config_path())
     }
 
-    pub fn load_default() -> Result<Config, Box<dyn Error>> {
+    pub fn load_default() -> Result<Config, Error> {
         Config::load_from_file(Config::config_path())
     }
 }

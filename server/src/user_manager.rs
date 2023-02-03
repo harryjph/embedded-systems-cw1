@@ -17,8 +17,7 @@ impl UserManager {
         UserManager { db }
     }
 
-    pub async fn register<S: Into<String>>(&self, email: S, password: &str) -> Result<(), Error> {
-        let email = email.into();
+    pub async fn register(&self, email: &str, password: &str) -> Result<(), Error> {
         let email_regex = regex!("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
         if !email_regex.is_match(&email) {
             return Err(Error::msg("Invalid email"));

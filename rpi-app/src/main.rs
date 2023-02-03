@@ -4,7 +4,7 @@ use crate::nodeapi::Client;
 use crate::sensors::si7021::SI7021;
 use crate::sensors::vl53l0x::VL53L0X;
 use crate::sensors::{HumiditySensor, TemperatureSensor};
-use std::error::Error;
+use anyhow::Error;
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
@@ -18,7 +18,7 @@ mod sensors;
 mod util;
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Error> {
     let mut config = load_config();
 
     let mut environment_sensor = SI7021::new_from_descriptor("/dev/i2c-1", 0x40)?;

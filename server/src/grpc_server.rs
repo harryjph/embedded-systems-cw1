@@ -16,7 +16,7 @@ pub fn launch(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) 
         "Starting gRPC Server on http://localhost:{}",
         config.network.grpc_port
     );
-    let socket_addr = all_interfaces(config.network.http_port);
+    let socket_addr = all_interfaces(config.network.grpc_port);
     tokio::spawn(start_server(socket_addr, data_sink, db))
 }
 

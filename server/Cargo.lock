@@ -2405,7 +2405,6 @@ dependencies = [
  "axum-sessions",
  "chrono",
  "futures-util",
- "itertools",
  "lazy-regex",
  "lettre",
  "pbkdf2",

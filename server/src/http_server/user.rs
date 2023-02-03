@@ -2,12 +2,12 @@ use crate::http_server::ServerState;
 use anyhow::Error;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::routing::post;
 use axum::{Form, Router};
 use axum_sessions::extractors::{ReadableSession, WritableSession};
 use serde::Deserialize;
 use std::sync::Arc;
+use crate::http_server::util::{bad_request, ErrorResponse};
 
 const SESSION_EMAIL_KEY: &str = "signed_in_to";
 
@@ -18,11 +18,11 @@ pub(super) fn router() -> Router<Arc<ServerState>> {
         .route("/logout", post(logout))
 }
 
-pub fn get_signed_in_email(session: &ReadableSession) -> Result<String, StatusCode> {
+pub fn get_signed_in_email(session: &ReadableSession) -> Result<String, ErrorResponse> {
     if let Some(email) = session.get::<String>(SESSION_EMAIL_KEY) {
         Ok(email)
     } else {
-        Err(StatusCode::UNAUTHORIZED)
+        Err((StatusCode::UNAUTHORIZED, String::new()))
     }
 }
 
@@ -37,15 +37,11 @@ async fn set_logged_in(session: &mut WritableSession, email: &str) -> Result<(),
     Ok(())
 }
 
-fn bad_request(e: Error) -> (StatusCode, impl IntoResponse) {
-    (StatusCode::BAD_REQUEST, e.to_string())
-}
-
 async fn register_and_login(
     State(state): State<Arc<ServerState>>,
     mut session: WritableSession,
     Form(input): Form<LoginForm>,
-) -> Result<impl IntoResponse, (StatusCode, impl IntoResponse)> {
+) -> Result<(), ErrorResponse> {
     state
         .user_manager
         .register(input.email.as_str(), input.password.as_str())
@@ -63,7 +59,7 @@ async fn login(
     State(state): State<Arc<ServerState>>,
     mut session: WritableSession,
     Form(input): Form<LoginForm>,
-) -> Result<impl IntoResponse, (StatusCode, impl IntoResponse)> {
+) -> Result<(), ErrorResponse> {
     state
         .user_manager
         .login(input.email.as_str(), input.password.as_str())
@@ -77,7 +73,7 @@ async fn login(
     Ok(())
 }
 
-async fn logout(mut session: WritableSession) -> impl IntoResponse {
+async fn logout(mut session: WritableSession) {
     session.destroy()
 }
 

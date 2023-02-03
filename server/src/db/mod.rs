@@ -136,16 +136,20 @@ impl Database {
         Ok(())
     }
 
+    /// Sets node config.
+    /// Optionally filters by owner. If `owner_email` is Some, this will only set the node
+    /// config if its owner matches. If `owner_email` is None, this will not filter by owner.
     pub async fn set_node_config<S: Into<String>>(
         &self,
         node_id: u32,
+        owner_email: Option<&str>,
         name: S,
         latitude: f64,
         longitude: f64,
         empty_distance_reading: f32,
         full_distance_reading: f32,
     ) -> Result<(), Error> {
-        node::Entity::update(node::ActiveModel {
+        let mut query = node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             name: ActiveValue::Set(name.into()),
             latitude: ActiveValue::Set(latitude),
@@ -153,9 +157,11 @@ impl Database {
             empty_distance_reading: ActiveValue::Set(empty_distance_reading),
             full_distance_reading: ActiveValue::Set(full_distance_reading),
             ..Default::default()
-        })
-        .exec(&self.db)
-        .await?;
+        });
+        if let Some(owner_email) = owner_email {
+            query = query.filter(node::Column::Owner.eq(owner_email.to_lowercase()));
+        }
+        query.exec(&self.db).await?;
         Ok(())
     }
 
@@ -253,13 +259,21 @@ mod tests {
         let name = "Jeff";
         let (lat, long) = (1.0, 2.0);
         let (empty_distance_reading, full_distance_reading) = (1.5, 0.5);
-        db.set_node_config(id, name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
+        db.set_node_config(id, None, name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
         let node = db.get_node(id, None).await.unwrap().unwrap();
         assert_eq!(node.name, name);
         assert_eq!(node.latitude, lat);
         assert_eq!(node.longitude, long);
         assert_eq!(node.empty_distance_reading, empty_distance_reading);
         assert_eq!(node.full_distance_reading, full_distance_reading);
+
+        // Test filtering by owner email works
+        db.set_node_owner(id, Some(EMAIL)).await.unwrap();
+        db.set_node_config(id, None, name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
+        db.set_node_config(id, Some(EMAIL), name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
+        db.set_node_config(id, Some(DUPE_EMAIL), name, lat, long, empty_distance_reading, full_distance_reading).await.unwrap();
+        db.set_node_config(id, Some(WRONG_EMAIL), name, lat, long, empty_distance_reading, full_distance_reading).await
+            .expect_err("Setting node config by the wrong user was OK");
     }
 
     #[tokio::test]

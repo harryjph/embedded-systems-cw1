@@ -16,7 +16,7 @@ pub fn launch(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) 
         "Starting gRPC Server on http://localhost:{}",
         config.network.grpc_port
     );
-    let socket_addr = all_interfaces(config.network.http_port);
+    let socket_addr = all_interfaces(config.network.grpc_port);
     tokio::spawn(start_server(socket_addr, data_sink, db))
 }
 
@@ -79,6 +79,7 @@ impl NodeApi for NodeApiImpl {
         let mut stream = request.into_inner();
         while let Some(distance_data) = stream.next().await {
             let distance_data = distance_data?;
+            println!("Got: {distance_data:?}");
             if let Some(node) = self
                 .db
                 .get_node(distance_data.id, None)
@@ -101,7 +102,10 @@ impl NodeApi for NodeApiImpl {
                             distance_data.id
                         ))
                     })?;
+            } else {
+                eprintln!("Node with id: {} does not exist within database yet is sent something.", distance_data.id);
             }
+            
         }
         todo!()
     }

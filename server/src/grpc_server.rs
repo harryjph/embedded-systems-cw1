@@ -79,7 +79,6 @@ impl NodeApi for NodeApiImpl {
         let mut stream = request.into_inner();
         while let Some(distance_data) = stream.next().await {
             let distance_data = distance_data?;
-            println!("Got: {distance_data:?}");
             if let Some(node) = self
                 .db
                 .get_node(distance_data.id, None)
@@ -94,7 +93,7 @@ impl NodeApi for NodeApiImpl {
                 let fullness = (distance_data.distance - node.empty_distance_reading)
                     / (node.full_distance_reading - node.empty_distance_reading);
                 self.db
-                    .set_node_fullness(distance_data.id, fullness)
+                    .set_node_fullness(distance_data.id, fullness.clamp(0.0, 1.0))
                     .await
                     .map_err(|_| {
                         Status::aborted(format!(
@@ -104,11 +103,11 @@ impl NodeApi for NodeApiImpl {
                     })?;
             } else {
                 eprintln!(
-                    "Node with id: {} does not exist within database yet is sent something.",
+                    "Node with id: {} does not exist within database yet it sent something.",
                     distance_data.id
                 );
             }
         }
-        todo!()
+        Ok(Response::new(Empty::default()))
     }
 }

@@ -4,7 +4,7 @@ use crate::http_server::user::get_signed_in_email;
 use crate::http_server::util::{bad_request, not_found, ErrorResponse};
 use crate::http_server::ServerState;
 use axum::extract::{Path, State};
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use axum_sessions::extractors::ReadableSession;
 use serde::{Deserialize, Serialize};
@@ -16,8 +16,8 @@ pub(super) fn router() -> Router<Arc<ServerState>> {
         .route("/unowned", get(get_all_unowned))
         .route("/:node_id", get(get_one))
         .route("/:node_id/config", get(get_config).post(set_config))
-        .route("/:node_id/claim", get(take_ownership))
-        .route("/:node_id/release", get(release_ownership))
+        .route("/:node_id/claim", post(take_ownership))
+        .route("/:node_id/release", post(release_ownership))
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -8,6 +8,8 @@ function BinsList(props) {
 
   let binsWidgets = props.AllData.map((bin) => (
     <Bins
+      PostRequest={props.PostRequest}
+      Text={props.Text}
       key={bin.id}
       ID={bin.id}
       Name={bin.config.name}

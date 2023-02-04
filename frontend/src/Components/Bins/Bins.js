@@ -13,16 +13,40 @@ function Bins(props) {
   const [renameBinValue, setRenameBinValue] = useState(false);
 
   function addHandler() {
+    props.PostRequest({ID:props.ID})
     setBinValue(true);
   }
 
   function changeNameHandler() {
     setRenameBinValue(true);
   }
-
-  function closeHandler() {
+  
+  function cancelHandler() {
     setBinValue(false);
     setRenameBinValue(false);
+  }
+  
+  function closeHandler() {
+
+{/* 
+  This function interacts with the bins node. 
+  What it does is dependent on the parent function which called BinsList, 
+  and subsequently this bin.
+
+  If AllOfMyBins:
+  - props.Text = "Release This Bin"
+  - props.PostRequest will be a function defined in AllOfMyBins which
+    handles post requests to /bins/<id>/release
+  
+  If UnownedBins:
+  - props.Text = "Claim This Bin"
+  - props.PostRequest will be a function defined in UnownedBins which
+    handles post requests to /bins/<id>/claim
+*/}
+
+    setBinValue(false);
+    setRenameBinValue(false);
+    props.PostRequest({ID:props.ID})
   }
 
   return (
@@ -35,7 +59,7 @@ function Bins(props) {
 
       <div className="classes.actions">
         <button className="btn" onClick={addHandler}>
-          Claim This Bin
+          {props.Text}
         </button>
         <button className="btn" onClick={changeNameHandler}>
           Properties
@@ -43,9 +67,9 @@ function Bins(props) {
       </div>
 
       {binValue && (
-        <Modal ID={props.ID} onCancel={closeHandler} onConfirm={closeHandler} />
+        <Modal ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
       )}
-      {binValue && <Backdrop onClick={closeHandler} />}
+      {binValue && <Backdrop onClick={cancelHandler} />}
 
       {renameBinValue && (
         <AddModalWithRenameSupport
@@ -59,7 +83,7 @@ function Bins(props) {
           onConfirm={closeHandler}
         />
       )}
-      {renameBinValue && <Backdrop onClick={closeHandler} />}
+      {renameBinValue && <Backdrop onClick={cancelHandler} />}
     </Card>
   );
 }

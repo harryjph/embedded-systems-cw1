@@ -1,9 +1,18 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
-import {apiGet} from "../API";
+import {apiGet, apiPostForm} from "../API";
+
+import { useNavigate } from "react-router-dom";
 
 function UnclaimedBinsPage() {
+  const history = useNavigate();
+
+  function ClaimFunction(variables) {
+    apiPostForm("/bins/" + variables.ID + "/claim").then(() => {
+      history("/");
+    });
+  }
   const [isLoading, setIsloading] = useState(true);
   const [loadedBins, setLoadedBins] = useState([]);
 
@@ -36,7 +45,7 @@ function UnclaimedBinsPage() {
 
   return <div>
     <Layout />
-    <BinsList AllData={loadedBins} />
+    <BinsList PostRequest={ClaimFunction} Text={"Claim This Bin"} AllData={loadedBins} />
   </div>;
 }
 

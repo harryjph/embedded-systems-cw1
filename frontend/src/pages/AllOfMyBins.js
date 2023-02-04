@@ -1,9 +1,19 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
-import {apiGet} from "../API";
+import {apiGet, apiPostForm} from "../API";
+
+import { useNavigate } from "react-router-dom";
+
 
 function AllOfMyBinsPage() {
+  const history = useNavigate();
+
+  function ReleaseFunction(variables) {
+    apiPostForm("/bins/" + variables.ID + "/release").then(() => {
+      history("/");
+    });
+  }
   const [isLoading, setIsloading] = useState(true);
   const [loadedBins, setLoadedBins] = useState([]);
 
@@ -36,7 +46,7 @@ function AllOfMyBinsPage() {
 
   return <div>
       <Layout />
-      <BinsList AllData={loadedBins} />
+      <BinsList PostRequest={ReleaseFunction} Text={"Release This Bin"} AllData={loadedBins} />
     </div>;
 }
 

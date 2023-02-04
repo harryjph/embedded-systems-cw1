@@ -4,13 +4,13 @@ use crate::user_manager::UserManager;
 use crate::utils::all_interfaces;
 use axum::Router;
 use axum_sessions::async_session::MemoryStore;
-use axum_sessions::SessionLayer;
+use axum_sessions::{SameSite, SessionLayer};
 use rand::Rng;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use axum::headers::HeaderValue;
 use tokio::task::JoinHandle;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 
 mod bins;
 mod user;
@@ -34,16 +34,16 @@ struct ServerState {
 async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
     let store = MemoryStore::new();
     let secret: [u8; 128] = rand::thread_rng().gen();
-    let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
-    let router = Router::new()
+    let mut router = Router::new()
         .nest("/bins", bins::router())
         .nest("/user", user::router())
         .with_state(state)
         .layer(CorsLayer::new()
             .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
             .allow_credentials(true))
-        .layer(session_layer);
+        .layer(SessionLayer::new(store, &secret)
+            .with_same_site_policy(SameSite::None));
 
     axum::Server::bind(&socket_addr)
         .serve(router.into_make_service())

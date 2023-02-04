@@ -32,7 +32,7 @@ function LoginPage() {
         if (response.ok) {
           window.location = "/my-bins";
         } else {
-          alert("Login failed: " + await response.text());
+          alert("Registration failed: " + await response.text());
         }
       })
       .catch(e => alert("Error accessing API: " + e.toString()));

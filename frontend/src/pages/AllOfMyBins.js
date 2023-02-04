@@ -11,7 +11,7 @@ function AllOfMyBinsPage() {
 
   function ReleaseFunction(variables) {
     apiPostForm("/bins/" + variables.ID + "/release").then(() => {
-      history("/");
+      history("/unowned-bins");
     });
   }
   const [isLoading, setIsloading] = useState(true);

@@ -10,7 +10,7 @@ function UnclaimedBinsPage() {
 
   function ClaimFunction(variables) {
     apiPostForm("/bins/" + variables.ID + "/claim").then(() => {
-      history("/");
+      history("/my-bins");
     });
   }
   const [isLoading, setIsloading] = useState(true);

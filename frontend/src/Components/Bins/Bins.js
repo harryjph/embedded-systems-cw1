@@ -13,7 +13,6 @@ function Bins(props) {
   const [renameBinValue, setRenameBinValue] = useState(false);
 
   function addHandler() {
-    props.PostRequest({ID:props.ID})
     setBinValue(true);
   }
 

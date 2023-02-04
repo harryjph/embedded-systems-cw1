@@ -10,13 +10,24 @@ function createFormBody(obj) {
   return formBody.join("&");
 }
 
-export function apiGet(endpoint) {
-  return fetch(API_URL + endpoint, {
-    credentials: 'include'
-  });
+async function handleResponse(response, dontHandleError) {
+  if (response.ok || dontHandleError) return response;
+  let message = await response.text();
+  if (message !== "") {
+    window.alert("Request failed (" + response.status + " " + response.statusText + "):" + message);
+  } else {
+    window.alert("Request failed (" + response.status + " " + response.statusText + ")");
+  }
+  window.location = "/";
 }
 
-export function apiPostForm(endpoint, formBody) {
+export function apiGet(endpoint, dontHandleError = false) {
+  return fetch(API_URL + endpoint, {
+    credentials: 'include'
+  }).then(r => handleResponse(r, dontHandleError));
+}
+
+export function apiPostForm(endpoint, formBody, dontHandleError = false) {
   return fetch(API_URL + endpoint, {
     method: "POST",
     headers: {
@@ -24,10 +35,10 @@ export function apiPostForm(endpoint, formBody) {
     },
     body: createFormBody(formBody),
     credentials: 'include'
-  });
+  }).then(r => handleResponse(r, dontHandleError));
 }
 
-export function apiPostJson(endpoint, object) {
+export function apiPostJson(endpoint, object, dontHandleError = false) {
   return fetch(API_URL + endpoint, {
     method: "POST",
     headers: {
@@ -35,5 +46,5 @@ export function apiPostJson(endpoint, object) {
     },
     body: JSON.stringify(object),
     credentials: 'include'
-  });
+  }).then(r => handleResponse(r, dontHandleError));
 }

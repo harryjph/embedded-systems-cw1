@@ -14,8 +14,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            id: Some(43),
-            url: "https://es1-nodeapi.harryphillips.co.uk".to_string(),
+            id: None,
+            url: "http://es1-nodeapi.harryphillips.co.uk:81".to_string(),
         }
     }
 }

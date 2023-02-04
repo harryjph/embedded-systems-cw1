@@ -18,15 +18,18 @@ mod util;
 const NUM_PROXIMITY_READINGS: usize = 5;
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Error> {
+async fn main() {
     let mut config = load_config();
 
-    let mut proximity_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)?;
+    let mut proximity_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)
+        .expect("Failed to connect to proximity sensor");
 
-    let mut client = Client::new(config.url.clone()).await?;
+    let mut client = Client::new(config.url.clone()).await
+        .expect("Failed to connect to server");
+
     if let None = config.id {
-        config.id = Some(client.assign_id().await?);
-        config.write_default()?;
+        config.id = Some(client.assign_id().await.expect("Failed to assign ID"));
+        config.write_default().expect("Failed to write config");
     }
 
     let (client_readings_in, client_readings_out) = mpsc::channel(1);
@@ -39,10 +42,11 @@ async fn main() -> Result<(), Error> {
         let reading = DistanceData {
             id: config.id.unwrap(),
             distance: sensors::average_proximity(&mut proximity_sensor, NUM_PROXIMITY_READINGS)
-                .await?,
+                .await
+                .expect("Could not take proximity reading"),
         };
         println!("Reading: {reading:?}");
-        client_readings_in.send(reading).await?;
+        client_readings_in.send(reading).await.expect("Failed to send reading");
         interval_timer.tick().await;
     }
 }

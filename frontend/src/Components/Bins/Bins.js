@@ -49,29 +49,36 @@ function Bins(props) {
   }
 
   return (
+
     <Card>
-      <h2 className={"classes.content"}> ID {props.ID}</h2>
+      <div className="flex flex-col">
 
-      <div className={"classes.content"}>
-        <CircularProgressBar upper_value={props.Fullness} />
-      </div>
+        <div clasName="grid gap-1 p-2">
+          <div className="flex justify-center items-center">
+            <h2 className="flex items-center font-bold pr-2">ID</h2>
+            <h2 className="flex items-center font-bold pr-2"> {props.ID}</h2>
+          </div>
+        </div>
 
-      <div className="classes.actions">
-        <button className="btn" onClick={addHandler}>
-          {props.Text}
-        </button>
-        <button className="btn" onClick={changeNameHandler}>
-          Properties
-        </button>
-      </div>
+        <div className={"grid gap-1 p-2"}>
+          <CircularProgressBar upper_value={props.Fullness} />
+        </div>
 
-      {binValue && (
-        <Modal ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
-      )}
-      {binValue && <Backdrop onClick={cancelHandler} />}
+        <div className="flex justify-center items-center p-2">
+          <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={addHandler}>
+            {props.Text}
+          </button>
+          <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={changeNameHandler}>
+            Properties
+          </button>
+        </div>
 
-      {renameBinValue && (
-        <AddModalWithRenameSupport
+        {binValue && (
+          <Modal ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
+          )}
+        {binValue && <Backdrop onClick={cancelHandler} />}
+        {renameBinValue && (
+          <AddModalWithRenameSupport
           ID={props.ID}
           Name={props.Name}
           Latitude={props.Latitude}
@@ -79,10 +86,11 @@ function Bins(props) {
           Fullness={props.Fullness}
           Threshold={props.Threshold}
           onCancel={closeHandler}
-          onConfirm={closeHandler}
-        />
-      )}
-      {renameBinValue && <Backdrop onClick={cancelHandler} />}
+            onConfirm={closeHandler}
+          />
+          )}
+        {renameBinValue && <Backdrop onClick={cancelHandler} />}
+      </div>
     </Card>
   );
 }

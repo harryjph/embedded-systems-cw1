@@ -46,7 +46,7 @@ function AllOfMyBinsPage() {
 
   return <div>
       <Layout />
-      <BinsList PostRequest={ReleaseFunction} Text={"Release This Bin"} AllData={loadedBins} />
+      <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} />
     </div>;
 }
 

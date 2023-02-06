@@ -115,12 +115,12 @@ mod test_utils {
     impl TestClient {
         pub fn get(&self, path: &str) -> RequestBuilder {
             self.client
-                .get(format!("{}{}{path}", self.host, self.nested_path))
+                .get(format!("{}/api{}{path}", self.host, self.nested_path))
         }
 
         pub fn post(&self, path: &str) -> RequestBuilder {
             self.client
-                .post(format!("{}{}{path}", self.host, self.nested_path))
+                .post(format!("{}/api{}{path}", self.host, self.nested_path))
         }
 
         /// Registers a new account and logs the test client in
@@ -130,7 +130,7 @@ mod test_utils {
             params.insert("password", TEST_PASSWORD);
 
             self.client
-                .post(format!("{}/user/register", self.host))
+                .post(format!("{}/api/user/register", self.host))
                 .form(&params)
                 .send()
                 .await

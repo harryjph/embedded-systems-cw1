@@ -9,6 +9,7 @@ use rand::Rng;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use axum::headers::HeaderValue;
+use axum::http::header::CONTENT_TYPE;
 use tokio::task::JoinHandle;
 use tower_http::cors::CorsLayer;
 
@@ -42,7 +43,7 @@ async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
         .layer(CorsLayer::new()
             .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
             .allow_credentials(true)
-            .allow_headers("Content-Type"))
+            .allow_headers([CONTENT_TYPE]))
         .layer(SessionLayer::new(store, &secret)
             .with_same_site_policy(SameSite::None));
 

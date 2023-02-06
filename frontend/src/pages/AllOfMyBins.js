@@ -49,7 +49,7 @@ function AllOfMyBinsPage() {
       <Layout />
       <div className="flex p-5">
         <div className="flex-auto">
-          <Map/>
+          <Map AllData={loadedBins} />
         </div>
 
         <div className="flex-auto">

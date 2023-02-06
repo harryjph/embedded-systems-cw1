@@ -16,7 +16,8 @@ function BinsList(props) {
         Name={bin.config.name}
         Latitude={bin.config.latitude}
         Longitude={bin.config.longitude}
-        Threshold={bin.config.full_threshold}
+        EmptyDistanceReading={bin.config.empty_distance_reading}
+        FullDistanceReading={bin.config.full_distance_reading}
         Fullness={Math.floor(bin.fullness * 100)}
       />
     )

@@ -19,9 +19,9 @@ function AddModalWithRenameSupport(props) {
       Name={props.Name}
       Latitude={props.Latitude}
       Longitude={props.Longitude}
-      Fullness={props.Fullness}
-      Threshold={props.Threshold}
-      onAddBins={modBinsHandler}
+      EmptyDistanceReading={props.EmptyDistanceReading}
+      FullDistanceReading={props.FullDistanceReading}
+      onUpdateBinConfig={modBinsHandler}
       closeHandler={props.onCancel}
     />
   );

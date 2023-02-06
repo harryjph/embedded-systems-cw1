@@ -9,31 +9,28 @@ function ModalWithRenameSupport(props) {
   const binNameInputRef = useRef();
   const binLatInputRef = useRef();
   const binLongInputRef = useRef();
-  const binFullnessInputRef = useRef();
-  const binFullnessThresholdRef = useRef();
+  const binEmptyDistanceReadingInputRef = useRef();
+  const binFullDistanceReadingInputRef = useRef();
 
   function submitHandler(event) {
     event.preventDefault();
 
     const enteredName = binNameInputRef.current.value;
-    const enteredLat = binLatInputRef.current.value;
-    const enteredLong = binLongInputRef.current.value;
-    const enteredFullness = binFullnessInputRef.current.value;
-    const enteredThreshold = binFullnessThresholdRef.current.value;
+    const enteredLat = parseFloat(binLatInputRef.current.value);
+    const enteredLong = parseFloat(binLongInputRef.current.value);
+    const enteredEmptyDistanceReading = parseFloat(binEmptyDistanceReadingInputRef.current.value);
+    const enteredFullDistanceReading = parseFloat(binFullDistanceReadingInputRef.current.value);
 
     const binsData = {
-      id: props.ID,
-      config: {
-        name: enteredName,
-        latitude: enteredLat,
-        longitude: enteredLong,
-        full_threshold: enteredThreshold,
-      },
-      fullness: enteredFullness,
+      name: enteredName,
+      latitude: enteredLat,
+      longitude: enteredLong,
+      empty_distance_reading: enteredEmptyDistanceReading,
+      full_distance_reading: enteredFullDistanceReading,
     };
 
-    props.onAddBins(binsData);
-    props.onConfirm();
+    props.onUpdateBinConfig(binsData);
+    props.closeHandler();
   }
 
   function onCancel() {
@@ -82,26 +79,26 @@ function ModalWithRenameSupport(props) {
           </div>
 
           <div className={classes.control}>
-            <label htmlFor="title">Bin Fullness</label>
+            <label htmlFor="title">Bin Empty Distance Reading</label>
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="fullness"
-              placeholder={Math.floor(props.Fullness)}
-              ref={binFullnessInputRef}
+              placeholder={props.EmptyDistanceReading}
+              ref={binEmptyDistanceReadingInputRef}
             />
           </div>
 
           <div className={classes.control}>
-            <label htmlFor="title">Bin Fullness Threshold</label>
+            <label htmlFor="title">Bin Full Distance Reading</label>
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="threshold"
-              value={props.Threshold}
-              ref={binFullnessThresholdRef}
+              placeholder={props.FullDistanceReading}
+              ref={binFullDistanceReadingInputRef}
             />
           </div>
 

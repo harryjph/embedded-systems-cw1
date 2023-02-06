@@ -94,7 +94,7 @@ function LoginPage() {
                   id="password"
                   ref={passwordRef}
           />
-          <p class="text-red-500 text-xs italic mt-1">Please choose a password.</p>
+          <p className="text-red-500 text-xs italic mt-1">Please choose a password.</p>
         </div>
 
         <div className="flex items-center justify-between">

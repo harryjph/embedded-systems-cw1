@@ -85,7 +85,7 @@ function Bins(props) {
           Longitude={props.Longitude}
           Fullness={props.Fullness}
           Threshold={props.Threshold}
-          onCancel={closeHandler}
+          onCancel={cancelHandler}
             onConfirm={closeHandler}
           />
           )}

@@ -42,11 +42,13 @@ function ModalWithRenameSupport(props) {
 
   return (
     <div className="modal">
-      <form className={classes.form} onSubmit={submitHandler}>
-        <div className={classes.control}>
+      <form>
+        <div className="relative z-0 w-full mb-6 group">
+          
           <div className={classes.control}>
             <label htmlFor="title">Bin Name</label>
             <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="name"
@@ -58,6 +60,7 @@ function ModalWithRenameSupport(props) {
           <div className={classes.control}>
             <label htmlFor="title">Bin Latitude</label>
             <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="latitude"
@@ -69,6 +72,7 @@ function ModalWithRenameSupport(props) {
           <div className={classes.control}>
             <label htmlFor="title">Bin Longitude</label>
             <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="longitude"
@@ -80,6 +84,7 @@ function ModalWithRenameSupport(props) {
           <div className={classes.control}>
             <label htmlFor="title">Bin Fullness</label>
             <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="fullness"
@@ -91,6 +96,7 @@ function ModalWithRenameSupport(props) {
           <div className={classes.control}>
             <label htmlFor="title">Bin Fullness Threshold</label>
             <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               type="text"
               required
               id="threshold"
@@ -99,14 +105,12 @@ function ModalWithRenameSupport(props) {
             />
           </div>
 
-          <div className={classes.control}>
-            <button className="btn" onClick={submitHandler}>
+          <div className="flex items-center justify-between">
+            <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={submitHandler}>
               Save Changes
             </button>
-          </div>
 
-          <div className={classes.control}>
-            <button className="btn" onClick={onCancel}>
+            <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={onCancel}>
               Cancel
             </button>
           </div>

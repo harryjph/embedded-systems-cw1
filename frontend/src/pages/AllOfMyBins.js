@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
 import {apiGet, apiPostForm} from "../API";
 
+import Map from "../Components/Map/Map";
 import { useNavigate } from "react-router-dom";
 
 
@@ -46,7 +47,15 @@ function AllOfMyBinsPage() {
 
   return <div>
       <Layout />
-      <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} />
+      <div className="flex p-5">
+        <div className="flex-auto">
+          <Map/>
+        </div>
+
+        <div className="flex-auto">
+          <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} />
+        </div>
+      </div>
     </div>;
 }
 

@@ -1,6 +1,5 @@
 //  MODAL RENAME NEW
 
-import Card from "../ui/Card";
 import classes from "./AddNewBinsForm.module.css";
 
 import { useRef } from "react";

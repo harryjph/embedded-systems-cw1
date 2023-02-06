@@ -14,7 +14,7 @@ function CircularProgressBar({ upper_value }) {
     return () => {
       clearTimeout(timer);
     };
-  }, [percentage]);
+  }, [percentage, upper_value]);
 
   return <CircularProgressbar value={percentage} text={`${percentage}%`} />;
 }

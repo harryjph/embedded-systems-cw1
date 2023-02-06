@@ -1,11 +1,6 @@
 import Bins from "./Bins.js";
-import classes from "./BinsList.module.css";
-
-import { useEffect, useState } from "react";
 
 function BinsList(props) {
-  const [bins, setBins] = useState([]);
-
   let binsWidgets = props.AllData.map((bin) => (
     <Bins
       key={bin.id}

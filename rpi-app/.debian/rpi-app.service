@@ -1,0 +1,9 @@
+[Unit]
+Description=RPi App for ES1 Bins Project
+
+[Service]
+Environment="CONFIG_PATH=/etc/rpi-app/config.toml"
+ExecStart=/usr/bin/rpi-app
+
+[Install]
+WantedBy=multi-user.target

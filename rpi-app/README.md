@@ -25,10 +25,13 @@ This directory contains the application that runs on the RPi.
       ```
 * Protocol Buffers Compiler (`protoc`) installed
   * On Debian-based Linux: `apt install protobuf-compiler`
+* (For distributions) `dpkg-deb` installed
 
 # Building
 
-`cargo build` or `cargo build --release`
+* Debug binary: `cargo build`
+* Release binary: `cargo build --release`
+* Debian package: `./package.sh`. This can be installed on the Raspberry Pi using: `dpkg -i rpi-app.deb` and uninstalled using `dpkg --purge rpi-app` 
 
 # Testing
 

@@ -119,7 +119,7 @@ mod tests {
             .unwrap();
 
         client
-            .post("/logout")
+            .get("/logout")
             .send()
             .await
             .unwrap()
@@ -150,7 +150,7 @@ mod tests {
             .unwrap();
 
         client
-            .post("/logout")
+            .get("/logout")
             .send()
             .await
             .unwrap()

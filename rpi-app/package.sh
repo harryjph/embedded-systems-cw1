@@ -17,5 +17,6 @@ cp .debian/prerm.sh build/DEBIAN/prerm
 
 chmod -R 775 build/
 
-dpkg-deb --build build
+# Build using XZ compression
+dpkg-deb --build build -Zxz
 mv build.deb rpi-app.deb

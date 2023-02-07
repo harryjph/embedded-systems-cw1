@@ -20,9 +20,6 @@ const NUM_PROXIMITY_READINGS: usize = 5;
 async fn main() {
     let mut config = load_config();
 
-    let mut proximity_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)
-        .expect("Failed to connect to proximity sensor");
-
     let mut client = Client::new(config.url.clone())
         .await
         .expect("Failed to connect to server");
@@ -31,6 +28,9 @@ async fn main() {
         config.id = Some(client.assign_id().await.expect("Failed to assign ID"));
         config.write_default().expect("Failed to write config");
     }
+
+    let mut proximity_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)
+        .expect("Failed to connect to proximity sensor");
 
     let (client_readings_in, client_readings_out) = mpsc::channel(1);
     tokio::spawn(async move {

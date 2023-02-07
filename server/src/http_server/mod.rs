@@ -1,17 +1,17 @@
-use std::env;
 use crate::config::Config;
 use crate::db::Database;
 use crate::user_manager::UserManager;
 use crate::utils::all_interfaces;
+use axum::headers::HeaderValue;
+use axum::http::header::CONTENT_TYPE;
 use axum::Router;
+use axum_extra::routing::SpaRouter;
 use axum_sessions::async_session::MemoryStore;
 use axum_sessions::{SameSite, SessionLayer};
 use rand::Rng;
+use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use axum::headers::HeaderValue;
-use axum::http::header::CONTENT_TYPE;
-use axum_extra::routing::SpaRouter;
 use tokio::task::JoinHandle;
 use tower_http::cors::CorsLayer;
 
@@ -40,21 +40,19 @@ async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
     let store = MemoryStore::new();
     let secret: [u8; 128] = rand::thread_rng().gen();
 
-    let allowed_origins = [
-        "http://localhost",
-        "http://localhost:3000",
-    ];
+    let allowed_origins = ["http://localhost", "http://localhost:3000"];
 
     let router = Router::new()
         .nest("/api", api_router())
         .nest("/app", frontend_router())
         .with_state(state)
-        .layer(CorsLayer::new()
-            .allow_origin(allowed_origins.map(|it| it.parse::<HeaderValue>().unwrap()))
-            .allow_credentials(true)
-            .allow_headers([CONTENT_TYPE]))
-        .layer(SessionLayer::new(store, &secret)
-            .with_same_site_policy(SameSite::None));
+        .layer(
+            CorsLayer::new()
+                .allow_origin(allowed_origins.map(|it| it.parse::<HeaderValue>().unwrap()))
+                .allow_credentials(true)
+                .allow_headers([CONTENT_TYPE]),
+        )
+        .layer(SessionLayer::new(store, &secret).with_same_site_policy(SameSite::None));
 
     axum::Server::bind(&socket_addr)
         .serve(router.into_make_service())

@@ -2,7 +2,7 @@
 
 import { useNavigate } from "react-router-dom";
 import ModalWithRenameSupport from "./ModalWithRenameSupport";
-import {apiPostJson} from "../../API";
+import { apiPostJson } from "../../API";
 
 function AddModalWithRenameSupport(props) {
   const history = useNavigate();

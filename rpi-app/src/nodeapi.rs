@@ -1,12 +1,12 @@
 use self::grpc_generated::node_api_client::NodeApiClient;
 use self::grpc_generated::{DistanceData, EnvironmentData};
+use crate::nodeapi::grpc_generated::Empty;
 use crate::util::Stream;
 use anyhow::Error;
 use tokio::sync::mpsc::Receiver;
 use tonic::codegen::StdError;
 use tonic::transport::Channel;
 use tonic::{transport, Status};
-use crate::nodeapi::grpc_generated::Empty;
 
 pub mod grpc_generated {
     tonic::include_proto!("nodeapi");
@@ -27,11 +27,7 @@ impl Client {
     }
 
     pub async fn assign_id(&mut self) -> Result<u32, Error> {
-        let node_id = self
-            .client
-            .assign_id(Empty {})
-            .await?
-            .into_inner();
+        let node_id = self.client.assign_id(Empty {}).await?.into_inner();
         Ok(node_id.id)
     }
 

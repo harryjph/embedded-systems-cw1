@@ -40,7 +40,6 @@ function ModalWithRenameSupport(props) {
     <div className="modal">
       <form>
         <div className="relative z-1 w-full mb-6 group">
-          
           <div className={classes.control}>
             <label htmlFor="title">Bin Name</label>
             <input
@@ -102,11 +101,17 @@ function ModalWithRenameSupport(props) {
           </div>
 
           <div className="flex items-center justify-between">
-            <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={submitHandler}>
+            <button
+              className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
+              onClick={submitHandler}
+            >
               Save Changes
             </button>
 
-            <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={onCancel}>
+            <button
+              className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
+              onClick={onCancel}
+            >
               Cancel
             </button>
           </div>

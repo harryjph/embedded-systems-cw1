@@ -24,7 +24,8 @@ async fn main() {
     let mut proximity_sensor = VL53L0X::new_from_descriptor("/dev/i2c-1", 0x29)
         .expect("Failed to connect to proximity sensor");
 
-    let mut client = Client::new(config.url.clone()).await
+    let mut client = Client::new(config.url.clone())
+        .await
         .expect("Failed to connect to server");
 
     if let None = config.id {
@@ -46,7 +47,10 @@ async fn main() {
                 .expect("Could not take proximity reading"),
         };
         println!("Reading: {reading:?}");
-        client_readings_in.send(reading).await.expect("Failed to send reading");
+        client_readings_in
+            .send(reading)
+            .await
+            .expect("Failed to send reading");
         interval_timer.tick().await;
     }
 }

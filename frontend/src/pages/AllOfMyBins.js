@@ -1,11 +1,10 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
-import {apiGet, apiPostForm} from "../API";
+import { apiGet, apiPostForm } from "../API";
 
 import Map from "../Components/BasicComponents/Map";
 import { useNavigate } from "react-router-dom";
-
 
 function AllOfMyBinsPage() {
   const history = useNavigate();
@@ -45,7 +44,8 @@ function AllOfMyBinsPage() {
     );
   }
 
-  return <div>
+  return (
+    <div>
       <Layout />
       <div className="flex p-5">
         <div className="flex-auto">
@@ -56,7 +56,8 @@ function AllOfMyBinsPage() {
           <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} />
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
 
 export default AllOfMyBinsPage;

@@ -1,7 +1,7 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
-import {apiGet, apiPostForm} from "../API";
+import { apiGet, apiPostForm } from "../API";
 
 import { useNavigate } from "react-router-dom";
 
@@ -43,10 +43,12 @@ function UnclaimedBinsPage() {
     );
   }
 
-  return <div>
-    <Layout />
-    <BinsList PostRequest={ClaimFunction} Text={"Claim"} AllData={loadedBins} />
-  </div>;
+  return (
+    <div>
+      <Layout />
+      <BinsList PostRequest={ClaimFunction} Text={"Claim"} AllData={loadedBins} />
+    </div>
+  );
 }
 
 export default UnclaimedBinsPage;

@@ -216,6 +216,8 @@ impl Database {
 
 #[cfg(test)]
 mod tests {
+    use chrono::Utc;
+
     use super::Database;
 
     #[tokio::test]
@@ -402,6 +404,22 @@ mod tests {
                 .await
                 .expect_err(format!("Fullness {fullness} was OK").as_str());
         }
+    }
+
+    #[tokio::test]
+    async fn test_set_get_user_last_email() {
+        let db = Database::new_in_memory().await.unwrap();
+        let id = db.insert_node().await.unwrap();
+        db.insert_user(EMAIL, PASSWORD_HASH).await.unwrap();
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
+
+        assert!(db.get_user_last_email_time(EMAIL).await.unwrap().is_none());
+        let now = Utc::now();
+        db.set_user_last_email_time(EMAIL, now).await.unwrap();
+        assert_eq!(
+            db.get_user_last_email_time(EMAIL).await.unwrap().unwrap(),
+            now
+        );
     }
 
     const EMAIL: &str = "TeSt@ExAmPlE.cOm";

@@ -5,7 +5,6 @@ use crate::db::Database;
 use crate::mailer::Mailer;
 use crate::timer::Timer;
 use crate::utils::all_interfaces;
-use chrono::Utc;
 use futures_util::StreamExt;
 use std::marker::Send;
 use std::marker::Sync;
@@ -75,6 +74,7 @@ pub struct NodeApiImpl<T: Timer + Sync + Send> {
 impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
     async fn handle_email(&self, email: &str, fullness: f32) -> Result<(), Status> {
         if fullness >= FULLNESS_THRESHOLD {
+            let now = self.timer.get_time();
             let time = self.db.get_user_last_email_time(email).await.map_err(|_| {
                 Status::aborted(format!(
                     "Unable to get last email time for email: {}",
@@ -82,7 +82,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                 ))
             })?;
             if let Some(time) = time {
-                if (Utc::now() - time).num_days() < 1 {
+                if (now - time).num_days() < 1 {
                     return Ok(());
                 }
             }
@@ -97,6 +97,14 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                 )
                 .await
                 .map_err(|_| Status::aborted("Failed to send email"))?;
+            self.db
+                .set_user_last_email_time(email, now)
+                .await
+                .map_err(|_| {
+                    Status::aborted(
+                        "Could not update database with last time the email was sent to the user",
+                    )
+                })?;
         }
         Ok(())
     }
@@ -152,7 +160,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
                 if let Some(email) = node.owner {
                     self.handle_email(&email, fullness).await?;
                 }
-                
+
                 self.db
                     .set_node_fullness(distance_data.id, fullness.clamp(0.0, 1.0))
                     .await

@@ -1,7 +1,7 @@
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 
 pub trait Timer {
-    fn get_time() -> DateTime<Utc>;
+    fn get_time(&self) -> DateTime<Utc>;
 }
 
 pub struct RealTimer {}
@@ -13,7 +13,7 @@ impl RealTimer {
 }
 
 impl Timer for RealTimer {
-    fn get_time() -> DateTime<Utc> {
+    fn get_time(&self) -> DateTime<Utc> {
         Utc::now()
     }
 }

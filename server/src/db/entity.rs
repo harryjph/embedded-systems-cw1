@@ -44,8 +44,6 @@ pub mod node {
 }
 
 pub mod user {
-    use chrono::DateTime;
-
     boilerplate!();
 
     #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]

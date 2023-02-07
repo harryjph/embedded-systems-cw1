@@ -1,9 +1,22 @@
-import { useRef } from "react";
-import { apiPostForm } from "../API";
+import {useEffect, useRef} from "react";
+import {apiGet, apiPostForm} from "../API";
 
 function LoginPage() {
   const emailRef = useRef();
   const passwordRef = useRef();
+
+  // Try to access the account to check if we're already logged in.
+  useEffect(() => {
+    apiGet("/user", true)
+      .then((r) => {
+        if (r.ok) {
+          // We're already logged in.
+          window.location = "/app/my-bins";
+        }
+      })
+      // Discard error
+      .catch((_) => {});
+  });
 
   function loginRequest(endpoint) {
     const loginForm = {

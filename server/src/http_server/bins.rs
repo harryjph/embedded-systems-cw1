@@ -7,9 +7,9 @@ use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use axum_sessions::extractors::ReadableSession;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use chrono::{DateTime, Utc};
 
 pub(super) fn router() -> Router<Arc<ServerState>> {
     Router::new()

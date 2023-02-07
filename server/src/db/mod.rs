@@ -161,7 +161,9 @@ impl Database {
         full_distance_reading: f32,
     ) -> Result<(), Error> {
         if empty_distance_reading <= full_distance_reading {
-            return Err(Error::msg("Empty distance reading must be greater than full distance reading"));
+            return Err(Error::msg(
+                "Empty distance reading must be greater than full distance reading",
+            ));
         }
 
         let mut query = node::Entity::update(node::ActiveModel {
@@ -352,17 +354,9 @@ mod tests {
         )
         .await
         .expect_err("Setting node config by the wrong user was OK");
-        db.set_node_config(
-            id,
-            Some(EMAIL),
-            name,
-            lat,
-            long,
-            0.0,
-            0.0,
-        )
-        .await
-        .expect_err("Setting distance readings to a bad value was OK");
+        db.set_node_config(id, Some(EMAIL), name, lat, long, 0.0, 0.0)
+            .await
+            .expect_err("Setting distance readings to a bad value was OK");
     }
 
     #[tokio::test]
@@ -370,11 +364,7 @@ mod tests {
         let db = Database::new_in_memory().await.unwrap();
 
         // (fullness, temperature, humidity)
-        let data_points = [
-            (0.0, 1.0, 3.0),
-            (0.5, 2.0, 2.0),
-            (1.0, 3.0, 1.0),
-        ];
+        let data_points = [(0.0, 1.0, 3.0), (0.5, 2.0, 2.0), (1.0, 3.0, 1.0)];
 
         let mut ids = Vec::new();
         for _ in 0..data_points.len() {
@@ -389,7 +379,9 @@ mod tests {
         // Check that setting it actually sets it and updates the time
         for i in 0..data_points.len() {
             let data = data_points[i];
-            db.set_node_data(ids[i], data.0, data.1, data.2).await.unwrap();
+            db.set_node_data(ids[i], data.0, data.1, data.2)
+                .await
+                .unwrap();
             let node1 = db.get_node(ids[i], None).await.unwrap().unwrap();
             assert_eq!(node1.fullness, data.0);
             assert_eq!(node1.temperature, data.1);

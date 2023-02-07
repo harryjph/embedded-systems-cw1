@@ -35,11 +35,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Node::Fullness).float().not_null())
                     .col(ColumnDef::new(Node::Temperature).float().not_null())
                     .col(ColumnDef::new(Node::Humidity).float().not_null())
-                    .col(
-                        ColumnDef::new(Node::DataLastUpdated)
-                            .timestamp()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Node::DataLastUpdated).timestamp().not_null())
                     .to_owned(),
             )
             .await?;

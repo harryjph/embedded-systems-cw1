@@ -40,10 +40,12 @@ struct LoginForm {
 
 async fn get_user(
     session: ReadableSession,
-    State(state): State<Arc<ServerState>>
+    State(state): State<Arc<ServerState>>,
 ) -> Result<Json<UserInfo>, ErrorResponse> {
     let user_email = get_signed_in_email(&session)?;
-    let user = state.db.get_user(user_email.as_str())
+    let user = state
+        .db
+        .get_user(user_email.as_str())
         .await
         .map_err(bad_request)?;
     Ok(Json(UserInfo { email: user.email }))
@@ -97,9 +99,9 @@ async fn logout(mut session: WritableSession) {
 #[cfg(test)]
 mod tests {
     use crate::http_server::test_utils::start_test_server;
+    use crate::http_server::user::UserInfo;
     use crate::user_manager::tests::{TEST_EMAIL, TEST_PASSWORD};
     use std::collections::HashMap;
-    use crate::http_server::user::UserInfo;
 
     #[tokio::test]
     async fn test_register_and_logout() {

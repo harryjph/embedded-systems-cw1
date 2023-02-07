@@ -2,14 +2,14 @@ use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 use self::grpc_generated::{Empty, NodeId};
 use crate::config::Config;
 use crate::db::Database;
+use crate::grpc_server::grpc_generated::SensorData;
 use crate::utils::all_interfaces;
+use futures_util::StreamExt;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use futures_util::StreamExt;
 use tokio::task::JoinHandle;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, Streaming};
-use crate::grpc_server::grpc_generated::SensorData;
 
 pub fn launch(config: Config, db: Arc<Database>) -> JoinHandle<()> {
     println!(
@@ -63,24 +63,21 @@ impl NodeApi for NodeApiImpl {
         let mut stream = request.into_inner();
         while let Some(sensor_data) = stream.next().await {
             let sensor_data = sensor_data?;
-            if let Some(node) = self
-                .db
-                .get_node(sensor_data.id, None)
-                .await
-                .map_err(|_| {
-                    Status::aborted(format!(
-                        "Unable to get node with id: {} from database.",
-                        sensor_data.id
-                    ))
-                })?
-            {
+            if let Some(node) = self.db.get_node(sensor_data.id, None).await.map_err(|_| {
+                Status::aborted(format!(
+                    "Unable to get node with id: {} from database.",
+                    sensor_data.id
+                ))
+            })? {
                 let fullness = (sensor_data.distance - node.empty_distance_reading)
                     / (node.full_distance_reading - node.empty_distance_reading);
                 self.db
-                    .set_node_data(sensor_data.id,
-                                   fullness.clamp(0.0, 1.0),
-                                   sensor_data.temperature,
-                                   sensor_data.relative_humidity)
+                    .set_node_data(
+                        sensor_data.id,
+                        fullness.clamp(0.0, 1.0),
+                        sensor_data.temperature,
+                        sensor_data.relative_humidity,
+                    )
                     .await
                     .map_err(|_| {
                         Status::aborted(format!(

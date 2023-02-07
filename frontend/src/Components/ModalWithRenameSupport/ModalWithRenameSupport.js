@@ -2,30 +2,24 @@
 
 import classes from "./AddNewBinsForm.module.css";
 
-import { useRef } from "react";
+import {useState} from "react";
 
 function ModalWithRenameSupport(props) {
-  const binNameInputRef = useRef();
-  const binLatInputRef = useRef();
-  const binLongInputRef = useRef();
-  const binEmptyDistanceReadingInputRef = useRef();
-  const binFullDistanceReadingInputRef = useRef();
+  const [binName, setBinName] = useState(props.Name);
+  const [binLatitude, setBinLatitude] = useState(props.Latitude);
+  const [binLongitude, setBinLongitude] = useState(props.Longitude);
+  const [binEmptyDistanceReading, setBinEmptyDistanceReading] = useState(props.EmptyDistanceReading);
+  const [binFullDistanceReading, setBinFullDistanceReading] = useState(props.FullDistanceReading);
 
   function submitHandler(event) {
     event.preventDefault();
 
-    const enteredName = binNameInputRef.current.value;
-    const enteredLat = parseFloat(binLatInputRef.current.value);
-    const enteredLong = parseFloat(binLongInputRef.current.value);
-    const enteredEmptyDistanceReading = parseFloat(binEmptyDistanceReadingInputRef.current.value);
-    const enteredFullDistanceReading = parseFloat(binFullDistanceReadingInputRef.current.value);
-
     const binsData = {
-      name: enteredName,
-      latitude: enteredLat,
-      longitude: enteredLong,
-      empty_distance_reading: enteredEmptyDistanceReading,
-      full_distance_reading: enteredFullDistanceReading,
+      name: binName,
+      latitude: binLatitude,
+      longitude: binLongitude,
+      empty_distance_reading: binEmptyDistanceReading,
+      full_distance_reading: binFullDistanceReading,
     };
 
     props.onUpdateBinConfig(binsData);
@@ -47,8 +41,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="name"
-              placeholder={props.Name}
-              ref={binNameInputRef}
+              value={binName}
+              onChange={(e) => setBinName(e.target.value)}
             />
           </div>
 
@@ -59,8 +53,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="latitude"
-              placeholder={props.Latitude}
-              ref={binLatInputRef}
+              value={binLatitude}
+              onChange={(e) => setBinLatitude(e.target.value)}
             />
           </div>
 
@@ -71,8 +65,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="longitude"
-              placeholder={props.Longitude}
-              ref={binLongInputRef}
+              value={binLongitude}
+              onChange={(e) => setBinLongitude(e.target.value)}
             />
           </div>
 
@@ -83,8 +77,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="fullness"
-              placeholder={props.EmptyDistanceReading}
-              ref={binEmptyDistanceReadingInputRef}
+              value={binEmptyDistanceReading}
+              onChange={(e) => setBinEmptyDistanceReading(e.target.value)}
             />
           </div>
 
@@ -95,8 +89,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="threshold"
-              placeholder={props.FullDistanceReading}
-              ref={binFullDistanceReadingInputRef}
+              value={binFullDistanceReading}
+              onChange={(e) => setBinFullDistanceReading(e.target.value)}
             />
           </div>
 

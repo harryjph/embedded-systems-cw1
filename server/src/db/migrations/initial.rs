@@ -33,8 +33,10 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Node::FullDistanceReading).float().not_null())
                     .col(ColumnDef::new(Node::Fullness).float().not_null())
+                    .col(ColumnDef::new(Node::Temperature).float().not_null())
+                    .col(ColumnDef::new(Node::Humidity).float().not_null())
                     .col(
-                        ColumnDef::new(Node::FullnessLastUpdated)
+                        ColumnDef::new(Node::DataLastUpdated)
                             .timestamp()
                             .not_null(),
                     )
@@ -80,7 +82,9 @@ pub enum Node {
     EmptyDistanceReading,
     FullDistanceReading,
     Fullness,
-    FullnessLastUpdated,
+    Temperature,
+    Humidity,
+    DataLastUpdated,
 }
 
 #[derive(Iden)]

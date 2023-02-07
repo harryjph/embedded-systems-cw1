@@ -77,7 +77,10 @@ impl NodeApi for NodeApiImpl {
                 let fullness = (sensor_data.distance - node.empty_distance_reading)
                     / (node.full_distance_reading - node.empty_distance_reading);
                 self.db
-                    .set_node_fullness(sensor_data.id, fullness.clamp(0.0, 1.0))
+                    .set_node_data(sensor_data.id,
+                                   fullness.clamp(0.0, 1.0),
+                                   sensor_data.temperature,
+                                   sensor_data.relative_humidity)
                     .await
                     .map_err(|_| {
                         Status::aborted(format!(

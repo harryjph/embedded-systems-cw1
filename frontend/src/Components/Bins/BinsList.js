@@ -13,6 +13,7 @@ function BinsList(props) {
       EmptyDistanceReading={bin.config.empty_distance_reading}
       FullDistanceReading={bin.config.full_distance_reading}
       Fullness={Math.floor(bin.fullness * 100)}
+      showPropertiesButton={props.showPropertiesButton}
     />
   ));
 

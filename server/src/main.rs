@@ -7,8 +7,6 @@ use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::sync::Arc;
-use tokio::spawn;
-use tokio::sync::{mpsc, RwLock};
 
 mod config;
 mod db;
@@ -25,22 +23,12 @@ async fn main() -> Result<(), Error> {
     let mailer = Mailer::new(config.email.clone())?;
     let user_manager = Arc::new(UserManager::new(db.clone()));
 
-    let (data_in, mut data_out) = mpsc::channel(1);
-    let lock = Arc::new(RwLock::new(Vec::new()));
-
     let http_server_handle = http_server::launch(config.clone(), db.clone(), user_manager.clone());
-    let grpc_server_handle = grpc_server::launch(config.clone(), data_in, db.clone());
-
-    let data_handler_handle = spawn(async move {
-        while let Some(data) = data_out.recv().await {
-            lock.write().await.push(data);
-        }
-    });
+    let grpc_server_handle = grpc_server::launch(config.clone(), db.clone());
 
     tokio::select! {
         _ = http_server_handle => { println!("HTTP Server Stopped! Shutting down."); }
         _ = grpc_server_handle => { println!("gRPC Server Stopped! Shutting down."); }
-        _ = data_handler_handle => { println!("Data Handler Stopped! Shutting down."); }
     }
 
     exit(3);

@@ -1,5 +1,5 @@
 use self::grpc_generated::node_api_client::NodeApiClient;
-use self::grpc_generated::{DistanceData, EnvironmentData};
+use self::grpc_generated::SensorData;
 use crate::nodeapi::grpc_generated::Empty;
 use crate::util::Stream;
 use anyhow::Error;
@@ -31,20 +31,12 @@ impl Client {
         Ok(node_id.id)
     }
 
-    pub async fn report_distance(
+    pub async fn stream_sensor_data(
         &mut self,
-        receiver: Receiver<DistanceData>,
-    ) -> Result<(), Status> {
-        self.client.report_distance(Stream::new(receiver)).await?;
-        Ok(())
-    }
-
-    pub async fn report_environment(
-        &mut self,
-        receiver: Receiver<EnvironmentData>,
+        receiver: Receiver<SensorData>,
     ) -> Result<(), Status> {
         self.client
-            .report_environment(Stream::new(receiver))
+            .stream_sensor_data(Stream::new(receiver))
             .await?;
         Ok(())
     }

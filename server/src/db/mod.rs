@@ -158,6 +158,10 @@ impl Database {
         empty_distance_reading: f32,
         full_distance_reading: f32,
     ) -> Result<(), Error> {
+        if empty_distance_reading <= full_distance_reading {
+            return Err(Error::msg("Empty distance reading must be greater than full distance reading"));
+        }
+
         let mut query = node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             name: ActiveValue::Set(name.into()),
@@ -338,6 +342,17 @@ mod tests {
         )
         .await
         .expect_err("Setting node config by the wrong user was OK");
+        db.set_node_config(
+            id,
+            Some(EMAIL),
+            name,
+            lat,
+            long,
+            0.0,
+            0.0,
+        )
+        .await
+        .expect_err("Setting distance readings to a bad value was OK");
     }
 
     #[tokio::test]

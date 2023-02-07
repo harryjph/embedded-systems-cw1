@@ -1,26 +1,26 @@
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
-use self::grpc_generated::{DistanceData, Empty, EnvironmentData, NodeId};
+use self::grpc_generated::{Empty, NodeId};
 use crate::config::Config;
 use crate::db::Database;
 use crate::utils::all_interfaces;
-use futures_util::StreamExt;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::sync::mpsc::Sender;
+use futures_util::StreamExt;
 use tokio::task::JoinHandle;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, Streaming};
+use crate::grpc_server::grpc_generated::SensorData;
 
-pub fn launch(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) -> JoinHandle<()> {
+pub fn launch(config: Config, db: Arc<Database>) -> JoinHandle<()> {
     println!(
         "Starting gRPC Server on http://localhost:{}",
         config.network.grpc_port
     );
     let socket_addr = all_interfaces(config.network.grpc_port);
-    tokio::spawn(start_server(socket_addr, data_sink, db))
+    tokio::spawn(start_server(socket_addr, db))
 }
 
-async fn start_server(socket_addr: SocketAddr, data_sink: Sender<(f32, f32)>, db: Arc<Database>) {
+async fn start_server(socket_addr: SocketAddr, db: Arc<Database>) {
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(grpc_generated::FILE_DESCRIPTOR_SET)
         .build()
@@ -28,7 +28,7 @@ async fn start_server(socket_addr: SocketAddr, data_sink: Sender<(f32, f32)>, db
 
     Server::builder()
         .add_service(reflection_service)
-        .add_service(NodeApiServer::new(NodeApiImpl { data_sink, db }))
+        .add_service(NodeApiServer::new(NodeApiImpl { db }))
         .serve(socket_addr)
         .await
         .unwrap();
@@ -42,27 +42,11 @@ mod grpc_generated {
 }
 
 pub struct NodeApiImpl {
-    data_sink: Sender<(f32, f32)>,
     db: Arc<Database>,
 }
 
 #[tonic::async_trait]
 impl NodeApi for NodeApiImpl {
-    async fn report_environment(
-        &self,
-        request: Request<Streaming<EnvironmentData>>,
-    ) -> Result<Response<Empty>, Status> {
-        let mut stream = request.into_inner();
-        while let Some(data_result) = stream.next().await {
-            let data = data_result?;
-            self.data_sink
-                .send((data.temperature, data.relative_humidity))
-                .await
-                .unwrap();
-        }
-        Ok(Response::new(Empty::default()))
-    }
-
     async fn assign_id(&self, _request: Request<Empty>) -> Result<Response<NodeId>, Status> {
         let id = self
             .db
@@ -72,39 +56,39 @@ impl NodeApi for NodeApiImpl {
         Ok(Response::new(NodeId { id }))
     }
 
-    async fn report_distance(
+    async fn stream_sensor_data(
         &self,
-        request: Request<Streaming<DistanceData>>,
+        request: Request<Streaming<SensorData>>,
     ) -> Result<Response<Empty>, Status> {
         let mut stream = request.into_inner();
-        while let Some(distance_data) = stream.next().await {
-            let distance_data = distance_data?;
+        while let Some(sensor_data) = stream.next().await {
+            let sensor_data = sensor_data?;
             if let Some(node) = self
                 .db
-                .get_node(distance_data.id, None)
+                .get_node(sensor_data.id, None)
                 .await
                 .map_err(|_| {
                     Status::aborted(format!(
                         "Unable to get node with id: {} from database.",
-                        distance_data.id
+                        sensor_data.id
                     ))
                 })?
             {
-                let fullness = (distance_data.distance - node.empty_distance_reading)
+                let fullness = (sensor_data.distance - node.empty_distance_reading)
                     / (node.full_distance_reading - node.empty_distance_reading);
                 self.db
-                    .set_node_fullness(distance_data.id, fullness.clamp(0.0, 1.0))
+                    .set_node_fullness(sensor_data.id, fullness.clamp(0.0, 1.0))
                     .await
                     .map_err(|_| {
                         Status::aborted(format!(
                             "Unable to update fullness of bin with id: {}.",
-                            distance_data.id
+                            sensor_data.id
                         ))
                     })?;
             } else {
                 eprintln!(
                     "Node with id: {} does not exist within database yet it sent something.",
-                    distance_data.id
+                    sensor_data.id
                 );
             }
         }

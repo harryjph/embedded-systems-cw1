@@ -160,7 +160,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_user() {
-        let (client, state) = start_test_server("/user").await;
+        let (client, _) = start_test_server("/user").await;
 
         let mut params = HashMap::new();
         params.insert("email", TEST_EMAIL);

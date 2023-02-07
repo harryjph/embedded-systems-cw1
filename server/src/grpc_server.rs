@@ -87,7 +87,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                         .to_string(),
                 )
                 .await
-                .map_err(|_| Status::aborted("Failed to send email"))?;
+                .map_err(|e| eprintln!("Warning: Failed to send email: {e}")).unwrap();
             self.db
                 .set_user_last_email_time(email, now)
                 .await

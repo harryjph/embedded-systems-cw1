@@ -23,7 +23,9 @@ pub mod node {
         /// The distance reading below which the bin is considered to be full
         pub full_distance_reading: f32,
         pub fullness: f32,
-        pub fullness_last_updated: DateTimeUtc,
+        pub temperature: f32,
+        pub humidity: f32,
+        pub data_last_updated: DateTimeUtc,
     }
 
     #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

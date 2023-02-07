@@ -4,21 +4,17 @@ package nodeapi;
 message Empty {}
 
 service NodeAPI {
-  rpc ReportEnvironment(stream EnvironmentData) returns (Empty);
-  rpc ReportDistance(stream DistanceData) returns (Empty);
   rpc AssignId(Empty) returns (NodeId);
+  rpc StreamSensorData(stream SensorData) returns (Empty);
 }
 
-message EnvironmentData {
-  float temperature = 1;
-  float relativeHumidity = 2;
-}
-
-message NodeId{
+message NodeId {
   uint32 id = 1;
 }
 
-message DistanceData {
+message SensorData {
   uint32 id = 1;
   float distance = 2;
+  float temperature = 3;
+  float relativeHumidity = 4;
 }

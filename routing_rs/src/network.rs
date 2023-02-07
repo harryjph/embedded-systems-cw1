@@ -170,7 +170,7 @@ impl Network{
         return links_by_node;
     }
 
-    fn get_odd(&self, links: Vec<Link>, nodes: Vec<u32>) -> (Vec<u32>, Vec<Link>){
+    fn get_odd(&self, links: &Vec<Link>, nodes: Vec<u32>) -> (Vec<u32>, Vec<Link>){
         let mst_links_by_node: HashMap<u32, Vec<Link>> = self.links_per_node(&links, &nodes, None);
         let mut odd_nodes: Vec<u32> = Vec::new(); 
         for node in nodes.iter(){
@@ -315,12 +315,74 @@ impl Network{
     }
 
     fn hamiltonian_cycle(&self, links: &mut Vec<Link>) -> Vec<Link>{
-        let visited_nodes: Vec<Link> = Vec::new();
+        let mut visited_nodes: Vec<u32> = Vec::new();
         let first_link = links[0];
-        let mut relaxed_link: Vec<Link> = Vec::new(); 
-        relaxed_link.push(first_link);
+        let mut relaxed_links: Vec<Link> = Vec::new(); 
+        relaxed_links.push(first_link);
         links.retain(|link| {*link != first_link});
-        let start_node = self.get_common_node(first_link, links[1]);
-        todo!()
+        let start_node = self.get_common_node(first_link, links[1]).unwrap();
+        visited_nodes.push(start_node);
+        let mut prev_node = first_link.other_node(start_node);
+        visited_nodes.push(prev_node);
+        let mut needs_relaxation = false; 
+        let mut orphan = self.start_point.node_id; 
+        for link in links.iter(){
+            let other = link.other_node(prev_node);
+            if visited_nodes.contains(&other){
+                if !needs_relaxation{
+                    orphan = prev_node; 
+                }
+                prev_node = other; 
+            } else {
+                if needs_relaxation {
+                    // do relaxation
+                    let new_link = self.get_link(orphan, other).unwrap();
+                    relaxed_links.push(new_link);
+                    visited_nodes.push(other);
+                    prev_node = other; 
+                    needs_relaxation = false; 
+                } else {
+                    // add link normally
+                    relaxed_links.push(*link);
+                    visited_nodes.push(other);
+                    prev_node = other; 
+                }
+            }
+        }
+        let by_node = self.links_per_node(&relaxed_links, &visited_nodes, None);
+        let mut incomplete_nodes = Vec::new(); 
+        for (node, links) in by_node.iter(){
+            if links.len() < 2{
+                incomplete_nodes.push(*node);
+                debug_assert!(links.len() == 1);
+            }
+        }
+        debug_assert!(incomplete_nodes.len() == 2);
+        let closing_link = self.get_link(incomplete_nodes[0], incomplete_nodes[1]).unwrap();
+        relaxed_links.push(closing_link);
+        return relaxed_links;
+    }
+    
+    fn christofides(&mut self) -> Vec<u32> {
+        // prims to get mst 
+        let (mut mst_links, mst_nodes)= self.prims_mst();
+        // get all vertices with odd number of connections 
+        let (nodes_odd, links_odd) = self.get_odd(&mst_links, self.nodes.keys().cloned().collect());
+        // get mwpf 
+        let min_w: Vec<Link> = Vec::new();
+        // add nodes and links from mst nodes and links
+        mst_links.extend(min_w);
+        // get eulerian tour 
+        let mut eulerian = self.euler_tour(mst_links);
+        let hamilton = self.hamiltonian_cycle(&mut eulerian);
+        let mut final_ids: Vec<u32> = Vec::new();
+        final_ids.push(hamilton[0].nodes[0]);
+        let mut prev_node = final_ids[0];
+        for link in hamilton.iter(){
+            let other = link.other_node(prev_node);
+            final_ids.push(other);
+            prev_node = other; 
+        }
+        return final_ids;
     }
 }

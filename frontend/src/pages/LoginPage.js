@@ -18,7 +18,7 @@ function LoginPage() {
     loginRequest("login", true)
       .then(async response => {
         if (response.ok) {
-          window.location = "/my-bins";
+          window.location = "/app/my-bins";
         } else {
           alert("Login failed: " + await response.text());
         }
@@ -30,7 +30,7 @@ function LoginPage() {
     loginRequest("register")
       .then(async response => {
         if (response.ok) {
-          window.location = "/my-bins";
+          window.location = "/app/my-bins";
         } else {
           alert("Registration failed: " + await response.text());
         }

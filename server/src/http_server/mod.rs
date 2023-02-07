@@ -1,3 +1,4 @@
+use std::env;
 use crate::config::Config;
 use crate::db::Database;
 use crate::user_manager::UserManager;
@@ -9,12 +10,16 @@ use rand::Rng;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use axum::headers::HeaderValue;
+use axum::http::header::CONTENT_TYPE;
+use axum_extra::routing::SpaRouter;
 use tokio::task::JoinHandle;
 use tower_http::cors::CorsLayer;
 
 mod bins;
 mod user;
 mod util;
+
+const FRONTEND_PATH_ENV_NAME: &str = "FRONTEND_PATH";
 
 pub fn launch(config: Config, db: Arc<Database>, user_manager: Arc<UserManager>) -> JoinHandle<()> {
     println!(
@@ -35,13 +40,19 @@ async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
     let store = MemoryStore::new();
     let secret: [u8; 128] = rand::thread_rng().gen();
 
-    let mut router = Router::new()
-        .nest("/bins", bins::router())
-        .nest("/user", user::router())
+    let allowed_origins = [
+        "http://localhost",
+        "http://localhost:3000",
+    ];
+
+    let router = Router::new()
+        .nest("/api", api_router())
+        .nest("/app", frontend_router())
         .with_state(state)
         .layer(CorsLayer::new()
-            .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
-            .allow_credentials(true))
+            .allow_origin(allowed_origins.map(|it| it.parse::<HeaderValue>().unwrap()))
+            .allow_credentials(true)
+            .allow_headers([CONTENT_TYPE]))
         .layer(SessionLayer::new(store, &secret)
             .with_same_site_policy(SameSite::None));
 
@@ -49,6 +60,21 @@ async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
         .serve(router.into_make_service())
         .await
         .unwrap();
+}
+
+fn api_router() -> Router<Arc<ServerState>> {
+    Router::new()
+        .nest("/bins", bins::router())
+        .nest("/user", user::router())
+}
+
+fn frontend_router() -> Router<Arc<ServerState>> {
+    if let Ok(frontend_path) = env::var(FRONTEND_PATH_ENV_NAME) {
+        SpaRouter::new("/", frontend_path).into()
+    } else {
+        eprintln!("Warning: Frontend not found and will not be served");
+        Router::new()
+    }
 }
 
 #[cfg(test)]
@@ -89,12 +115,12 @@ mod test_utils {
     impl TestClient {
         pub fn get(&self, path: &str) -> RequestBuilder {
             self.client
-                .get(format!("{}{}{path}", self.host, self.nested_path))
+                .get(format!("{}/api{}{path}", self.host, self.nested_path))
         }
 
         pub fn post(&self, path: &str) -> RequestBuilder {
             self.client
-                .post(format!("{}{}{path}", self.host, self.nested_path))
+                .post(format!("{}/api{}{path}", self.host, self.nested_path))
         }
 
         /// Registers a new account and logs the test client in
@@ -104,7 +130,7 @@ mod test_utils {
             params.insert("password", TEST_PASSWORD);
 
             self.client
-                .post(format!("{}/user/register", self.host))
+                .post(format!("{}/api/user/register", self.host))
                 .form(&params)
                 .send()
                 .await

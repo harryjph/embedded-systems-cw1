@@ -4,8 +4,6 @@ import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRen
 import Backdrop from "../BasicComponents/Backdrop.js";
 import Card from "../ui/Card.js";
 
-import classes from "./Bins.module.css";
-
 import { useState } from "react";
 
 function Bins(props) {

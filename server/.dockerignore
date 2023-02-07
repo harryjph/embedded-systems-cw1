@@ -1,7 +1,0 @@
-Dockerfile
-.idea/
-.vscode/
-target/
-*.swp
-*.db
-config.toml

@@ -15,5 +15,7 @@ cp .debian/control build/DEBIAN/control
 cp .debian/postinst.sh build/DEBIAN/postinst
 cp .debian/prerm.sh build/DEBIAN/prerm
 
+chmod -R 775 build/
+
 dpkg-deb --build build
 mv build.deb rpi-app.deb

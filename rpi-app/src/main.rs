@@ -2,7 +2,6 @@ use crate::config::Config;
 use crate::nodeapi::grpc_generated::DistanceData;
 use crate::nodeapi::Client;
 use crate::sensors::vl53l0x::VL53L0X;
-use anyhow::Error;
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;

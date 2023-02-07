@@ -2,7 +2,7 @@
 
 import { useNavigate } from "react-router-dom";
 import ModalWithRenameSupport from "./ModalWithRenameSupport";
-import {apiPostJson} from "../../API";
+import { apiPostJson } from "../../API";
 
 function AddModalWithRenameSupport(props) {
   const history = useNavigate();
@@ -19,9 +19,9 @@ function AddModalWithRenameSupport(props) {
       Name={props.Name}
       Latitude={props.Latitude}
       Longitude={props.Longitude}
-      Fullness={props.Fullness}
-      Threshold={props.Threshold}
-      onAddBins={modBinsHandler}
+      EmptyDistanceReading={props.EmptyDistanceReading}
+      FullDistanceReading={props.FullDistanceReading}
+      onUpdateBinConfig={modBinsHandler}
       closeHandler={props.onCancel}
     />
   );

@@ -1,4 +1,4 @@
-const API_URL = "https://es1.harryphillips.co.uk";
+const API_URL = "https://es1.harryphillips.co.uk/api";
 
 function createFormBody(obj) {
   let formBody = [];
@@ -23,28 +23,28 @@ async function handleResponse(response, dontHandleError) {
 
 export function apiGet(endpoint, dontHandleError = false) {
   return fetch(API_URL + endpoint, {
-    credentials: 'include'
-  }).then(r => handleResponse(r, dontHandleError));
+    credentials: "include",
+  }).then((r) => handleResponse(r, dontHandleError));
 }
 
 export function apiPostForm(endpoint, formBody, dontHandleError = false) {
   return fetch(API_URL + endpoint, {
     method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
     },
     body: createFormBody(formBody),
-    credentials: 'include'
-  }).then(r => handleResponse(r, dontHandleError));
+    credentials: "include",
+  }).then((r) => handleResponse(r, dontHandleError));
 }
 
 export function apiPostJson(endpoint, object, dontHandleError = false) {
   return fetch(API_URL + endpoint, {
     method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(object),
-    credentials: 'include'
-  }).then(r => handleResponse(r, dontHandleError));
+    credentials: "include",
+  }).then((r) => handleResponse(r, dontHandleError));
 }

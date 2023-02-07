@@ -14,10 +14,10 @@ function ModalWithRenameSupport(props) {
   function submitHandler() {
     const binsData = {
       name: binName,
-      latitude: binLatitude,
-      longitude: binLongitude,
-      empty_distance_reading: binEmptyDistanceReading,
-      full_distance_reading: binFullDistanceReading,
+      latitude: parseFloat(binLatitude),
+      longitude: parseFloat(binLongitude),
+      empty_distance_reading: parseFloat(binEmptyDistanceReading),
+      full_distance_reading: parseFloat(binFullDistanceReading),
     };
 
     props.onUpdateBinConfig(binsData);

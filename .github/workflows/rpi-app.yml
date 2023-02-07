@@ -35,9 +35,9 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Build Debian packages
-        run: ./package.sh
+        run: ./package.sh && ls
       - name: Upload Debian package
         uses: actions/upload-artifact@v3
         with:
           name: rpi-app
-          path: rpi-app.deb
+          path: rpi-app/rpi-app.deb

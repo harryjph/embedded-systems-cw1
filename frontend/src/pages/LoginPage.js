@@ -97,7 +97,7 @@ function LoginPage() {
           <p className="text-red-500 text-xs italic mt-1">Please choose a password.</p>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center">
           <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={login}>Login</button>
           <a className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" onClick={register}>Register</a>
         </div>

@@ -70,7 +70,7 @@ fn api_router() -> Router<Arc<ServerState>> {
 
 fn frontend_router() -> Router<Arc<ServerState>> {
     if let Ok(frontend_path) = env::var(FRONTEND_PATH_ENV_NAME) {
-        SpaRouter::new("/assets", frontend_path).into()
+        SpaRouter::new("/", frontend_path).into()
     } else {
         eprintln!("Warning: Frontend not found and will not be served");
         Router::new()

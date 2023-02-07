@@ -18,7 +18,7 @@ async function handleResponse(response, dontHandleError) {
   } else {
     window.alert("Request failed (" + response.status + " " + response.statusText + ")");
   }
-  window.location = "/";
+  window.location = "/app";
 }
 
 export function apiGet(endpoint, dontHandleError = false) {

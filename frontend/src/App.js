@@ -13,7 +13,7 @@ import UnclaimedBinsPage from "./pages/UnownedBins.js";
 function App() {
   return (
     <div>
-      <BrowserRouter>
+      <BrowserRouter basename="/app">
         <Routes>
           <Route path="/" element={<LoginPage />} />
           {/* All avaliable bins (TODO: Home-page) */}

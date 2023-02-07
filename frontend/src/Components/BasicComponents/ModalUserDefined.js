@@ -4,9 +4,11 @@ import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 function ModalUserDefined(props) {
   function YesSelect() {
+    console.log("Yes has been selected");
     props.onConfirm();
   }
   function NoSelect() {
+    console.log("No has been selected");
     props.onCancel();
   }
 
@@ -21,39 +23,29 @@ function ModalUserDefined(props) {
 // </div>
 
   return (
-  <React.Fragment>
-    <Modal
-      show={props.isOpen}
-      size="md"
-      popup={true}
-      onClose={NoSelect}
-    >
-      {console.log(props.isOpen)}
-      <Modal.Header />
-      <Modal.Body>
-        <div className="text-center">
-          <HiOutlineExclamationCircle className="z-1 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-          <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-            Are you sure you want to delete this product?
-          </h3>
-          <div className="flex justify-center gap-4">
-            <Button
-              color="failure"
-              onClick={YesSelect}
-            >
-              Yes, I'm sure
-            </Button>
-            <Button
-              color="gray"
-              onClick={NoSelect}
-            >
-              No, cancel
-            </Button>
-          </div>
+    <div className="modal">
+    {console.log(props.isOpen)}
+      <div className="text-center">
+        <HiOutlineExclamationCircle className="z-1 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+        <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+          Are you sure you want to delete this product?
+        </h3>
+        <div className="flex justify-center gap-4">
+          <Button
+            color="failure"
+            onClick={YesSelect}
+          >
+            Yes
+          </Button>
+          <Button
+            color="gray"
+            onClick={NoSelect}
+          >
+            Cancel
+          </Button>
         </div>
-      </Modal.Body>
-    </Modal>
-  </React.Fragment>
+      </div>
+    </div>
   );
 }
 

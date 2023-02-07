@@ -73,7 +73,7 @@ function Bins(props) {
           </button>
         </div>
 
-        <ModalUserDefined isOpen={binValue} ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
+        {binValue && <ModalUserDefined isOpen={binValue} ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />}
         {binValue && <Backdrop onClick={cancelHandler} />}
         {renameBinValue && (
           <AddModalWithRenameSupport

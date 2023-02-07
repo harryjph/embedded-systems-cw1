@@ -31,7 +31,7 @@ This directory contains the application that runs on the RPi.
 
 * Debug binary: `cargo build`
 * Release binary: `cargo build --release`
-* Debian package: `./package.sh`. This can be installed on the Raspberry Pi using: `dpkg -i rpi-app.deb`  
+* Debian package: `./package.sh`. This can be installed on the Raspberry Pi using: `dpkg -i rpi-app.deb` and uninstalled using `dpkg --purge rpi-app` 
 
 # Testing
 

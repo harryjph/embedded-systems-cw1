@@ -17,6 +17,6 @@ cp .debian/prerm.sh build/DEBIAN/prerm
 
 chmod -R 775 build/
 
-# Build using XZ compression
+# Build using XZ compression as RPi OS doesn't support Zstd yet
 dpkg-deb -Zxz --build build
 mv build.deb rpi-app.deb

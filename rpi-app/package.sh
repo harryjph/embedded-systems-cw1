@@ -7,7 +7,7 @@ mkdir -p build/etc/systemd/system
 
 cargo build --release
 
-echo "url = http://es1-nodeapi.harryphillips.co.uk:81" > build/etc/rpi-app/config.toml
+echo "url = \"http://es1-nodeapi.harryphillips.co.uk:81\"" > build/etc/rpi-app/config.toml
 cp target/arm-unknown-linux-musleabihf/release/rpi-app build/usr/bin/
 cp .debian/rpi-app.service build/etc/systemd/system/
 

@@ -89,6 +89,30 @@ impl Database {
             .ok_or(Error::msg("Could not find user"))
     }
 
+    pub async fn get_user_last_email_time(
+        &self,
+        owner_email: &str,
+    ) -> Result<Option<DateTimeUtc>, Error> {
+        self.get_user(owner_email)
+            .await
+            .map(|model| model.last_email_time)
+    }
+
+    pub async fn set_user_last_email_time(
+        &self,
+        owner_email: &str,
+        time: DateTimeUtc,
+    ) -> Result<(), Error> {
+        user::Entity::update(user::ActiveModel {
+            email: ActiveValue::Unchanged(owner_email.to_lowercase()),
+            last_email_time: ActiveValue::Set(Some(time)),
+            ..Default::default()
+        })
+        .exec(&self.db)
+        .await?;
+        Ok(())
+    }
+
     /// Gets all nodes belonging to an owner.
     /// If the owner is None, returns all nodes without an owner
     pub async fn get_nodes(&self, owner_email: Option<&str>) -> Result<Vec<node::Model>, Error> {

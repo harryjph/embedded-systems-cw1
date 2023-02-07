@@ -15,6 +15,7 @@ mod db;
 mod grpc_server;
 mod http_server;
 mod mailer;
+mod timer;
 mod user_manager;
 mod utils;
 
@@ -22,14 +23,20 @@ mod utils;
 async fn main() -> Result<(), Error> {
     let config = load_config();
     let db = Arc::new(Database::load_default().await?);
-    let mailer = Mailer::new(config.email.clone())?;
+    let mailer = Arc::new(Mailer::new(config.email.clone())?);
     let user_manager = Arc::new(UserManager::new(db.clone()));
 
     let (data_in, mut data_out) = mpsc::channel(1);
     let lock = Arc::new(RwLock::new(Vec::new()));
 
     let http_server_handle = http_server::launch(config.clone(), db.clone(), user_manager.clone());
-    let grpc_server_handle = grpc_server::launch(config.clone(), data_in, db.clone());
+    let grpc_server_handle = grpc_server::launch(
+        config.clone(),
+        data_in,
+        db.clone(),
+        mailer.clone(),
+        timer::RealTimer::new(),
+    );
 
     let data_handler_handle = spawn(async move {
         while let Some(data) = data_out.recv().await {

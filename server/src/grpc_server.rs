@@ -2,8 +2,13 @@ use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
 use self::grpc_generated::{DistanceData, Empty, EnvironmentData, NodeId};
 use crate::config::Config;
 use crate::db::Database;
+use crate::mailer::Mailer;
+use crate::timer::Timer;
 use crate::utils::all_interfaces;
+use chrono::Utc;
 use futures_util::StreamExt;
+use std::marker::Send;
+use std::marker::Sync;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
@@ -11,16 +16,30 @@ use tokio::task::JoinHandle;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, Streaming};
 
-pub fn launch(config: Config, data_sink: Sender<(f32, f32)>, db: Arc<Database>) -> JoinHandle<()> {
+const FULLNESS_THRESHOLD: f32 = 0.8;
+
+pub fn launch<T: Timer + Sync + Send + 'static>(
+    config: Config,
+    data_sink: Sender<(f32, f32)>,
+    db: Arc<Database>,
+    mailer: Arc<Mailer>,
+    timer: T,
+) -> JoinHandle<()> {
     println!(
         "Starting gRPC Server on http://localhost:{}",
         config.network.grpc_port
     );
     let socket_addr = all_interfaces(config.network.grpc_port);
-    tokio::spawn(start_server(socket_addr, data_sink, db))
+    tokio::spawn(start_server(socket_addr, data_sink, db, mailer, timer))
 }
 
-async fn start_server(socket_addr: SocketAddr, data_sink: Sender<(f32, f32)>, db: Arc<Database>) {
+async fn start_server<T: Timer + Sync + Send + 'static>(
+    socket_addr: SocketAddr,
+    data_sink: Sender<(f32, f32)>,
+    db: Arc<Database>,
+    mailer: Arc<Mailer>,
+    timer: T,
+) {
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(grpc_generated::FILE_DESCRIPTOR_SET)
         .build()
@@ -28,7 +47,12 @@ async fn start_server(socket_addr: SocketAddr, data_sink: Sender<(f32, f32)>, db
 
     Server::builder()
         .add_service(reflection_service)
-        .add_service(NodeApiServer::new(NodeApiImpl { data_sink, db }))
+        .add_service(NodeApiServer::new(NodeApiImpl {
+            data_sink,
+            db,
+            mailer,
+            timer,
+        }))
         .serve(socket_addr)
         .await
         .unwrap();
@@ -41,13 +65,45 @@ mod grpc_generated {
         tonic::include_file_descriptor_set!("nodeapi_descriptor");
 }
 
-pub struct NodeApiImpl {
+pub struct NodeApiImpl<T: Timer + Sync + Send> {
     data_sink: Sender<(f32, f32)>,
     db: Arc<Database>,
+    mailer: Arc<Mailer>,
+    timer: T,
+}
+
+impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
+    async fn handle_email(&self, email: &str, fullness: f32) -> Result<(), Status> {
+        if fullness >= FULLNESS_THRESHOLD {
+            let time = self.db.get_user_last_email_time(email).await.map_err(|_| {
+                Status::aborted(format!(
+                    "Unable to get last email time for email: {}",
+                    email
+                ))
+            })?;
+            if let Some(time) = time {
+                if (Utc::now() - time).num_days() < 1 {
+                    return Ok(());
+                }
+            }
+            self.mailer
+                .send_email(
+                    email.to_string(),
+                    "Bin Bot".to_string(),
+                    "binny@binbot.com".to_string(),
+                    "You have full bins!".to_string(),
+                    "Check https://es1.harryphillips.co.uk/app to see which bins are full!"
+                        .to_string(),
+                )
+                .await
+                .map_err(|_| Status::aborted("Failed to send email"))?;
+        }
+        Ok(())
+    }
 }
 
 #[tonic::async_trait]
-impl NodeApi for NodeApiImpl {
+impl<T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
     async fn report_environment(
         &self,
         request: Request<Streaming<EnvironmentData>>,
@@ -92,6 +148,11 @@ impl NodeApi for NodeApiImpl {
             {
                 let fullness = (distance_data.distance - node.empty_distance_reading)
                     / (node.full_distance_reading - node.empty_distance_reading);
+
+                if let Some(email) = node.owner {
+                    self.handle_email(&email, fullness).await?;
+                }
+                
                 self.db
                     .set_node_fullness(distance_data.id, fullness.clamp(0.0, 1.0))
                     .await

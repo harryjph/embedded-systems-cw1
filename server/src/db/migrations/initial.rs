@@ -52,6 +52,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(User::PasswordHash).string().not_null())
+                    .col(ColumnDef::new(User::LastEmailTime).timestamp().null())
                     .to_owned(),
             )
             .await?;
@@ -88,4 +89,5 @@ pub enum User {
     Table,
     Email,
     PasswordHash,
+    LastEmailTime,
 }

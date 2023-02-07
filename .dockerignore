@@ -1,0 +1,11 @@
+*/.idea/
+*/.vscode/
+*/*.swp
+*/*.db
+
+server/target/
+server/config.toml
+
+frontend/node_modules/
+frontend/build/
+frontend/coverage/

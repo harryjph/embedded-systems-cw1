@@ -1,0 +1,43 @@
+name: rpi-app
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  
+defaults:
+  run:
+    working-directory: rpi-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: gcc-arm-linux-gnueabihf qemu-user-static protobuf-compiler
+      - name: Configure Cross-compiler
+        run: |
+          rustup target add arm-unknown-linux-musleabihf
+          echo "[target.arm-unknown-linux-musleabihf]" > ~/.cargo/config.toml
+          echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config.toml
+          echo "runner = \"qemu-arm-static\"" >> ~/.cargo/config.toml
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rpi-app"
+      - name: Build
+        run: cargo build
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Build Debian packages
+        run: ./package.sh
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpi-app
+          path: rpi-app/rpi-app.deb

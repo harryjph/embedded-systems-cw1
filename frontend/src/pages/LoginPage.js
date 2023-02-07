@@ -1,9 +1,22 @@
-import { useRef } from "react";
-import { apiPostForm } from "../API";
+import {useEffect, useRef} from "react";
+import {apiGet, apiPostForm} from "../API";
 
 function LoginPage() {
   const emailRef = useRef();
   const passwordRef = useRef();
+
+  // Try to access the account to check if we're already logged in.
+  useEffect(() => {
+    apiGet("/user", true)
+      .then((r) => {
+        if (r.ok) {
+          // We're already logged in.
+          window.location = "/app/my-bins";
+        }
+      })
+      // Discard error
+      .catch((_) => {});
+  });
 
   function loginRequest(endpoint) {
     const loginForm = {
@@ -69,9 +82,9 @@ function LoginPage() {
             <p className="text-red-500 text-xs italic mt-1">Please choose a password.</p>
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between">
             <button
-              className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
+              className="p-3 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               onClick={login}
             >
               Login

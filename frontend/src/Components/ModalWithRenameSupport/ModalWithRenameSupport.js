@@ -2,30 +2,22 @@
 
 import classes from "./AddNewBinsForm.module.css";
 
-import { useRef } from "react";
+import {useState} from "react";
 
 function ModalWithRenameSupport(props) {
-  const binNameInputRef = useRef();
-  const binLatInputRef = useRef();
-  const binLongInputRef = useRef();
-  const binEmptyDistanceReadingInputRef = useRef();
-  const binFullDistanceReadingInputRef = useRef();
+  const [binName, setBinName] = useState(props.Name);
+  const [binLatitude, setBinLatitude] = useState(props.Latitude);
+  const [binLongitude, setBinLongitude] = useState(props.Longitude);
+  const [binEmptyDistanceReading, setBinEmptyDistanceReading] = useState(props.EmptyDistanceReading);
+  const [binFullDistanceReading, setBinFullDistanceReading] = useState(props.FullDistanceReading);
 
-  function submitHandler(event) {
-    event.preventDefault();
-
-    const enteredName = binNameInputRef.current.value;
-    const enteredLat = parseFloat(binLatInputRef.current.value);
-    const enteredLong = parseFloat(binLongInputRef.current.value);
-    const enteredEmptyDistanceReading = parseFloat(binEmptyDistanceReadingInputRef.current.value);
-    const enteredFullDistanceReading = parseFloat(binFullDistanceReadingInputRef.current.value);
-
+  function submitHandler() {
     const binsData = {
-      name: enteredName,
-      latitude: enteredLat,
-      longitude: enteredLong,
-      empty_distance_reading: enteredEmptyDistanceReading,
-      full_distance_reading: enteredFullDistanceReading,
+      name: binName,
+      latitude: parseFloat(binLatitude),
+      longitude: parseFloat(binLongitude),
+      empty_distance_reading: parseFloat(binEmptyDistanceReading),
+      full_distance_reading: parseFloat(binFullDistanceReading),
     };
 
     props.onUpdateBinConfig(binsData);
@@ -47,8 +39,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="name"
-              placeholder={props.Name}
-              ref={binNameInputRef}
+              value={binName}
+              onChange={(e) => setBinName(e.target.value)}
             />
           </div>
 
@@ -59,8 +51,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="latitude"
-              placeholder={props.Latitude}
-              ref={binLatInputRef}
+              value={binLatitude}
+              onChange={(e) => setBinLatitude(e.target.value)}
             />
           </div>
 
@@ -71,8 +63,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="longitude"
-              placeholder={props.Longitude}
-              ref={binLongInputRef}
+              value={binLongitude}
+              onChange={(e) => setBinLongitude(e.target.value)}
             />
           </div>
 
@@ -83,8 +75,8 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="fullness"
-              placeholder={props.EmptyDistanceReading}
-              ref={binEmptyDistanceReadingInputRef}
+              value={binEmptyDistanceReading}
+              onChange={(e) => setBinEmptyDistanceReading(e.target.value)}
             />
           </div>
 
@@ -95,21 +87,21 @@ function ModalWithRenameSupport(props) {
               type="text"
               required
               id="threshold"
-              placeholder={props.FullDistanceReading}
-              ref={binFullDistanceReadingInputRef}
+              value={binFullDistanceReading}
+              onChange={(e) => setBinFullDistanceReading(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex justify-center items-center">
             <button
-              className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
+              className="m-1 p-3 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               onClick={submitHandler}
             >
               Save Changes
             </button>
 
             <button
-              className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
+              className="m-1 p-3 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               onClick={onCancel}
             >
               Cancel

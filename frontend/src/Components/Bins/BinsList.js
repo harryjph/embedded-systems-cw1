@@ -1,8 +1,8 @@
-import Bins from "./Bins.js";
+import Bin from "./Bin.js";
 
 function BinsList(props) {
   let binsWidgets = props.AllData.map((bin) => (
-    <Bins
+    <Bin
       PostRequest={props.PostRequest}
       Text={props.Text}
       key={bin.id}
@@ -13,6 +13,7 @@ function BinsList(props) {
       EmptyDistanceReading={bin.config.empty_distance_reading}
       FullDistanceReading={bin.config.full_distance_reading}
       Fullness={Math.floor(bin.fullness * 100)}
+      showPropertiesButton={props.showPropertiesButton}
     />
   ));
 

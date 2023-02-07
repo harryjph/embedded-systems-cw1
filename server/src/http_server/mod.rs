@@ -4,8 +4,9 @@ use crate::user_manager::UserManager;
 use crate::utils::all_interfaces;
 use axum::headers::HeaderValue;
 use axum::http::header::CONTENT_TYPE;
+use axum::http::StatusCode;
+use axum::routing::get_service;
 use axum::Router;
-use axum_extra::routing::SpaRouter;
 use axum_sessions::async_session::MemoryStore;
 use axum_sessions::{SameSite, SessionLayer};
 use rand::Rng;
@@ -14,6 +15,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tower_http::cors::CorsLayer;
+use tower_http::services::{ServeDir, ServeFile};
 
 mod bins;
 mod user;
@@ -68,7 +70,14 @@ fn api_router() -> Router<Arc<ServerState>> {
 
 fn frontend_router() -> Router<Arc<ServerState>> {
     if let Ok(frontend_path) = env::var(FRONTEND_PATH_ENV_NAME) {
-        SpaRouter::new("/", frontend_path).into()
+        Router::new().nest_service(
+            "/",
+            get_service(
+                ServeDir::new(&frontend_path)
+                    .not_found_service(ServeFile::new(frontend_path + "/index.html")),
+            )
+            .handle_error(|_| async { StatusCode::INTERNAL_SERVER_ERROR }),
+        )
     } else {
         eprintln!("Warning: Frontend not found and will not be served");
         Router::new()

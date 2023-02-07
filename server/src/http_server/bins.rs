@@ -7,6 +7,7 @@ use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use axum_sessions::extractors::ReadableSession;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -25,6 +26,9 @@ struct Bin {
     pub id: u32,
     pub config: BinConfig,
     pub fullness: f32,
+    pub temperature: f32,
+    pub humidity: f32,
+    pub last_updated: DateTime<Utc>,
 }
 
 impl From<node::Model> for Bin {
@@ -33,6 +37,9 @@ impl From<node::Model> for Bin {
             id: node.id,
             config: node.clone().into(),
             fullness: node.fullness,
+            temperature: node.temperature,
+            humidity: node.humidity,
+            last_updated: node.data_last_updated,
         }
     }
 }

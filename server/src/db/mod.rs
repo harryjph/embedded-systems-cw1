@@ -91,6 +91,30 @@ impl Database {
             .ok_or(Error::msg("Could not find user"))
     }
 
+    pub async fn get_user_last_email_time(
+        &self,
+        owner_email: &str,
+    ) -> Result<Option<DateTimeUtc>, Error> {
+        self.get_user(owner_email)
+            .await
+            .map(|model| model.last_email_time)
+    }
+
+    pub async fn set_user_last_email_time(
+        &self,
+        owner_email: &str,
+        time: DateTimeUtc,
+    ) -> Result<(), Error> {
+        user::Entity::update(user::ActiveModel {
+            email: ActiveValue::Unchanged(owner_email.to_lowercase()),
+            last_email_time: ActiveValue::Set(Some(time)),
+            ..Default::default()
+        })
+        .exec(&self.db)
+        .await?;
+        Ok(())
+    }
+
     /// Gets all nodes belonging to an owner.
     /// If the owner is None, returns all nodes without an owner
     pub async fn get_nodes(&self, owner_email: Option<&str>) -> Result<Vec<node::Model>, Error> {
@@ -208,6 +232,8 @@ impl Database {
 
 #[cfg(test)]
 mod tests {
+    use chrono::Utc;
+
     use super::Database;
 
     #[tokio::test]
@@ -403,6 +429,22 @@ mod tests {
                 .await
                 .expect_err(format!("Fullness {fullness} was OK").as_str());
         }
+    }
+
+    #[tokio::test]
+    async fn test_set_get_user_last_email() {
+        let db = Database::new_in_memory().await.unwrap();
+        let id = db.insert_node().await.unwrap();
+        db.insert_user(EMAIL, PASSWORD_HASH).await.unwrap();
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
+
+        assert!(db.get_user_last_email_time(EMAIL).await.unwrap().is_none());
+        let now = Utc::now();
+        db.set_user_last_email_time(EMAIL, now).await.unwrap();
+        assert_eq!(
+            db.get_user_last_email_time(EMAIL).await.unwrap().unwrap(),
+            now
+        );
     }
 
     const EMAIL: &str = "TeSt@ExAmPlE.cOm";

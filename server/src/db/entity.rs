@@ -54,6 +54,7 @@ pub mod user {
         #[sea_orm(primary_key)]
         pub email: String,
         pub password_hash: String,
+        pub last_email_time: Option<DateTimeUtc>,
     }
 
     #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

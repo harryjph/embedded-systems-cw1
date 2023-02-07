@@ -1,15 +1,15 @@
 use crate::config::Config;
 use crate::nodeapi::grpc_generated::SensorData;
 use crate::nodeapi::Client;
+use crate::sensors::si7021::SI7021;
 use crate::sensors::vl53l0x::VL53L0X;
+use crate::sensors::{HumiditySensor, TemperatureSensor};
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::time;
-use crate::sensors::si7021::SI7021;
-use crate::sensors::{HumiditySensor, TemperatureSensor};
 
 mod config;
 mod nodeapi;
@@ -39,7 +39,10 @@ async fn main() {
 
     let (client_readings_in, client_readings_out) = mpsc::channel(1);
     tokio::spawn(async move {
-        client.stream_sensor_data(client_readings_out).await.unwrap();
+        client
+            .stream_sensor_data(client_readings_out)
+            .await
+            .unwrap();
     });
 
     let mut interval_timer = time::interval(Duration::from_secs(1));
@@ -49,10 +52,12 @@ async fn main() {
             distance: sensors::average_proximity(&mut proximity_sensor, NUM_PROXIMITY_READINGS)
                 .await
                 .expect("Could not take proximity reading"),
-            temperature: temperature_sensor.read_temperature()
+            temperature: temperature_sensor
+                .read_temperature()
                 .await
                 .expect("Could not take temperature reading"),
-            relative_humidity: temperature_sensor.read_humidity()
+            relative_humidity: temperature_sensor
+                .read_humidity()
                 .await
                 .expect("Could not take humidity reading"),
         };

@@ -7,12 +7,14 @@ use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::sync::Arc;
+use crate::timer::RealTimer;
 
 mod config;
 mod db;
 mod grpc_server;
 mod http_server;
 mod mailer;
+mod timer;
 mod user_manager;
 mod utils;
 
@@ -20,11 +22,16 @@ mod utils;
 async fn main() -> Result<(), Error> {
     let config = load_config();
     let db = Arc::new(Database::load_default().await?);
-    let mailer = Mailer::new(config.email.clone())?;
+    let mailer = Arc::new(Mailer::new(config.email.clone())?);
     let user_manager = Arc::new(UserManager::new(db.clone()));
 
     let http_server_handle = http_server::launch(config.clone(), db.clone(), user_manager.clone());
-    let grpc_server_handle = grpc_server::launch(config.clone(), db.clone());
+    let grpc_server_handle = grpc_server::launch(
+        config.clone(),
+        db.clone(),
+        mailer.clone(),
+        RealTimer::new(),
+    );
 
     tokio::select! {
         _ = http_server_handle => { println!("HTTP Server Stopped! Shutting down."); }

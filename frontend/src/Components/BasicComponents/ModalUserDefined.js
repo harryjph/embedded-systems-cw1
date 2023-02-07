@@ -3,25 +3,6 @@ import { Button } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 function ModalUserDefined(props) {
-  function YesSelect() {
-    console.log("Yes has been selected");
-    props.onConfirm();
-  }
-  function NoSelect() {
-    console.log("No has been selected");
-    props.onCancel();
-  }
-
-  //   <div>
-  //   <p>
-  //     Are you sure?
-  //   </p>
-  //   <div className="flex items-center justify-between">
-  //     <button className="" onClick={YesSelect}>Yes</button>
-  //     <button className="" onClick={NoSelect}>Cancel</button>
-  //   </div>
-  // </div>
-
   return (
     <div className="modal">
       <div className="text-center">
@@ -32,13 +13,13 @@ function ModalUserDefined(props) {
             className="text-white bg-[#C81E1E] hover:bg-[#9B1C1C]/90 
             focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-1 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2
             "
-            onClick={YesSelect}
+            onClick={props.onConfirm}
           >
             Yes
           </Button>
           <Button
             className="text-white bg-[#6B7280] hover:bg-[#4B5563]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-1 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
-            onClick={NoSelect}
+            onClick={props.onCancel}
           >
             Cancel
           </Button>

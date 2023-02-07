@@ -20,7 +20,6 @@ function Map(props) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {props.AllData.map((popup) => {
-          console.log(popup);
           return (
             <Marker position={[popup.config.latitude, popup.config.longitude]} key={popup.id}>
               <Popup>{popup.id}</Popup>

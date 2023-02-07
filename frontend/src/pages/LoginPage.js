@@ -7,7 +7,7 @@ function LoginPage() {
 
   // Try to access the account to check if we're already logged in.
   useEffect(() => {
-    apiGet("/bins", true)
+    apiGet("/user", true)
       .then((r) => {
         if (r.ok) {
           // We're already logged in.

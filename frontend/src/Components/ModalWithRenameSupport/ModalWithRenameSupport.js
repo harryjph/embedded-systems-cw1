@@ -11,9 +11,7 @@ function ModalWithRenameSupport(props) {
   const [binEmptyDistanceReading, setBinEmptyDistanceReading] = useState(props.EmptyDistanceReading);
   const [binFullDistanceReading, setBinFullDistanceReading] = useState(props.FullDistanceReading);
 
-  function submitHandler(event) {
-    event.preventDefault();
-
+  function submitHandler() {
     const binsData = {
       name: binName,
       latitude: binLatitude,

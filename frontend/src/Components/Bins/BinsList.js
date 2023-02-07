@@ -1,8 +1,8 @@
-import Bins from "./Bins.js";
+import Bin from "./Bin.js";
 
 function BinsList(props) {
   let binsWidgets = props.AllData.map((bin) => (
-    <Bins
+    <Bin
       PostRequest={props.PostRequest}
       Text={props.Text}
       key={bin.id}

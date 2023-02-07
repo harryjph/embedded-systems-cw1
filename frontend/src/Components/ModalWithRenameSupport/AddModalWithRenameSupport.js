@@ -9,7 +9,7 @@ function AddModalWithRenameSupport(props) {
 
   function modBinsHandler(binsData) {
     apiPostJson("/bins/" + props.ID + "/config", binsData).then(() => {
-      history("/");
+      history("/my-bins");
     });
   }
 

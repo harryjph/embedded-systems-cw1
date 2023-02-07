@@ -14,35 +14,29 @@ function AllOfMyBinsPage() {
       history("/unowned-bins");
     });
   }
-  const [isLoading, setIsloading] = useState(true);
   const [loadedBins, setLoadedBins] = useState([]);
 
   useEffect(() => {
-    setIsloading(true);
-    apiGet("/bins")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        const bins = [];
-        for (const key in data) {
-          const bin = {
-            ...data[key],
-          };
-          bins.push(bin);
-        }
-        setIsloading(false);
-        setLoadedBins(bins);
-      });
+    const timer = setInterval(() => {
+      apiGet("/bins")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          const bins = [];
+          for (const key in data) {
+            const bin = {
+              ...data[key],
+            };
+            bins.push(bin);
+          }
+          setLoadedBins(bins);
+        });
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+    }
   }, []);
-
-  if (isLoading) {
-    return (
-      <section>
-        <p>Loading...</p>
-      </section>
-    );
-  }
 
   return (
     <div>
@@ -53,7 +47,7 @@ function AllOfMyBinsPage() {
         </div>
 
         <div className="flex-auto">
-          <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} />
+          <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
         </div>
       </div>
     </div>

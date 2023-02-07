@@ -51,8 +51,7 @@ function Bins(props) {
       <div className="flex flex-col z-0 px-5">
         <div className="grid gap-1 p-2">
           <div className="flex justify-center items-center">
-            <h2 className="flex items-center font-bold pr-2">ID</h2>
-            <h2 className="flex items-center font-bold pr-2"> {props.ID}</h2>
+            <h2 className="flex items-center font-bold pr-2">{props.Name}</h2>
           </div>
         </div>
 

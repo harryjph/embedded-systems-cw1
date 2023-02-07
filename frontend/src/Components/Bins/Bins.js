@@ -4,8 +4,6 @@ import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRen
 import Backdrop from "../BasicComponents/Backdrop.js";
 import Card from "../ui/Card.js";
 
-import DropDown from "../BasicComponents/DropDown.js";
-
 import { useState } from "react";
 
 function Bins(props) {
@@ -59,25 +57,25 @@ function Bins(props) {
           <CircularProgressBar upper_value={props.Fullness} />
         </div>
         <div className="flex justify-center items-center p-2">
-          <button data-modal-target="popup-modal" data-modal-toggle="popup-modal" 
+          <button
+            data-modal-target="popup-modal"
+            data-modal-toggle="popup-modal"
             className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            onClick={addHandler}>
+            onClick={addHandler}
+          >
             {props.Text}
           </button>
           <button
             className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             onClick={changeNameHandler}
-          >Properties</button>
+          >
+            Properties
+          </button>
         </div>
-        
-        {binValue && <ModalUserDefined 
-                        isOpen={binValue} 
-                        ID={props.ID} 
-                        onCancel={cancelHandler} 
-                        onConfirm={closeHandler} 
-        
-        />
-        }
+
+        {binValue && (
+          <ModalUserDefined isOpen={binValue} ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
+        )}
 
         {binValue && <Backdrop onClick={cancelHandler} />}
         {renameBinValue && (

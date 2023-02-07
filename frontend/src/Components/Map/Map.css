@@ -1,4 +1,3 @@
 .request-popup .leaflet-popup-content-wrapper {
-    border-radius: 0px;
-  }
-  
+  border-radius: 0;
+}

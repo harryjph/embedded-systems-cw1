@@ -14,11 +14,15 @@ function ModalUserDefined(props) {
             focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-1 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2
             "
             onClick={props.onConfirm}
-          >Yes</Button>
+          >
+            Yes
+          </Button>
           <Button
             className="m-1 text-white bg-[#6B7280] hover:bg-[#4B5563]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-1 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2"
             onClick={props.onCancel}
-          >Cancel</Button>
+          >
+            Cancel
+          </Button>
         </div>
       </div>
     </div>

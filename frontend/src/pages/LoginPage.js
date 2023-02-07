@@ -1,8 +1,6 @@
 import { useRef } from "react";
 import { apiPostForm } from "../API";
 
-import DropDown from "../Components/BasicComponents/DropDown";
-
 function LoginPage() {
   const emailRef = useRef();
   const passwordRef = useRef();
@@ -40,20 +38,22 @@ function LoginPage() {
       .catch((e) => alert("Error accessing API: " + e.toString()));
   }
 
-  return <div className="flex items-center h-screen w-screen justify-center bg-slate-300">
-    <div className="w-full max-w-xs">
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-            Username
-          </label>
-          <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                  type="email"
-                  required
-                  id="email"
-                  ref={emailRef}
-          />
-        </div>
+  return (
+    <div className="flex items-center h-screen w-screen justify-center bg-slate-300">
+      <div className="w-full max-w-xs">
+        <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+              Username
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              type="email"
+              required
+              id="email"
+              ref={emailRef}
+            />
+          </div>
 
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
@@ -71,8 +71,8 @@ function LoginPage() {
 
           <div className="flex items-center justify-between">
             <button
-            className="p-3 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            onClick={login}
+              className="p-3 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              onClick={login}
             >
               Login
             </button>
@@ -85,7 +85,8 @@ function LoginPage() {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
 
 export default LoginPage;

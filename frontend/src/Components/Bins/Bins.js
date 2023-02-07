@@ -1,5 +1,5 @@
 import CircularProgressBar from "../BasicComponents/CircularProgressBar.js";
-import Modal from "../BasicComponents/Modal.js";
+import ModalUserDefined from "../BasicComponents/ModalUserDefined.js";
 import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRenameSupport.js";
 import Backdrop from "../BasicComponents/Backdrop.js";
 import Card from "../ui/Card.js";
@@ -51,7 +51,7 @@ function Bins(props) {
   return (
 
     <Card>
-      <div className="flex flex-col">
+      <div className="flex flex-col z-0">
 
         <div className="grid gap-1 p-2">
           <div className="flex justify-center items-center">
@@ -65,7 +65,7 @@ function Bins(props) {
         </div>
 
         <div className="flex justify-center items-center p-2">
-          <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={addHandler}>
+          <button data-modal-target="popup-modal" data-modal-toggle="popup-modal" className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={addHandler}>
             {props.Text}
           </button>
           <button className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 mr-2 mb-2" onClick={changeNameHandler}>
@@ -73,9 +73,7 @@ function Bins(props) {
           </button>
         </div>
 
-        {binValue && (
-          <Modal ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
-          )}
+        <ModalUserDefined isOpen={binValue} ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
         {binValue && <Backdrop onClick={cancelHandler} />}
         {renameBinValue && (
           <AddModalWithRenameSupport

@@ -40,7 +40,7 @@ function ModalWithRenameSupport(props) {
   return (
     <div className="modal">
       <form>
-        <div className="relative z-0 w-full mb-6 group">
+        <div className="relative z-1 w-full mb-6 group">
           
           <div className={classes.control}>
             <label htmlFor="title">Bin Name</label>

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
 import {apiGet, apiPostForm} from "../API";
 
-import Map from "../Components/Map/Map";
+import Map from "../Components/BasicComponents/Map";
 import { useNavigate } from "react-router-dom";
 
 

@@ -1,5 +1,5 @@
 Package: rpi-app
 Version: 1.0.0
 Maintainer: "Harry Phillips" <harry.phillips20@imperial.ac.uk>
-Architecture: arm
+Architecture: armhf
 Description: RPi App for ES1 Bins Project

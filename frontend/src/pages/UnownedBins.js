@@ -46,7 +46,7 @@ function UnclaimedBinsPage() {
   return (
     <div>
       <Layout />
-      <BinsList PostRequest={ClaimFunction} Text={"Claim"} AllData={loadedBins} />
+      <BinsList PostRequest={ClaimFunction} Text={"Claim"} AllData={loadedBins} showPropertiesButton={false} />
     </div>
   );
 }

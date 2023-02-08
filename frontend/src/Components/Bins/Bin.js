@@ -7,48 +7,12 @@ import Card from "../ui/Card.js";
 import { useState } from "react";
 
 function Bin(props) {
-  const [binValue, setBinValue] = useState(false);
-  const [renameBinValue, setRenameBinValue] = useState(false);
 
   const binName = props.Name === "" ? "Unnamed (ID: " + props.ID + ")" : props.Name;
 
-  function addHandler() {
-    setBinValue(true);
-  }
-
-  function changeNameHandler() {
-    setRenameBinValue(true);
-  }
-
-  function cancelHandler() {
-    setBinValue(false);
-    setRenameBinValue(false);
-  }
-
-  /**
-   * This function interacts with the bins node.
-   * What it does is dependent on the parent function which called BinsList,
-   * and subsequently this bin.
-   *
-   * If AllOfMyBins:
-   * - props.Text = "Release This Bin"
-   * - props.PostRequest will be a function defined in AllOfMyBins which
-   *   handles post requests to /bins/<id>/release
-   *
-   * If UnownedBins:
-   * - props.Text = "Claim This Bin"
-   * - props.PostRequest will be a function defined in UnownedBins which
-   *   handles post requests to /bins/<id>/claim
-   */
-  function closeHandler() {
-    setBinValue(false);
-    setRenameBinValue(false);
-    props.PostRequest({ ID: props.ID });
-  }
-
   const propertiesButton = props.showPropertiesButton ? <button
     className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-    onClick={changeNameHandler}
+    onClick={props.foofunctionSeeRenamingModalAndBackdrop}
   >Properties</button> : <div />;
 
   return (
@@ -68,19 +32,21 @@ function Bin(props) {
             data-modal-target="popup-modal"
             data-modal-toggle="popup-modal"
             className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            onClick={addHandler}
+            onClick={props.fooShowModal}
           >
             {props.Text}
           </button>
           {propertiesButton}
         </div>
 
-        {binValue && (
-          <ModalUserDefined isOpen={binValue} ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
+        {(props.varSeeModalAndBackdrop) && (
+          <ModalUserDefined 
+            ID={props.ID} 
+            onCancel={props.foocancelModal} 
+            PostRequest={props.PostRequest} 
+          />
         )}
-
-        {binValue && <Backdrop onClick={cancelHandler} />}
-        {renameBinValue && (
+        {props.varSeeRenamingModalAndBackdrop && (
           <AddModalWithRenameSupport
             ID={props.ID}
             Name={props.Name}
@@ -89,11 +55,9 @@ function Bin(props) {
             Fullness={props.Fullness}
             EmptyDistanceReading={props.EmptyDistanceReading}
             FullDistanceReading={props.FullDistanceReading}
-            onCancel={cancelHandler}
-            onConfirm={closeHandler}
+            onCancel={props.foocancelModal}
           />
         )}
-        {renameBinValue && <Backdrop onClick={cancelHandler} />}
       </div>
     </Card>
   );

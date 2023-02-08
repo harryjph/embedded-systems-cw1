@@ -17,10 +17,20 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+
 function Map(props) {
+  
+  const tot = props.AllData.reduce(([totalLat, totalLong],{config:{latitude, longitude}}) => {
+    return [totalLat + latitude, totalLong + longitude]
+  }, [0, 0]);
+  
+
+  const avgLat = tot[0]/props.AllData.length;
+  const avgLong = tot[1]/props.AllData.length;
+
   return (
     <div>
-      <MapContainer className="z-0 h-96 w-96" center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
+      <MapContainer className="z-30 h-96 w-96" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -29,7 +39,7 @@ function Map(props) {
           return (
             <Marker position={[popup.config.latitude, popup.config.longitude]} key={popup.id}>
               <Popup className="request-popup">
-                <IoIosTrash className="z-1 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+                <IoIosTrash className="z-3 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
                 <div className="m-2" style={popupHead}>
                   {popup.config.name}
                   <br />

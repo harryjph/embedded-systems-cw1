@@ -5,6 +5,10 @@ import ModalUserDefined from "../BasicComponents/ModalUserDefined.js";
 import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRenameSupport.js";
 import Backdrop from "../BasicComponents/Backdrop.js";
 
+import MapModal from "../Map/MapModal.js";
+
+import useOutsideAlerter from "../BasicComponents/CustomHook";
+
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
   const [SeeModalAndBackdrop, setSeeModalAndBackdrop] = useState(false);
@@ -27,22 +31,6 @@ function BinsList(props) {
     setSeeModalAndBackdrop(false);
     setSeeRenamingModalAndBackdrop(false);
   }
-  
-  function confirmModalAndBackdrop() {
-    setSeeMap(false);
-    setSeeModalAndBackdrop(false);
-    setSeeRenamingModalAndBackdrop(false);
-  }
-  
-  function ShowModal() {
-    setSeeModalAndBackdrop(true);
-  }
-  
-  function ShowRenamingModal() {
-    setSeeRenamingModalAndBackdrop(true);
-  }
-
-
 
   let binsWidgets = props.AllData.map((bin) => (
     <Bin
@@ -66,22 +54,20 @@ function BinsList(props) {
       foofunctionSeeModalAndBackdrop={functionSeeModalAndBackdrop}
       foofunctionSeeRenamingModalAndBackdrop={functionSeeRenamingModalAndBackdrop}
       foocancelModal={cancelModal}
-      fooconfirmModalAndBackdrop={confirmModalAndBackdrop}
-      fooShowModal={ShowModal}
-      fooShowRenamingModal={ShowRenamingModal}
     />
   ));
 
-  return <div>
-    {(SeeModalAndBackdrop || SeeRenamingModalAndBackdrop) && 
-      (<Backdrop 
-        onClick={cancelModal}
-      />)
-    }
-    <div className="flex flex-wrap justify-center items-center space-x-1 space-y-1">
-      {binsWidgets}
+  return <div className="flex flex-wrap w-[calc(100vw-2.5rem)] justify-center gap-x-1">
 
-    </div>
+      {(SeeModalAndBackdrop || SeeRenamingModalAndBackdrop || SeeMap) && 
+        (<Backdrop 
+          onClick={cancelModal}
+          />)
+        }
+      {
+        (SeeMap) && (<MapModal AllData={props.AllData}/>)
+      }
+      {binsWidgets}
   </div>;
 {/*
         {binValue && (

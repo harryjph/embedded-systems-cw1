@@ -89,6 +89,7 @@ async fn run_app<T, P>(
                 .await
                 .describe_error("Could not take humidity reading")?,
         };
+        println!("Reading: {reading:?}");
         if let Err(_) = client_readings_in
             .send(reading)
             .await {

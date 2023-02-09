@@ -10,6 +10,7 @@ use std::marker::Send;
 use std::marker::Sync;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use anyhow::Error;
 use tokio::task::JoinHandle;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, Streaming};
@@ -43,7 +44,7 @@ async fn start_server<T: Timer + Sync + Send + 'static>(
 
     Server::builder()
         .add_service(reflection_service)
-        .add_service(NodeApiServer::new(NodeApiImpl { db, mailer, timer }))
+        .add_service(NodeApiServer::new(NodeApiImpl { state: Arc::new(State  { db, mailer, timer }) } ))
         .serve(socket_addr)
         .await
         .unwrap();
@@ -56,46 +57,39 @@ mod grpc_generated {
         tonic::include_file_descriptor_set!("nodeapi_descriptor");
 }
 
-pub struct NodeApiImpl<T: Timer + Sync + Send> {
+struct State<T: Timer + Sync + Send> {
     db: Arc<Database>,
     mailer: Arc<Mailer>,
     timer: T,
 }
 
+pub struct NodeApiImpl<T: Timer + Sync + Send> {
+    state: Arc<State<T>>,
+}
+
 impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
-    async fn handle_email(&self, email: &str, fullness: f32) -> Result<(), Status> {
+    async fn handle_email(state: Arc<State<T>>, email: String, fullness: f32) -> Result<(), Error> {
         if fullness >= FULLNESS_THRESHOLD {
-            let now = self.timer.get_time();
-            let time = self.db.get_user_last_email_time(email).await.map_err(|_| {
-                Status::aborted(format!(
-                    "Unable to get last email time for email: {}",
-                    email
-                ))
-            })?;
+            let now = state.timer.get_time();
+            let time = state.db.get_user_last_email_time(&email).await?;
             if let Some(time) = time {
                 if (now - time).num_days() < 1 {
                     return Ok(());
                 }
             }
-            let _ = self.mailer
+            state.mailer
                 .send_email(
-                    email.to_string(),
+                    email.clone(),
                     "Bin Bot".to_string(),
                     "binny@binbot.com".to_string(),
                     "You have full bins!".to_string(),
                     "Check https://es1.harryphillips.co.uk/app to see which bins are full!"
                         .to_string(),
                 )
-                .await
-                .map_err(|e| eprintln!("Warning: Failed to send email: {e}"));
-            self.db
-                .set_user_last_email_time(email, now)
-                .await
-                .map_err(|_| {
-                    Status::aborted(
-                        "Could not update database with last time the email was sent to the user",
-                    )
-                })?;
+                .await?;
+            state.db
+                .set_user_last_email_time(email.as_str(), now)
+                .await?;
         }
         Ok(())
     }
@@ -105,6 +99,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
 impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
     async fn assign_id(&self, _request: Request<Empty>) -> Result<Response<NodeId>, Status> {
         let id = self
+            .state
             .db
             .insert_node()
             .await
@@ -119,7 +114,7 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
         let mut stream = request.into_inner();
         while let Some(sensor_data) = stream.next().await {
             let sensor_data = sensor_data?;
-            let node = self.db.get_node(sensor_data.id, None)
+            let node = self.state.db.get_node(sensor_data.id, None)
                 .await
                 .map_err(|_| Status::aborted("Unable to get node from database."))?
                 .ok_or(Status::aborted("Could not find node in database"))?;
@@ -128,7 +123,12 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
                 / (node.empty_distance_reading - node.full_distance_reading);
 
             if let Some(email) = node.owner {
-                self.handle_email(&email, fullness).await?;
+                let cloned_state = self.state.clone();
+                tokio::spawn(async move {
+                    if let Err(e) = NodeApiImpl::handle_email(cloned_state, email, fullness).await {
+                        eprintln!("Warning: Failed to send email: {e}");
+                    }
+                });
             }
 
             let filtered_fullness = if fullness.is_nan() {
@@ -137,7 +137,7 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
                 fullness.clamp(0.0, 1.0)
             };
 
-            self.db
+            self.state.db
                 .set_node_data(
                     sensor_data.id,
                     filtered_fullness,

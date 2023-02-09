@@ -66,21 +66,27 @@ function BinsList(props) {
     />
   ));
 
-  return <div className="flex flex-wrap w-[calc(100vw-2.5rem)] justify-center gap-x-1">
-
-        <div className="container flex flex-wrap items-center justify-center m-10">
-          <button onClick={SeeRoutingMap}>Hello!</button>
-        </div>
-      {(SeeModalAndBackdrop || SeeRenamingModalAndBackdrop || SeeMap) && 
-        (<Backdrop 
-          onClick={cancelModal}
-          />)
+  return <div>
+    <div className="flex items-center justify-center m-5">
+      <button 
+        className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        onClick={SeeRoutingMap}>
+          Compute Route
+      </button>
+    </div>
+    <div className="flex flex-wrap w-[calc(100vw-2.5rem)] justify-center gap-x-1">
+        {(SeeModalAndBackdrop || SeeRenamingModalAndBackdrop || SeeMap) && 
+          (<Backdrop 
+            onClick={cancelModal}
+            />)
+          }
+        {
+          (SeeMap) && (<MapModal AllData={MapData}/>)
         }
-      {
-        (SeeMap) && (<MapModal AllData={MapData}/>)
-      }
-      {binsWidgets}
+        {binsWidgets}
+    </div>
   </div>;
+
 {/*
         {binValue && (
           <ModalUserDefined 

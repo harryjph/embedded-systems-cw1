@@ -33,11 +33,9 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Node::FullDistanceReading).float().not_null())
                     .col(ColumnDef::new(Node::Fullness).float().not_null())
-                    .col(
-                        ColumnDef::new(Node::FullnessLastUpdated)
-                            .timestamp()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Node::Temperature).float().not_null())
+                    .col(ColumnDef::new(Node::Humidity).float().not_null())
+                    .col(ColumnDef::new(Node::DataLastUpdated).timestamp().not_null())
                     .to_owned(),
             )
             .await?;
@@ -52,6 +50,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(User::PasswordHash).string().not_null())
+                    .col(ColumnDef::new(User::LastEmailTime).timestamp().null())
                     .to_owned(),
             )
             .await?;
@@ -80,7 +79,9 @@ pub enum Node {
     EmptyDistanceReading,
     FullDistanceReading,
     Fullness,
-    FullnessLastUpdated,
+    Temperature,
+    Humidity,
+    DataLastUpdated,
 }
 
 #[derive(Iden)]
@@ -88,4 +89,5 @@ pub enum User {
     Table,
     Email,
     PasswordHash,
+    LastEmailTime,
 }

@@ -47,7 +47,9 @@ impl Database {
             empty_distance_reading: ActiveValue::Set(1.0),
             full_distance_reading: ActiveValue::Set(0.0),
             fullness: ActiveValue::Set(0.0),
-            fullness_last_updated: ActiveValue::Set(DateTimeUtc::from_utc(
+            temperature: ActiveValue::Set(0.0),
+            humidity: ActiveValue::Set(0.0),
+            data_last_updated: ActiveValue::Set(DateTimeUtc::from_utc(
                 NaiveDateTime::from_timestamp_millis(0).unwrap(),
                 Utc,
             )),
@@ -87,6 +89,30 @@ impl Database {
             .one(&self.db)
             .await?
             .ok_or(Error::msg("Could not find user"))
+    }
+
+    pub async fn get_user_last_email_time(
+        &self,
+        owner_email: &str,
+    ) -> Result<Option<DateTimeUtc>, Error> {
+        self.get_user(owner_email)
+            .await
+            .map(|model| model.last_email_time)
+    }
+
+    pub async fn set_user_last_email_time(
+        &self,
+        owner_email: &str,
+        time: DateTimeUtc,
+    ) -> Result<(), Error> {
+        user::Entity::update(user::ActiveModel {
+            email: ActiveValue::Unchanged(owner_email.to_lowercase()),
+            last_email_time: ActiveValue::Set(Some(time)),
+            ..Default::default()
+        })
+        .exec(&self.db)
+        .await?;
+        Ok(())
     }
 
     /// Gets all nodes belonging to an owner.
@@ -158,6 +184,12 @@ impl Database {
         empty_distance_reading: f32,
         full_distance_reading: f32,
     ) -> Result<(), Error> {
+        if empty_distance_reading <= full_distance_reading {
+            return Err(Error::msg(
+                "Empty distance reading must be greater than full distance reading",
+            ));
+        }
+
         let mut query = node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             name: ActiveValue::Set(name.into()),
@@ -174,14 +206,22 @@ impl Database {
         Ok(())
     }
 
-    pub async fn set_node_fullness(&self, node_id: u32, fullness: f32) -> Result<(), Error> {
+    pub async fn set_node_data(
+        &self,
+        node_id: u32,
+        fullness: f32,
+        temperature: f32,
+        humidity: f32,
+    ) -> Result<(), Error> {
         if fullness < 0.0 || fullness > 1.0 {
             return Err(Error::msg("Fullness outside of range 0..1"));
         }
         node::Entity::update(node::ActiveModel {
             id: ActiveValue::Unchanged(node_id as u32),
             fullness: ActiveValue::Set(fullness),
-            fullness_last_updated: ActiveValue::Set(Utc::now()),
+            temperature: ActiveValue::Set(temperature),
+            humidity: ActiveValue::Set(humidity),
+            data_last_updated: ActiveValue::Set(Utc::now()),
             ..Default::default()
         })
         .exec(&self.db)
@@ -192,6 +232,8 @@ impl Database {
 
 #[cfg(test)]
 mod tests {
+    use chrono::Utc;
+
     use super::Database;
 
     #[tokio::test]
@@ -338,30 +380,39 @@ mod tests {
         )
         .await
         .expect_err("Setting node config by the wrong user was OK");
+        db.set_node_config(id, Some(EMAIL), name, lat, long, 0.0, 0.0)
+            .await
+            .expect_err("Setting distance readings to a bad value was OK");
     }
 
     #[tokio::test]
     async fn test_set_node_fullness() {
         let db = Database::new_in_memory().await.unwrap();
 
-        let fullnesses = [0.0, 0.5, 1.0];
+        // (fullness, temperature, humidity)
+        let data_points = [(0.0, 1.0, 3.0), (0.5, 2.0, 2.0), (1.0, 3.0, 1.0)];
 
         let mut ids = Vec::new();
-        for _ in 0..fullnesses.len() {
+        for _ in 0..data_points.len() {
             ids.push(db.insert_node().await.unwrap());
         }
 
         // Test the initial values
         let new_node = db.get_node(ids[0], None).await.unwrap().unwrap();
         assert_eq!(new_node.fullness, 0.0);
-        assert_eq!(new_node.fullness_last_updated.naive_utc().timestamp(), 0);
+        assert_eq!(new_node.data_last_updated.naive_utc().timestamp(), 0);
 
         // Check that setting it actually sets it and updates the time
-        for i in 0..fullnesses.len() {
-            db.set_node_fullness(ids[i], fullnesses[i]).await.unwrap();
+        for i in 0..data_points.len() {
+            let data = data_points[i];
+            db.set_node_data(ids[i], data.0, data.1, data.2)
+                .await
+                .unwrap();
             let node1 = db.get_node(ids[i], None).await.unwrap().unwrap();
-            assert_eq!(node1.fullness, fullnesses[i]);
-            assert_ne!(node1.fullness_last_updated.naive_utc().timestamp(), 0);
+            assert_eq!(node1.fullness, data.0);
+            assert_eq!(node1.temperature, data.1);
+            assert_eq!(node1.humidity, data.2);
+            assert_ne!(node1.data_last_updated.naive_utc().timestamp(), 0);
         }
 
         // Reject bad values
@@ -374,10 +425,26 @@ mod tests {
             f32::NEG_INFINITY,
         ];
         for fullness in invalid_fullnesses {
-            db.set_node_fullness(ids[0], fullness)
+            db.set_node_data(ids[0], fullness, 0.0, 0.0)
                 .await
                 .expect_err(format!("Fullness {fullness} was OK").as_str());
         }
+    }
+
+    #[tokio::test]
+    async fn test_set_get_user_last_email() {
+        let db = Database::new_in_memory().await.unwrap();
+        let id = db.insert_node().await.unwrap();
+        db.insert_user(EMAIL, PASSWORD_HASH).await.unwrap();
+        db.set_node_owner(id, None, Some(EMAIL)).await.unwrap();
+
+        assert!(db.get_user_last_email_time(EMAIL).await.unwrap().is_none());
+        let now = Utc::now();
+        db.set_user_last_email_time(EMAIL, now).await.unwrap();
+        assert_eq!(
+            db.get_user_last_email_time(EMAIL).await.unwrap().unwrap(),
+            now
+        );
     }
 
     const EMAIL: &str = "TeSt@ExAmPlE.cOm";

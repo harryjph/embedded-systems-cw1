@@ -30,7 +30,7 @@ function Map(props) {
 
   return (
     <div>
-      <MapContainer className="z-30 h-96 w-96" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
+      <MapContainer className="z-30 h-screen w-screen" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

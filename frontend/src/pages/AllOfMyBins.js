@@ -9,8 +9,8 @@ import { useNavigate } from "react-router-dom";
 function AllOfMyBinsPage() {
   const history = useNavigate();
 
-  function ReleaseFunction(variables) {
-    apiPostForm("/bins/" + variables.ID + "/release").then(() => {
+  function ReleaseBin(id) {
+    apiPostForm("/bins/" + id + "/release").then(() => {
       history("/unowned-bins");
     });
   }
@@ -43,7 +43,7 @@ function AllOfMyBinsPage() {
       <Layout />
       <div className="flex p-5">
         <div className="flex-auto insert-0">
-          <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
+          <BinsList PostRequest={ReleaseBin} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
         </div>
       </div>
     </div>

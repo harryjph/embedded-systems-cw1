@@ -86,36 +86,6 @@ function BinsList(props) {
         {binsWidgets}
     </div>
   </div>;
-
-{/*
-        {binValue && (
-          <ModalUserDefined 
-            isOpen={binValue} 
-            ID={props.ID} 
-            onCancel={cancelHandler} 
-            PostRequest={props.PostRequest} 
-          />
-        )}
-
-        {renameBinValue && (
-          <AddModalWithRenameSupport
-            ID={props.ID}
-            Name={props.Name}
-            Latitude={props.Latitude}
-            Longitude={props.Longitude}
-            Fullness={props.Fullness}
-            EmptyDistanceReading={props.EmptyDistanceReading}
-            FullDistanceReading={props.FullDistanceReading}
-            onCancel={cancelHandler}
-          />
-        )}
-
-        {renameBinValue && 
-          <Backdrop 
-            onClick={cancelHandler} 
-          />
-        }
-*/}
 }
 
 export default BinsList;

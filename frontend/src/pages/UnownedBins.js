@@ -8,8 +8,9 @@ import { useNavigate } from "react-router-dom";
 function UnclaimedBinsPage() {
   const history = useNavigate();
 
-  function ClaimFunction(variables) {
-    apiPostForm("/bins/" + variables.ID + "/claim").then(() => {
+  function ClaimBin(id) {
+    debugger;
+    apiPostForm("/bins/" + id + "/claim").then(() => {
       history("/my-bins");
     });
   }
@@ -46,7 +47,7 @@ function UnclaimedBinsPage() {
   return (
     <div>
       <Layout />
-      <BinsList PostRequest={ClaimFunction} Text={"Claim"} AllData={loadedBins} showPropertiesButton={false} />
+      <BinsList PostRequest={ClaimBin} Text={"Claim"} AllData={loadedBins} showPropertiesButton={false} />
     </div>
   );
 }

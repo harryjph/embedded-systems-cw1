@@ -1,13 +1,13 @@
 import React from "react";
+import { useCallback } from 'react';
 import { Button } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 function ModalUserDefined(props) {
+  const onConfirm = useCallback(() => {
+        props.PostRequest(props.ID);
+  }, [props.ID]);
 
-  function onConfirm() {
-        props.PostRequest({ ID: props.ID });
-
-  }
   return (
     <div className="modal">
       <div className="text-center">

@@ -5,7 +5,6 @@ import Backdrop from "../BasicComponents/Backdrop.js";
 import Card from "../ui/Card.js";
 
 function Bin(props) {
-
   const binName = props.Name === "" ? "Unnamed (ID: " + props.ID + ")" : props.Name;
 
   const propertiesButton = props.showPropertiesButton ? <button
@@ -13,9 +12,9 @@ function Bin(props) {
     onClick={props.foofunctionSeeRenamingModalAndBackdrop}
   >Properties</button> : <div />;
 
-  function showMap() {
+  const showMap = useCallback(() => {
     props.foofunctionSeeMap([props.ID]);
-  }
+  }, [props.foofunctionSeeMap, props.ID]);
 
   return (
     <Card className="block w-72">

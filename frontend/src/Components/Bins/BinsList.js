@@ -13,7 +13,7 @@ import { useState } from "react";
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
   const [MapData, setMapData] = useState([]);
-  const [SeeModalAndBackdrop, setSeeModalAndBackdrop] = useState(false);
+  const [modalAndBackdropFor, setModalAndBackdropFor] = useState(-1);
   const [SeeRenamingModalAndBackdrop, setSeeRenamingModalAndBackdrop] = useState(false);
 
   function SeeRoutingMap(){
@@ -27,8 +27,8 @@ function BinsList(props) {
     setSeeMap(true);
   }
 
-  function functionSeeModalAndBackdrop() {
-    setSeeModalAndBackdrop(true);
+  function functionSeeModalAndBackdrop(id) {
+    setModalAndBackdropFor(id);
   }
 
   function functionSeeRenamingModalAndBackdrop() {
@@ -37,12 +37,13 @@ function BinsList(props) {
 
   function cancelModal() {
     setSeeMap(false);
-    setSeeModalAndBackdrop(false);
+    setModalAndBackdropFor(-1);
     setSeeRenamingModalAndBackdrop(false);
   }
 
-  let binsWidgets = props.AllData.map((bin) => (
-    <Bin
+  let binsWidgets = props.AllData.map((bin) => {
+    const seeModal = modalAndBackdropFor === bin.id;
+    return <Bin
       PostRequest={props.PostRequest}
       Text={props.Text}
       key={bin.id}
@@ -56,15 +57,15 @@ function BinsList(props) {
       showPropertiesButton={props.showPropertiesButton}
 
       varSeeMap={SeeMap}
-      varSeeModalAndBackdrop={SeeModalAndBackdrop}
+      varSeeModalAndBackdrop={seeModal}
       varSeeRenamingModalAndBackdrop={SeeRenamingModalAndBackdrop}
 
       foofunctionSeeMap={functionSeeMap}
       foofunctionSeeModalAndBackdrop={functionSeeModalAndBackdrop}
       foofunctionSeeRenamingModalAndBackdrop={functionSeeRenamingModalAndBackdrop}
       foocancelModal={cancelModal}
-    />
-  ));
+    />;
+  });
 
   return <div>
     <div className="flex items-center justify-center m-5">
@@ -75,7 +76,7 @@ function BinsList(props) {
       </button>
     </div>
     <div className="flex flex-wrap w-[calc(100vw-2.5rem)] justify-center gap-x-1">
-        {(SeeModalAndBackdrop || SeeRenamingModalAndBackdrop || SeeMap) && 
+        {(modalAndBackdropFor >= 0 || SeeRenamingModalAndBackdrop || SeeMap) && 
           (<Backdrop 
             onClick={cancelModal}
             />)

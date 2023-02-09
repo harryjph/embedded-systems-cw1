@@ -9,7 +9,6 @@ function UnclaimedBinsPage() {
   const history = useNavigate();
 
   function ClaimBin(id) {
-    debugger;
     apiPostForm("/bins/" + id + "/claim").then(() => {
       history("/my-bins");
     });

@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 # Graph Algorithms
-mwmatching="0.1.1"
+mwmatching = "0.1.1"
+bimap = "0.6.2"

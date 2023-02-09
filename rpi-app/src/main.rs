@@ -33,7 +33,7 @@ async fn main() {
 
     loop {
         if let Err(e) = run_app(&mut config, &mut temperature_sensor, &mut proximity_sensor).await {
-            eprintln!("Error: {e}");
+            eprintln!("Error: {e:?}");
             sleep(Duration::from_secs(1)).await;
         }
     }
@@ -73,6 +73,7 @@ async fn run_app<T, P>(
             Some(Err(join_error)) => return Err(Error::new(join_error).context("Error checking on sensor stream")),
             None => {},
         }
+        interval_timer.tick().await;
         let reading = SensorData {
             id,
             distance: proximity_sensor
@@ -88,12 +89,11 @@ async fn run_app<T, P>(
                 .await
                 .describe_error("Could not take humidity reading")?,
         };
-        println!("Reading: {reading:?}");
-        client_readings_in
+        if let Err(_) = client_readings_in
             .send(reading)
-            .await
-            .describe_error("Failed to send reading")?;
-        interval_timer.tick().await;
+            .await {
+            eprintln!("Warning: Failed to send value. The sensor stream probably shut down")
+        }
     }
 }
 

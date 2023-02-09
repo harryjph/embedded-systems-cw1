@@ -119,39 +119,35 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
         let mut stream = request.into_inner();
         while let Some(sensor_data) = stream.next().await {
             let sensor_data = sensor_data?;
-            if let Some(node) = self.db.get_node(sensor_data.id, None).await.map_err(|_| {
-                Status::aborted(format!(
-                    "Unable to get node with id: {} from database.",
-                    sensor_data.id
-                ))
-            })? {
-                let fullness = (sensor_data.distance - node.empty_distance_reading)
-                    / (node.full_distance_reading - node.empty_distance_reading);
+            let node = self.db.get_node(sensor_data.id, None)
+                .await
+                .map_err(|_| Status::aborted("Unable to get node from database."))?
+                .ok_or(Status::aborted("Could not find node in database"))?;
 
-                if let Some(email) = node.owner {
-                    self.handle_email(&email, fullness).await?;
-                }
+            let fullness = (node.empty_distance_reading - sensor_data.distance)
+                / (node.empty_distance_reading - node.full_distance_reading);
 
-                self.db
-                    .set_node_data(
-                        sensor_data.id,
-                        fullness.clamp(0.0, 1.0),
-                        sensor_data.temperature,
-                        sensor_data.relative_humidity,
-                    )
-                    .await
-                    .map_err(|_| {
-                        Status::aborted(format!(
-                            "Unable to update fullness of bin with id: {}.",
-                            sensor_data.id
-                        ))
-                    })?;
-            } else {
-                eprintln!(
-                    "Node with id: {} does not exist within database yet it sent something.",
-                    sensor_data.id
-                );
+            if let Some(email) = node.owner {
+                self.handle_email(&email, fullness).await?;
             }
+
+            let filtered_fullness = if fullness.is_nan() {
+                node.fullness
+            } else {
+                fullness.clamp(0.0, 1.0)
+            };
+
+            self.db
+                .set_node_data(
+                    sensor_data.id,
+                    filtered_fullness,
+                    sensor_data.temperature,
+                    sensor_data.relative_humidity,
+                )
+                .await
+                .map_err(|e| {
+                    Status::aborted(format!("Unable to update fullness: {e:?}."))
+                })?;
         }
         Ok(Response::new(Empty::default()))
     }

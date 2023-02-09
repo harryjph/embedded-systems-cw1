@@ -1,7 +1,7 @@
 use std::hash::{Hash, Hasher};
 use crate::node::Node; 
 
-#[derive (PartialEq, Copy, Clone)]
+#[derive (PartialEq, Copy, Clone, Debug)]
 pub
 struct Link{
     pub nodes: [u32; 2], //just save the node ids here so link can be copied and does not have to be mutable

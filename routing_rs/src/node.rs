@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Node {
     pub x_coord: f64,
     pub y_coord: f64,
@@ -20,7 +20,7 @@ impl Hash for Node {
 impl Eq for Node {}
 
 impl Node {
-    fn new(x_coord: f64, y_coord: f64, node_id: u32, capacity: f64) -> Node{
+    pub fn new(x_coord: f64, y_coord: f64, node_id: u32, capacity: f64) -> Node{
         Self {
             x_coord, 
             y_coord, 

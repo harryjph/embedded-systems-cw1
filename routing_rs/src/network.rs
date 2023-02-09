@@ -48,7 +48,7 @@ impl Network{
 
     fn get_cost(&self, node1: u32, node2: u32) -> f64 {
         for link in self.links.iter(){
-            if link.is_link(node1, Some(node1)){
+            if link.is_link(node1, Some(node2)){
                 return link.cost;
             }
         }
@@ -73,12 +73,12 @@ impl Network{
     // TODO check if I need the original copy of Node to track the change
     // I don't think it should because the only change to the node concerns the 
     // fill level which should be updated at network level
-    fn min_cost(&self, costs: &HashMap<u32, (f64, Link)>) -> Node{
+    fn min_cost(&self, costs: &HashMap<u32, (f64, Link)>) -> u32{
         let mut min_cost: f64 = self.max_cost;
-        let mut min_node: Node = self.start_point; 
+        let mut min_node: u32= self.start_point.node_id; 
         for (node, cost) in costs.iter(){
             if cost.0 < min_cost {
-                min_node = self.nodes[node];
+                min_node = *node;
                 min_cost = cost.0;
             }
         }
@@ -88,12 +88,14 @@ impl Network{
     fn update_costs(&self, node: u32, nodes: &Vec<u32>, costs: HashMap<u32, (f64, Link)>) -> HashMap<u32, (f64, Link)> {
         let mut new_costs: HashMap<u32, (f64,Link)> = HashMap::new();
         for new_node in nodes.iter(){
-            let cost: f64 = self.get_cost(*new_node, node);
-            if cost < costs[new_node].0 {
-                let link = self.get_link(node,*new_node);
-                new_costs.insert(*new_node, (cost, link.unwrap()));
-            } else {
-                new_costs.insert(*new_node, costs[new_node]);
+            if *new_node != node {
+                let cost: f64 = self.get_cost(*new_node, node);
+                if cost < costs[new_node].0 {
+                    let link = self.get_link(node,*new_node);
+                    new_costs.insert(*new_node, (cost, link.unwrap()));
+                } else {
+                    new_costs.insert(*new_node, costs[new_node]);
+                }
             }
         }
         return new_costs;
@@ -130,7 +132,7 @@ impl Network{
                 active_nodes.retain(|node| {*node != self.start_point.node_id});
                 costs = self.init_costs(&active_nodes);
             } else {
-                let min_cost_node = self.min_cost(&costs).node_id;
+                let min_cost_node = self.min_cost(&costs);
                 let link = costs[&min_cost_node].1;
                 mst_links.push(link);
                 mst_nodes.push(link.nodes[0]);
@@ -280,7 +282,7 @@ impl Network{
         let first_link = links[0];
         let mut last_node = first_link.nodes[0];
         let start_node = last_node; 
-        links.retain(|used_link| {*used_link == first_link});
+        links.retain(|used_link| {*used_link != first_link});
         
         while links.len() != 0 {
             let (_, mut path_to_end) = self.beginning_of_end(start_node, &links);
@@ -390,9 +392,268 @@ impl Network{
 }
 
 mod tests {
+
     use super::*;
     #[test]
     fn test_min_cost(){
-        todo!()
+        let node_id: Vec<u32> = (1..=6).collect(); 
+        let nodes = HashMap::from([
+            (1, Node::new(0.0, 1.0, 0, 0.7)), 
+            (2, Node::new(0.0, 1.0, 0, 0.7)), 
+            (3, Node::new(0.0, 1.0, 0, 0.7)), 
+            (4, Node::new(0.0, 1.0, 0, 0.7)), 
+            (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            (6, Node::new(0.0, 1.0, 0, 0.7)), 
+        ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 10.0};
+        let link13 = Link{nodes: [1,3], cost : 15.0};
+        let link14 = Link{nodes: [1,4], cost : 9.0};
+        let link15 = Link{nodes: [1,5], cost : 5.0};
+        let link23 = Link{nodes: [3,2], cost : 17.0};
+        let link24 = Link{nodes: [4,2], cost : 10.0};
+        let link25 = Link{nodes: [5,2], cost : 11.0};
+        let link34 = Link{nodes: [3,4], cost : 1.0};
+        let link35 = Link{nodes: [5,3], cost : 4.0};
+        let link45 = Link{nodes: [5,4], cost : 20.0};
+        let link16 = Link{nodes: [1,6], cost : 21.0};
+        let link26 = Link{nodes: [2,6], cost : 15.0};
+        let link36 = Link{nodes: [3,6], cost : 13.0};
+        let link46 = Link{nodes: [4,6], cost : 2.0};
+        let link56 = Link{nodes: [5,6], cost : 25.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        links.push(link16);
+        links.push(link26);
+        links.push(link36);
+        links.push(link46);
+        links.push(link56);
+        let costs = HashMap::from([
+            (1, (5.0, link12)),
+            (2, (4.0, link23)),
+            (3, (6.0, link34)),
+        ]);
+        let nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 0, 0.8), max_cost: 100.0};
+        let min_node = nw.min_cost(&costs); 
+        assert_eq!(min_node, 2);
+    }
+
+    #[test]
+    fn test_update_cost(){
+        let nodes = HashMap::from([
+               (1, Node::new(0.0, 1.0, 0, 0.7)), 
+               (2, Node::new(0.0, 1.0, 0, 0.7)), 
+               (3, Node::new(0.0, 1.0, 0, 0.7)), 
+               (4, Node::new(0.0, 1.0, 0, 0.7)), 
+               (5, Node::new(0.0, 1.0, 0, 0.7)), 
+               (6, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+            let mut links: Vec<Link> = Vec::new(); 
+            let link12 = Link{nodes: [1,2], cost : 10.0};
+            let link13 = Link{nodes: [1,3], cost : 15.0};
+            let link14 = Link{nodes: [1,4], cost : 9.0};
+            let link15 = Link{nodes: [1,5], cost : 5.0};
+            let link23 = Link{nodes: [3,2], cost : 17.0};
+            let link24 = Link{nodes: [4,2], cost : 10.0};
+            let link25 = Link{nodes: [5,2], cost : 11.0};
+            let link34 = Link{nodes: [3,4], cost : 1.0};
+            let link35 = Link{nodes: [5,3], cost : 4.0};
+            let link45 = Link{nodes: [5,4], cost : 20.0};
+            let link16 = Link{nodes: [1,6], cost : 21.0};
+            let link26 = Link{nodes: [2,6], cost : 15.0};
+            let link36 = Link{nodes: [3,6], cost : 13.0};
+            let link46 = Link{nodes: [4,6], cost : 2.0};
+            let link56 = Link{nodes: [5,6], cost : 25.0};
+            links.push(link12);
+            links.push(link13);
+            links.push(link14);
+            links.push(link15);
+            links.push(link23);
+            links.push(link24);
+            links.push(link25);
+            links.push(link34);
+            links.push(link35);
+            links.push(link45);
+            links.push(link16);
+            links.push(link26);
+            links.push(link36);
+            links.push(link46);
+            links.push(link56);
+            let costs = HashMap::from([
+                (1, (5.0, link12)),
+                (2, (4.0, link23)),
+                (3, (6.0, link34)),
+            ]);   
+            let mut new_nodes: Vec<u32> = Vec::new();
+            new_nodes.push(1);
+            new_nodes.push(2);
+            new_nodes.push(3);
+            let nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 0, 0.8), max_cost: 100.0};
+            let new_costs = nw.update_costs(4, &new_nodes, costs);
+            let min_node = nw.min_cost(&new_costs);
+            assert_eq!(min_node, 3)
+
+    }
+
+    #[test]
+    fn test_get_odd(){
+        let nodes = HashMap::from([
+               (1, Node::new(0.0, 1.0, 0, 0.7)), 
+               (2, Node::new(0.0, 1.0, 0, 0.7)), 
+               (3, Node::new(0.0, 1.0, 0, 0.7)), 
+               (4, Node::new(0.0, 1.0, 0, 0.7)), 
+               (5, Node::new(0.0, 1.0, 0, 0.7)), 
+               (6, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+        let mut links = Vec::new(); 
+        links.push(Link{nodes: [1,2], cost: 1.0});
+        links.push(Link{nodes: [1,3], cost: 2.0});
+        links.push(Link{nodes: [1,4], cost: 3.0});
+        links.push(Link{nodes: [4,5], cost: 4.0});
+        links.push(Link{nodes: [3,4], cost: 5.0});
+        let nodes_id = (1..6).collect();
+        let mut links_2 = Vec::new();
+        links_2.push(Link{nodes: [1,2], cost: 1.0});
+        links_2.push(Link{nodes: [1,3], cost: 2.0});
+        links_2.push(Link{nodes: [1,4], cost: 3.0});
+        links_2.push(Link{nodes: [4,5], cost: 4.0});
+        links_2.push(Link{nodes: [3,4], cost: 5.0});
+        let nw = Network{nodes,links: links_2, start_point: Node::new(0.0, 0.0, 0, 0.8), max_cost: 100.0};
+        let (odd_nodes, odd_links) = nw.get_odd(&links, nodes_id);
+        assert_eq!(odd_nodes.len(), 4);
+        assert!(!odd_nodes.contains(&3));
+    }
+
+    #[test]
+    fn test_mst(){
+        let nodes = HashMap::from([
+               (1, Node::new(0.0, 1.0, 0, 0.7)),                 
+               (2, Node::new(0.0, 1.0, 0, 0.7)),             
+               (3, Node::new(0.0, 1.0, 0, 0.7)),         
+               (4, Node::new(0.0, 1.0, 0, 0.7)), 
+               (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 3.0};
+        let link13 = Link{nodes: [1,3], cost : 1.0};
+        let link14 = Link{nodes: [1,4], cost : 8.0};
+        let link15 = Link{nodes: [1,5], cost : 9.0};
+        let link23 = Link{nodes: [3,2], cost : 5.0};
+        let link24 = Link{nodes: [4,2], cost : 7.0};
+        let link25 = Link{nodes: [5,2], cost : 6.0};
+        let link34 = Link{nodes: [3,4], cost : 1.0};
+        let link35 = Link{nodes: [5,3], cost : 2.0};
+        let link45 = Link{nodes: [5,4], cost : 3.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        for (_, node) in nw.nodes.iter_mut(){
+            node.update_fill_level(Some(1.0));
+        }
+        let (mst_links, mst_nodes) = nw.prims_mst(); 
+        assert!(mst_links.contains(&link12));
+    }
+
+    #[test]
+    fn test_euler(){
+        let nodes = HashMap::from([
+                (1, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (2, Node::new(0.0, 1.0, 0, 0.7)),             
+                (3, Node::new(0.0, 1.0, 0, 0.7)),         
+                (4, Node::new(0.0, 1.0, 0, 0.7)), 
+                (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 3.0};
+        let link13 = Link{nodes: [1,3], cost : 1.0};
+        let link14 = Link{nodes: [1,4], cost : 8.0};
+        let link15 = Link{nodes: [1,5], cost : 9.0};
+        let link23 = Link{nodes: [3,2], cost : 5.0};
+        let link24 = Link{nodes: [4,2], cost : 7.0};
+        let link25 = Link{nodes: [5,2], cost : 6.0};
+        let link34 = Link{nodes: [3,4], cost : 1.0};
+        let link35 = Link{nodes: [5,3], cost : 2.0};
+        let link45 = Link{nodes: [5,4], cost : 3.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        let mut all_links = Vec::new();
+        all_links.push(link12);
+        all_links.push(link13);
+        all_links.push(link14);
+        all_links.push(link15);
+        all_links.push(link23);
+        all_links.push(link45);
+        let euler_tour = nw.euler_tour(all_links);
+        println!("{euler_tour:?}");
+        assert_eq!(euler_tour.len(), 6)
+    }
+
+
+    #[test]
+    fn test_hamilton(){
+        let nodes = HashMap::from([
+                (1, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (2, Node::new(0.0, 1.0, 0, 0.7)),                     
+                (3, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (4, Node::new(0.0, 1.0, 0, 0.7)), 
+                (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 3.0};
+        let link13 = Link{nodes: [1,3], cost : 1.0};
+        let link14 = Link{nodes: [1,4], cost : 8.0};
+        let link15 = Link{nodes: [1,5], cost : 9.0};
+        let link23 = Link{nodes: [3,2], cost : 5.0};
+        let link24 = Link{nodes: [4,2], cost : 7.0};
+        let link25 = Link{nodes: [5,2], cost : 6.0};
+        let link34 = Link{nodes: [3,4], cost : 1.0};
+        let link35 = Link{nodes: [5,3], cost : 2.0};
+        let link45 = Link{nodes: [5,4], cost : 3.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        let mut all_links = Vec::new();
+        all_links.push(link12);
+        all_links.push(link13);
+        all_links.push(link14);
+        all_links.push(link15);
+        all_links.push(link23);
+        all_links.push(link45);
+        let mut euler_tour = nw.euler_tour(all_links);
+        let hamiltonian_cycle = nw.hamiltonian_cycle(& mut euler_tour);
+        assert_eq!(hamiltonian_cycle.len(), 5);
     }
 }

@@ -68,6 +68,9 @@ function BinsList(props) {
 
   return <div className="flex flex-wrap w-[calc(100vw-2.5rem)] justify-center gap-x-1">
 
+        <div className="container flex flex-wrap items-center justify-center m-10">
+          <button onClick={SeeRoutingMap}>Hello!</button>
+        </div>
       {(SeeModalAndBackdrop || SeeRenamingModalAndBackdrop || SeeMap) && 
         (<Backdrop 
           onClick={cancelModal}

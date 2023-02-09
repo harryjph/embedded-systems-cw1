@@ -77,7 +77,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                     return Ok(());
                 }
             }
-            self.mailer
+            let _ = self.mailer
                 .send_email(
                     email.to_string(),
                     "Bin Bot".to_string(),
@@ -87,7 +87,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                         .to_string(),
                 )
                 .await
-                .map_err(|e| eprintln!("Warning: Failed to send email: {e}")).unwrap();
+                .map_err(|e| eprintln!("Warning: Failed to send email: {e}"));
             self.db
                 .set_user_last_email_time(email, now)
                 .await

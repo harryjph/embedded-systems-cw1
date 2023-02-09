@@ -1,5 +1,6 @@
 use crate::link::{Link, self}; 
 use crate::node::{Node, self}; 
+use crate::matching;
 use std::cmp::min;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -369,7 +370,8 @@ impl Network{
         // get all vertices with odd number of connections 
         let (nodes_odd, links_odd) = self.get_odd(&mst_links, self.nodes.keys().cloned().collect());
         // get mwpf 
-        let min_w: Vec<Link> = Vec::new();
+        let min_w_tup: Vec<(u32,u32)> = matching::mwmatching(&links_odd);
+        let min_w: Vec<Link>= min_w_tup.into_iter().map(|(node1, node2)| self.get_link(node1, node2).unwrap()).collect();
         // add nodes and links from mst nodes and links
         mst_links.extend(min_w);
         // get eulerian tour 
@@ -384,5 +386,13 @@ impl Network{
             prev_node = other; 
         }
         return final_ids;
+    }
+}
+
+mod tests {
+    use super::*;
+    #[test]
+    fn test_min_cost(){
+        todo!()
     }
 }

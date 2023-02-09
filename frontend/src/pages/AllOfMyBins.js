@@ -42,11 +42,10 @@ function AllOfMyBinsPage() {
     <div>
       <Layout />
       <div className="flex p-5">
-        <div className="flex-auto">
-          {/* <Map AllData={loadedBins} /> */}
+        <div className="container flex flex-wrap items-center justify-center">
+          <button>Hello!</button>
         </div>
-
-        <div className="flex-auto">
+        <div className="flex-auto insert-0">
           <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
         </div>
       </div>

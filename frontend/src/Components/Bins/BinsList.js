@@ -1,5 +1,4 @@
 import Bin from "./Bin.js";
-import { useState } from "react";
 
 import ModalUserDefined from "../BasicComponents/ModalUserDefined.js";
 import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRenameSupport.js";
@@ -9,12 +8,22 @@ import MapModal from "../Map/MapModal.js";
 
 import useOutsideAlerter from "../BasicComponents/CustomHook";
 
+import { useState } from "react";
+
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
+  const [MapData, setMapData] = useState([]);
   const [SeeModalAndBackdrop, setSeeModalAndBackdrop] = useState(false);
   const [SeeRenamingModalAndBackdrop, setSeeRenamingModalAndBackdrop] = useState(false);
 
-  function functionSeeMap() {
+  function SeeRoutingMap(){
+    setMapData(props.AllData);
+    setSeeMap(true);
+  }
+
+  function functionSeeMap(mapIds) {
+    let mapData = props.AllData.filter((bin) => mapIds.includes(bin.id));
+    setMapData(mapData);
     setSeeMap(true);
   }
 
@@ -65,7 +74,7 @@ function BinsList(props) {
           />)
         }
       {
-        (SeeMap) && (<MapModal AllData={props.AllData}/>)
+        (SeeMap) && (<MapModal AllData={MapData}/>)
       }
       {binsWidgets}
   </div>;

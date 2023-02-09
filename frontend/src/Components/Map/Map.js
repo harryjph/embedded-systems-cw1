@@ -29,7 +29,7 @@ function Map(props) {
   const avgLong = tot[1]/props.AllData.length;
 
   return (
-    <div>
+    <div className="flex">
       <MapContainer className="z-30 h-screen w-screen" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

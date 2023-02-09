@@ -185,6 +185,7 @@ impl Network{
         let mut all_odd_links: Vec<Link> = Vec::new(); 
         for (_, odd_links) in all_links_by_node.iter_mut(){
             all_odd_links.append(odd_links);
+            all_odd_links.retain(|link| {odd_nodes.contains(&link.nodes[0]) && odd_nodes.contains(&link.nodes[1])});
         }
         return (odd_nodes, all_odd_links)
     }
@@ -374,7 +375,7 @@ impl Network{
         // get all vertices with odd number of connections 
         let (nodes_odd, links_odd) = self.get_odd(&mst_links, self.nodes.keys().cloned().collect());
         // get mwpf 
-        let min_w_tup: Vec<(u32,u32)> = matching::mwmatching(&links_odd);
+        let min_w_tup: Vec<(u32,u32)> = matching::mwmatching(&nodes_odd, &links_odd);
         let min_w: Vec<Link>= min_w_tup.into_iter().map(|(node1, node2)| self.get_link(node1, node2).unwrap()).collect();
         // add nodes and links from mst nodes and links
         mst_links.extend(min_w);
@@ -531,6 +532,7 @@ mod tests {
         let nw = Network{nodes,links: links_2, start_point: Node::new(0.0, 0.0, 0, 0.8), max_cost: 100.0};
         let (odd_nodes, odd_links) = nw.get_odd(&links, nodes_id);
         assert_eq!(odd_nodes.len(), 4);
+        assert_eq!(odd_links.len(), 4);
         assert!(!odd_nodes.contains(&3));
     }
 
@@ -719,5 +721,41 @@ mod tests {
           //  assert_eq!(link.len(), 2);
      //   }
     }
-    
+
+    #[test]
+    fn test_christofides(){
+        let nodes = HashMap::from([
+                (1, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (2, Node::new(0.0, 1.0, 0, 0.7)),                     
+                (3, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (4, Node::new(0.0, 1.0, 0, 0.7)), 
+                (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 3.0};
+        let link13 = Link{nodes: [1,3], cost : 4.0};
+        let link14 = Link{nodes: [1,4], cost : 2.0};
+        let link15 = Link{nodes: [1,5], cost : 5.0};
+        let link23 = Link{nodes: [3,2], cost : 5.0};
+        let link24 = Link{nodes: [4,2], cost : 7.0};
+        let link25 = Link{nodes: [5,2], cost : 15.0};
+        let link34 = Link{nodes: [3,4], cost : 9.0};
+        let link35 = Link{nodes: [5,3], cost : 10.0};
+        let link45 = Link{nodes: [5,4], cost : 3.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        for (_, node) in nw.nodes.iter_mut(){
+            node.update_fill_level(Some(1.0));
+        }
+        let mut hamilton = nw.christofides();
+    }
 }

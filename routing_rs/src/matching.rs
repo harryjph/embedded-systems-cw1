@@ -12,7 +12,7 @@ pub fn mwmatching(nodes: &Vec<u32>, links: &Vec<Link>) -> Vec<(u32, u32)> {
             (map.get_by_left(&link.nodes[0]).unwrap().clone(), map.get_by_left(&link.nodes[1]).unwrap().clone(), -link.cost as i32)
         }
     ).collect();
-    let connections = Matching::new(edges).solve();
+    let connections = Matching::new(edges).max_cardinality().solve();
     let mut edgemap = HashMap::new();
     for i in 0..connections.len() {
         let (less, more) =  if i <  connections[i] { (i, connections[i]) } else { (connections[i], i) };
@@ -20,7 +20,8 @@ pub fn mwmatching(nodes: &Vec<u32>, links: &Vec<Link>) -> Vec<(u32, u32)> {
             edgemap.insert(less as u32, more as u32);
         }
     }
-    edgemap.iter().map(|(a, b)| (*map.get_by_right(&(*a as usize)).unwrap().clone(), *map.get_by_right(&(*b as usize)).unwrap().clone())).collect::<Vec<(u32, u32)>>()
+    let ret =edgemap.iter().map(|(a, b)| (*map.get_by_right(&(*a as usize)).unwrap().clone(), *map.get_by_right(&(*b as usize)).unwrap().clone())).collect::<Vec<(u32, u32)>>();
+    ret
 }
 
 #[cfg(test)]

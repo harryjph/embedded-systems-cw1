@@ -336,6 +336,7 @@ impl Network{
                     orphan = prev_node; 
                 }
                 prev_node = other; 
+                needs_relaxation = true; 
             } else {
                 if needs_relaxation {
                     // do relaxation
@@ -363,6 +364,7 @@ impl Network{
         debug_assert!(incomplete_nodes.len() == 2);
         let closing_link = self.get_link(incomplete_nodes[0], incomplete_nodes[1]).unwrap();
         relaxed_links.push(closing_link);
+        //println!({"relaxed_links:?"});
         return relaxed_links;
     }
     
@@ -656,4 +658,66 @@ mod tests {
         let hamiltonian_cycle = nw.hamiltonian_cycle(& mut euler_tour);
         assert_eq!(hamiltonian_cycle.len(), 5);
     }
+
+    #[test]
+    fn test_hamilton_2(){
+        let nodes = HashMap::from([
+            (1, Node::new(0.0, 1.0, 0, 0.7)), 
+            (2, Node::new(0.0, 1.0, 0, 0.7)), 
+            (3, Node::new(0.0, 1.0, 0, 0.7)), 
+            (4, Node::new(0.0, 1.0, 0, 0.7)), 
+            (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            (6, Node::new(0.0, 1.0, 0, 0.7)), 
+        ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 3.0};
+        let link13 = Link{nodes: [1,3], cost : 1.0};
+        let link14 = Link{nodes: [1,4], cost : 8.0};
+        let link15 = Link{nodes: [1,5], cost : 9.0};
+        let link23 = Link{nodes: [3,2], cost : 5.0};
+        let link24 = Link{nodes: [4,2], cost : 7.0};
+        let link25 = Link{nodes: [5,2], cost : 6.0};
+        let link34 = Link{nodes: [3,4], cost : 1.0};
+        let link35 = Link{nodes: [5,3], cost : 20.0};
+        let link45 = Link{nodes: [5,4], cost : 5.0};
+        let link16 = Link{nodes: [1,6], cost : 1.0};
+        let link26 = Link{nodes: [2,6], cost : 2.0};
+        let link36 = Link{nodes: [3,6], cost : 3.0};
+        let link46 = Link{nodes: [4,6], cost : 10.0};
+        let link56 = Link{nodes: [5,6], cost : 8.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        links.push(link16);
+        links.push(link26);
+        links.push(link36);
+        links.push(link46);
+        links.push(link56);
+        let mut all_links = Vec::new();
+        all_links.push(link12);
+        all_links.push(link13);
+        all_links.push(link14);
+        all_links.push(link15);
+        all_links.push(link23);
+        all_links.push(link45);
+        all_links.push(link24);
+        all_links.push(link46);
+        all_links.push(link26);
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        let mut euler_tour = nw.euler_tour(all_links);
+        let hamiltonian_cycle = nw.hamiltonian_cycle(& mut euler_tour);
+        let nodes_ids: Vec<u32> = (1..7).collect();
+        let by_node = nw.links_per_node(&hamiltonian_cycle, &nodes_ids, None);
+        //for (node, link) in by_node.iter(){
+          //  assert_eq!(link.len(), 2);
+     //   }
+    }
+    
 }

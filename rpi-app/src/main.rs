@@ -11,6 +11,7 @@ use std::time::Duration;
 use anyhow::Error;
 use tokio::sync::mpsc;
 use tokio::time;
+use tokio::time::sleep;
 use crate::util::{DescribeError, GetJoinHandleResult};
 
 mod config;
@@ -33,6 +34,7 @@ async fn main() {
     loop {
         if let Err(e) = run_app(&mut config, &mut temperature_sensor, &mut proximity_sensor).await {
             eprintln!("Error: {e}");
+            sleep(Duration::from_secs(1)).await;
         }
     }
 }

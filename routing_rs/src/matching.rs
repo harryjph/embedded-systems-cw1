@@ -1,13 +1,17 @@
 use mwmatching::*;
 use crate::link::Link;
 use std::collections::HashMap;
+use bimap::BiMap;
 
-fn link_to_edge(link: &Link) -> Edge {
-    (link.nodes[0] as usize, link.nodes[1] as usize, -link.cost as i32)
-}
+pub fn mwmatching(nodes: &Vec<u32>, links: &Vec<Link>) -> Vec<(u32, u32)> {
+    let mut map = BiMap::new();
+    nodes.iter().enumerate().for_each(|(i, node)| { map.insert(node, i); } );
 
-pub fn mwmatching(links: &Vec<Link>) -> Vec<(u32, u32)> {
-    let edges = links.iter().map(link_to_edge).collect();
+    let edges = links.iter().map(
+        |link| {
+            (map.get_by_left(&link.nodes[0]).unwrap().clone(), map.get_by_left(&link.nodes[1]).unwrap().clone(), -link.cost as i32)
+        }
+    ).collect();
     let connections = Matching::new(edges).solve();
     let mut edgemap = HashMap::new();
     for i in 0..connections.len() {
@@ -16,7 +20,7 @@ pub fn mwmatching(links: &Vec<Link>) -> Vec<(u32, u32)> {
             edgemap.insert(less as u32, more as u32);
         }
     }
-    edgemap.iter().map(|(a, b)| (a.clone(), b.clone())).collect::<Vec<(u32, u32)>>()
+    edgemap.iter().map(|(a, b)| (*map.get_by_right(&(*a as usize)).unwrap().clone(), *map.get_by_right(&(*b as usize)).unwrap().clone())).collect::<Vec<(u32, u32)>>()
 }
 
 #[cfg(test)]
@@ -24,13 +28,16 @@ mod tests {
     use super::*;
     #[test]
     fn testmwmatchign() {
-        let n1 = Link{nodes: [0, 1], cost: 1.0};
-        let n2 = Link{nodes: [1, 2], cost: 10.9};
-        let n3 = Link{nodes: [2, 3], cost: 1.0};
-        let n4 = Link{nodes: [3, 0], cost: 10.0};
+        let n1 = Link{nodes: [123, 232], cost: 1.0};
+        let n2 = Link{nodes: [232, 323], cost: 10.9};
+        let n3 = Link{nodes: [323, 4345], cost: 1.0};
+        let n4 = Link{nodes: [4345, 123], cost: 10.0};
         let links = vec![n1, n2, n3, n4];
-        let matches = mwmatching(&links);
-        assert_eq!(matches[0], (0, 1));
-        assert_eq!(matches[1], (2, 3));
+        let matches = mwmatching(&vec![123,232,323,4345], &links);
+
+        println!("{matches:?}");
+
+        assert_eq!(matches[0], (123, 232));
+        assert_eq!(matches[1], (323, 4345));
     }
 }

@@ -1,9 +1,13 @@
 import {apiGet} from "../../API";
 import {useEffect, useState} from "react";
 import UserProfile from "./UserProfile.js";
+import {Dropdown} from "flowbite-react"
+import {AiOutlineUser} from "react-icons/ai";
+
 
 function MainNavigation() {
   const [email, setEmail] = useState("");
+  const [avatarDropdown, setAvatarDropdown] = useState(false);
 
   useEffect(() => {
     apiGet("/user")
@@ -30,13 +34,32 @@ function MainNavigation() {
           <div className="flex md:order-2">
             {/* <UserProfile email={email} Signout={logout}/> */}
 
-              <p>Logged in as {email}</p>
+            <Dropdown
+              onClick={() => setAvatarDropdown(!avatarDropdown)}
+              label={<AiOutlineUser/>}
+              // dismissOnClick={false}
+            >
+              {
+                avatarDropdown && 
+                (
+                  <div className="">
+                    <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                      <div className="font-medium truncate">{email}</div>
+                      <Dropdown.Item className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white" onClick={logout}>Sign out</Dropdown.Item>
+                    </div>
+                  </div>
+                )
+              }
+            </Dropdown>
+
+
+              {/* <p>Logged in as {email}</p>
               <button
                 onClick={logout}
                 className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
                 Sign out
-              </button> 
+              </button>  */}
           </div>
 
           <div className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-cta">

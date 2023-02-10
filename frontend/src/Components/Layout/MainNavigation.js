@@ -1,6 +1,5 @@
 import {apiGet} from "../../API";
 import {useEffect, useState} from "react";
-import UserProfile from "./UserProfile.js";
 import {Dropdown} from "flowbite-react"
 import {AiOutlineUser} from "react-icons/ai";
 

@@ -30,7 +30,7 @@ function Map(props) {
 
   return (
     <div className="flex">
-      <MapContainer className="z-30 h-screen w-screen" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
+      <MapContainer className="z-30" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -38,8 +38,8 @@ function Map(props) {
         {props.AllData.map((popup) => {
           return (
             <Marker position={[popup.config.latitude, popup.config.longitude]} key={popup.id}>
-              <Popup className="request-popup">
-                <IoIosTrash className="z-3 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+              <Popup>
+                <IoIosTrash className="z-30 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
                 <div className="m-2" style={popupHead}>
                   {popup.config.name}
                   <br />

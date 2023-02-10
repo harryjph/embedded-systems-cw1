@@ -41,11 +41,7 @@ function AllOfMyBinsPage() {
   return (
     <div>
       <Layout />
-      <div className="flex p-5">
-        <div className="flex-auto insert-0">
-          <BinsList PostRequest={ReleaseBin} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
-        </div>
-      </div>
+      <BinsList PostRequest={ReleaseBin} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
     </div>
   );
 }

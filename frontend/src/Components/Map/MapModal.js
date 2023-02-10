@@ -2,9 +2,9 @@ import Map from "./Map.js";
 import React from "react";
 
 const MapModal = (props) => (
-    <div className="z-20 h-95 h-fixed w-fixed w-95 fixed">
-        <Map AllData={props.AllData}/>
-    </div>
+        <div className="modal items-center justify-center fixed w-1/2 h-1/2">
+            <Map AllData={props.AllData}/>
+        </div>
     )
 
 export default MapModal;

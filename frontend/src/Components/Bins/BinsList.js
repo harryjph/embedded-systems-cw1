@@ -14,7 +14,7 @@ function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
   const [MapData, setMapData] = useState([]);
   const [modalAndBackdropFor, setModalAndBackdropFor] = useState(-1);
-  const [SeeRenamingModalAndBackdrop, setSeeRenamingModalAndBackdrop] = useState(false);
+  const [SeeRenamingModalAndBackdrop, setSeeRenamingModalAndBackdrop] = useState(-1);
 
   function SeeRoutingMap(){
     setMapData(props.AllData);
@@ -31,18 +31,21 @@ function BinsList(props) {
     setModalAndBackdropFor(id);
   }
 
-  function functionSeeRenamingModalAndBackdrop() {
-    setSeeRenamingModalAndBackdrop(true);
+  function functionSeeRenamingModalAndBackdrop(id) {
+    // console.log(id);
+    setSeeRenamingModalAndBackdrop(id);
   }
 
   function cancelModal() {
     setSeeMap(false);
     setModalAndBackdropFor(-1);
-    setSeeRenamingModalAndBackdrop(false);
+    setSeeRenamingModalAndBackdrop(-1);
   }
 
   let binsWidgets = props.AllData.map((bin) => {
     const seeModal = modalAndBackdropFor === bin.id;
+    const seeProperties = SeeRenamingModalAndBackdrop === bin.id;
+    {console.log(props.AllData)}
     return <Bin
       PostRequest={props.PostRequest}
       Text={props.Text}
@@ -58,7 +61,7 @@ function BinsList(props) {
 
       varSeeMap={SeeMap}
       varSeeModalAndBackdrop={seeModal}
-      varSeeRenamingModalAndBackdrop={SeeRenamingModalAndBackdrop}
+      varSeeRenamingModalAndBackdrop={seeProperties}
 
       foofunctionSeeMap={functionSeeMap}
       foofunctionSeeModalAndBackdrop={functionSeeModalAndBackdrop}
@@ -76,7 +79,7 @@ function BinsList(props) {
       </button>
     </div>
     <div className="flex flex-wrap w-[calc(100vw-2.5rem)] justify-center gap-x-1">
-        {(modalAndBackdropFor >= 0 || SeeRenamingModalAndBackdrop || SeeMap) && 
+        {(modalAndBackdropFor >= 0 || SeeRenamingModalAndBackdrop >= 0 || SeeMap) && 
           (<Backdrop 
             onClick={cancelModal}
             />)

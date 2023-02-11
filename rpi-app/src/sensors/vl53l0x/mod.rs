@@ -45,11 +45,8 @@ impl<D: I2CDevice> VL53L0X<D> {
             Err(Error::msg(format!("Invalid device: {who_am_i}")))
         }
     }
-}
 
-#[async_trait]
-impl<D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
-    async fn read_proximity(&mut self) -> Result<f32> {
+    fn take_reading(&mut self) -> Result<f32> {
         // Send a measure command
         self.write_register(0x80, 0x01)?;
         self.write_register(0xFF, 0x01)?;
@@ -69,5 +66,17 @@ impl<D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
         // Clear this before checking error
         self.write_register(Register::SYSTEM_INTERRUPT_CLEAR, 0x01)?;
         Ok(range_err? as f32 / 1000.0)
+    }
+}
+
+#[async_trait]
+impl<D: I2CDevice + Send> ProximitySensor for VL53L0X<D> {
+    async fn read_proximity(&mut self) -> Result<f32> {
+        let reading = self.take_reading()?;
+        if reading > 0.0 && reading <= 1.0 {
+            Ok(reading)
+        } else {
+            Ok(f32::NAN)
+        }
     }
 }

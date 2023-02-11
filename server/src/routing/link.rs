@@ -1,10 +1,10 @@
 use std::hash::{Hash, Hasher};
-use crate::node::Node; 
+use super::node::Node; 
 
 #[derive (PartialEq, Copy, Clone, Debug)]
 pub
 struct Link{
-    pub nodes: [u32; 2], //just save the node ids here so link can be copied and does not have to be mutable
+    pub nodes: [usize; 2], //just save the node ids here so link can be copied and does not have to be mutable
     pub cost: f64
 }
 
@@ -25,7 +25,7 @@ impl Link{
         
     }
 
-    pub fn is_link(&self, node1: u32, node2: Option<u32>) -> bool {
+    pub fn is_link(&self, node1: usize, node2: Option<usize>) -> bool {
         match node2{
             Some(node) => {
                 if self.nodes.contains(&node1) && self.nodes.contains(&node){
@@ -38,7 +38,7 @@ impl Link{
             }
         }
     }
-    pub fn other_node(&self, node: u32) -> u32{
+    pub fn other_node(&self, node: usize) -> usize{
         if node== self.nodes[1]{
             self.nodes[0]
         } else {

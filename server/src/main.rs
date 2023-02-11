@@ -17,6 +17,7 @@ mod mailer;
 mod timer;
 mod user_manager;
 mod utils;
+mod routing;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Error> {

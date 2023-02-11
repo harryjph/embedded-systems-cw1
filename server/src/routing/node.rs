@@ -5,7 +5,7 @@ pub struct Node {
     pub x_coord: f64,
     pub y_coord: f64,
     fill_level: f64,
-    pub node_id: u32,
+    pub node_id: usize,
     capacity: f64,
     pub needs_emptying: bool, // potentially add fields to keep track of how much time has passed
                               // since it was last emptied
@@ -20,7 +20,7 @@ impl Hash for Node {
 impl Eq for Node {}
 
 impl Node {
-    pub fn new(x_coord: f64, y_coord: f64, node_id: u32, capacity: f64) -> Node{
+    pub fn new(x_coord: f64, y_coord: f64, node_id: usize, capacity: f64) -> Node{
         Self {
             x_coord, 
             y_coord, 

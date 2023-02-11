@@ -35,6 +35,9 @@ anyhow = "1.0.68"
 regex = "1.7.1"
 lazy-regex = "2.4.1"
 chrono = "0.4.23"
+# routing
+mwmatching = "0.1.1"
+bimap = "0.6.2"
 
 [build-dependencies]
 # gRPC

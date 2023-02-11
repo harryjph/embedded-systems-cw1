@@ -1,32 +1,28 @@
-use crate::link::{Link, self}; 
-use crate::node::{Node, self}; 
-use crate::matching;
+mod link;
+mod node;
+mod matching;
+
+use link::Link; 
+use node::Node; 
 use std::cmp::min;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::{path, vec};
 
 struct Network{
-    nodes: HashMap<u32, Node>,
+    nodes: HashMap<usize, Node>,
     links: Vec<Link>,
     start_point: Node,
     max_cost: f64
 }
 
 impl Network{
-    fn new(&mut self, links: Vec<Link>, nodes: Vec<Node>, start_point: Node){
-        let mut nodes_map: HashMap<u32, Node> = HashMap::new();
-        for node in nodes.iter(){
-            nodes_map.insert(node.node_id, *node);
+    fn new(&mut self, links: Vec<Link>, nodes: Vec<Node>, start_point: Node, max_cost: f64) -> Self {
+        Self {
+            nodes: nodes.into_iter().enumerate().collect(), links, start_point, max_cost
         }
-        self.start_point = start_point; 
-        let mut max_cost: f64 = 0.0;
-        for link in &links {
-            max_cost += link.cost;
-        }
-        self.max_cost = max_cost;
-        self.links = links; 
     }
+
     
     fn link_is_active(&self, link:Link) -> bool {
         if self.nodes[&link.nodes[0]].needs_emptying && self.nodes[&link.nodes[1]].needs_emptying {
@@ -46,7 +42,7 @@ impl Network{
         active_links 
     }
 
-    fn get_cost(&self, node1: u32, node2: u32) -> f64 {
+    fn get_cost(&self, node1: usize, node2: usize) -> f64 {
         for link in self.links.iter(){
             if link.is_link(node1, Some(node2)){
                 return link.cost;
@@ -55,7 +51,7 @@ impl Network{
         return self.max_cost;
     }
 
-    fn get_link(&self, node1: u32, node2: u32) -> Result<Link, &str>{
+    fn get_link(&self, node1: usize, node2: usize) -> Result<Link, &str>{
         for link in self.links.iter(){
             if link.is_link(node1, Some(node2)){
                 return Ok(*link); 
@@ -73,9 +69,9 @@ impl Network{
     // TODO check if I need the original copy of Node to track the change
     // I don't think it should because the only change to the node concerns the 
     // fill level which should be updated at network level
-    fn min_cost(&self, costs: &HashMap<u32, (f64, Link)>) -> u32{
-        let mut min_cost: f64 = self.max_cost;
-        let mut min_node: u32= self.start_point.node_id; 
+    fn min_cost(&self, costs: &HashMap<usize, (f64, Link)>) -> usize{
+        let mut min_cost = self.max_cost;
+        let mut min_node = self.start_point.node_id; 
         for (node, cost) in costs.iter(){
             if cost.0 < min_cost {
                 min_node = *node;
@@ -85,8 +81,8 @@ impl Network{
         return min_node;
     }
 
-    fn update_costs(&self, node: u32, nodes: &Vec<u32>, costs: HashMap<u32, (f64, Link)>) -> HashMap<u32, (f64, Link)> {
-        let mut new_costs: HashMap<u32, (f64,Link)> = HashMap::new();
+    fn update_costs(&self, node: usize, nodes: &Vec<usize>, costs: HashMap<usize, (f64, Link)>) -> HashMap<usize, (f64, Link)> {
+        let mut new_costs: HashMap<usize, (f64,Link)> = HashMap::new();
         for new_node in nodes.iter(){
             if *new_node != node {
                 let cost: f64 = self.get_cost(*new_node, node);
@@ -101,7 +97,7 @@ impl Network{
         return new_costs;
     }
 
-    fn init_costs(&self, active_nodes: &Vec<u32>) -> HashMap<u32, (f64, Link)>{
+    fn init_costs(&self, active_nodes: &Vec<usize>) -> HashMap<usize, (f64, Link)>{
         let mut costs: Vec<(f64, Link)> = Vec::new();
         for node in active_nodes.iter(){
             let link = self.get_link(*node, self.start_point.node_id).unwrap();
@@ -115,17 +111,17 @@ impl Network{
         return costs_map;
     }
 
-    fn prims_mst(&mut self) -> (Vec<Link>, Vec<u32>){
+    fn prims_mst(&mut self) -> (Vec<Link>, Vec<usize>){
         self.check_status();
-        let mut active_nodes: Vec<u32> = Vec::new();
+        let mut active_nodes: Vec<usize> = Vec::new();
         for (node_id, node) in self.nodes.iter(){
             if node.needs_emptying{
                 active_nodes.push(*node_id);
             }
         }
         let mut mst_links: Vec<Link> = Vec::new(); 
-        let mut mst_nodes: Vec<u32> = Vec::new();
-        let mut costs: HashMap<u32, (f64, Link)> = HashMap::new();
+        let mut mst_nodes: Vec<usize> = Vec::new();
+        let mut costs: HashMap<usize, (f64, Link)> = HashMap::new();
         while active_nodes.len() != 0 {
             if mst_nodes.len() == 0{
                 mst_nodes.push(self.start_point.node_id);
@@ -144,7 +140,7 @@ impl Network{
         return (mst_links, mst_nodes);
     }
 
-    fn is_relaxed(&self, node: u32, relaxed_links: Vec<Link>) -> bool {
+    fn is_relaxed(&self, node: usize, relaxed_links: Vec<Link>) -> bool {
         let mut node_links: Vec<Link> = Vec::new();
         for link in relaxed_links.iter() {
             if link.nodes.contains(&node) {
@@ -155,8 +151,8 @@ impl Network{
         else {return false}
     }
 
-    fn links_per_node(&self, links: &Vec<Link>, nodes: &Vec<u32>, node_rel: Option<u32>) -> HashMap<u32, Vec<Link>> {
-        let mut links_by_node: HashMap<u32, Vec<Link>> = HashMap::new();
+    fn links_per_node(&self, links: &Vec<Link>, nodes: &Vec<usize>, node_rel: Option<usize>) -> HashMap<usize, Vec<Link>> {
+        let mut links_by_node: HashMap<usize, Vec<Link>> = HashMap::new();
         for node in nodes.iter(){
             let mut all_links = links.clone(); 
             all_links.retain(|link| {link.is_link(*node, None)});
@@ -173,15 +169,15 @@ impl Network{
         return links_by_node;
     }
 
-    fn get_odd(&self, links: &Vec<Link>, nodes: Vec<u32>) -> (Vec<u32>, Vec<Link>){
-        let mst_links_by_node: HashMap<u32, Vec<Link>> = self.links_per_node(&links, &nodes, None);
-        let mut odd_nodes: Vec<u32> = Vec::new(); 
+    fn get_odd(&self, links: &Vec<Link>, nodes: Vec<usize>) -> (Vec<usize>, Vec<Link>){
+        let mst_links_by_node: HashMap<usize, Vec<Link>> = self.links_per_node(&links, &nodes, None);
+        let mut odd_nodes: Vec<usize> = Vec::new(); 
         for node in nodes.iter(){
             if mst_links_by_node[node].len() % 2 != 0 {
                 odd_nodes.push(*node);
             }
         }
-        let mut all_links_by_node: HashMap<u32, Vec<Link>> = self.links_per_node(&self.links, &odd_nodes, None);
+        let mut all_links_by_node: HashMap<usize, Vec<Link>> = self.links_per_node(&self.links, &odd_nodes, None);
         let mut all_odd_links: Vec<Link> = Vec::new(); 
         for (_, odd_links) in all_links_by_node.iter_mut(){
             all_odd_links.append(odd_links);
@@ -190,7 +186,7 @@ impl Network{
         return (odd_nodes, all_odd_links)
     }
 
-    fn is_entered(&self, node: u32, relaxed_links: &Vec<Link>) -> bool {
+    fn is_entered(&self, node: usize, relaxed_links: &Vec<Link>) -> bool {
         let mut node_links: Vec<Link> = Vec::new();
         for link in relaxed_links.iter(){
             if link.nodes.contains(&node){
@@ -202,7 +198,7 @@ impl Network{
         else{return false}
     }
 
-    fn remove_links_relaxed(&self, node: u32, relaxed_nodes: Vec<u32>, remaining_links: &mut Vec<Link>){
+    fn remove_links_relaxed(&self, node: usize, relaxed_nodes: Vec<usize>, remaining_links: &mut Vec<Link>){
         let mut node_links = Vec::new(); 
         for link in remaining_links.iter(){
             if link.nodes.contains(&node){
@@ -221,7 +217,7 @@ impl Network{
         }
     }
 
-    fn links_of_node(&self, node: u32, links: &Vec<Link>) -> Vec<Link>{
+    fn links_of_node(&self, node: usize, links: &Vec<Link>) -> Vec<Link>{
         let mut nodes_links = Vec::new();
         for link in links.iter() {
             if link.nodes.contains(&node) {
@@ -232,7 +228,7 @@ impl Network{
     }
 
     // this is probably not needed....
-    fn is_dead_end(&self, links: Vec<Link>, start_point: u32, node: u32, link: Link) -> bool {
+    fn is_dead_end(&self, links: Vec<Link>, start_point: usize, node: usize, link: Link) -> bool {
         let other = link.other_node(node);
         let start_node_links= self.links_of_node(start_point, &links);
         if start_node_links.len() == 1 {
@@ -246,7 +242,7 @@ impl Network{
         return false;
     }
 
-    fn beginning_of_end(&self, start_point: u32, links: &Vec<Link>) -> (u32, Vec<Link>) {
+    fn beginning_of_end(&self, start_point: usize, links: &Vec<Link>) -> (usize, Vec<Link>) {
         let mut forced_path = true; 
         let mut path: Vec<Link> = Vec::new(); 
         let mut next_node = start_point; 
@@ -310,7 +306,7 @@ impl Network{
         return sorted_links;
     }
 
-    fn get_common_node(&self, link1: Link, link2: Link) -> Option<u32> {
+    fn get_common_node(&self, link1: Link, link2: Link) -> Option<usize> {
         let node11 = link1.nodes[0]; 
         let node12 = link1.nodes[1]; 
         if link2.nodes.contains(&node11){return Some(node11)}
@@ -319,7 +315,7 @@ impl Network{
     }
 
     fn hamiltonian_cycle(&self, links: &mut Vec<Link>) -> Vec<Link>{
-        let mut visited_nodes: Vec<u32> = Vec::new();
+        let mut visited_nodes: Vec<usize> = Vec::new();
         let first_link = links[0];
         let mut relaxed_links: Vec<Link> = Vec::new(); 
         relaxed_links.push(first_link);
@@ -369,20 +365,20 @@ impl Network{
         return relaxed_links;
     }
     
-    fn christofides(&mut self) -> Vec<u32> {
+    fn christofides(&mut self) -> Vec<usize> {
         // prims to get mst 
         let (mut mst_links, mst_nodes)= self.prims_mst();
         // get all vertices with odd number of connections 
         let (nodes_odd, links_odd) = self.get_odd(&mst_links, self.nodes.keys().cloned().collect());
         // get mwpf 
-        let min_w_tup: Vec<(u32,u32)> = matching::mwmatching(&nodes_odd, &links_odd);
+        let min_w_tup: Vec<(usize,usize)> = matching::mwmatching(&nodes_odd, &links_odd);
         let min_w: Vec<Link>= min_w_tup.into_iter().map(|(node1, node2)| self.get_link(node1, node2).unwrap()).collect();
         // add nodes and links from mst nodes and links
         mst_links.extend(min_w);
         // get eulerian tour 
         let mut eulerian = self.euler_tour(mst_links);
         let hamilton = self.hamiltonian_cycle(&mut eulerian);
-        let mut final_ids: Vec<u32> = Vec::new();
+        let mut final_ids: Vec<usize> = Vec::new();
         final_ids.push(hamilton[0].nodes[0]);
         let mut prev_node = final_ids[0];
         for link in hamilton.iter(){
@@ -399,7 +395,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_min_cost(){
-        let node_id: Vec<u32> = (1..=6).collect(); 
+        let node_id: Vec<usize> = (1..=6).collect(); 
         let nodes = HashMap::from([
             (1, Node::new(0.0, 1.0, 0, 0.7)), 
             (2, Node::new(0.0, 1.0, 0, 0.7)), 
@@ -495,7 +491,7 @@ mod tests {
                 (2, (4.0, link23)),
                 (3, (6.0, link34)),
             ]);   
-            let mut new_nodes: Vec<u32> = Vec::new();
+            let mut new_nodes: Vec<usize> = Vec::new();
             new_nodes.push(1);
             new_nodes.push(2);
             new_nodes.push(3);
@@ -719,7 +715,7 @@ mod tests {
         let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
         let mut euler_tour = nw.euler_tour(all_links);
         let hamiltonian_cycle = nw.hamiltonian_cycle(& mut euler_tour);
-        let nodes_ids: Vec<u32> = (1..7).collect();
+        let nodes_ids: Vec<usize> = (1..7).collect();
         let by_node = nw.links_per_node(&hamiltonian_cycle, &nodes_ids, None);
         //for (node, link) in by_node.iter(){
           //  assert_eq!(link.len(), 2);

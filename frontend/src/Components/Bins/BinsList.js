@@ -75,9 +75,7 @@ function BinsList(props) {
 
   return <div>
           {(SeeMap) && (
-          <div className="z-40 flex fixed justify-center w-[calc(100vw-2.5rem)] h-screen">
             <MapModal AllData={MapData}/>
-          </div>
           )}
           <div className="flex items-center justify-center m-5">
             <button 

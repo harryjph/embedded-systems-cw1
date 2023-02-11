@@ -29,7 +29,7 @@ function Map(props) {
   const avgLong = tot[1]/props.AllData.length;
 
   return (
-      <MapContainer className="z-30 w-full min-h-[16rem] p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
+      <MapContainer className="z-30 w-full h-full p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

@@ -2,6 +2,7 @@ import {apiGet} from "../../API";
 import {useEffect, useState} from "react";
 import {Dropdown} from "flowbite-react"
 import {AiOutlineUser} from "react-icons/ai";
+import {BiLogOut} from "react-icons/bi";
 
 
 function MainNavigation() {
@@ -44,7 +45,7 @@ function MainNavigation() {
                   <div className="">
                     <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                       <div className="font-medium truncate">{email}</div>
-                      <Dropdown.Item className="items-center justify-center block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white" onClick={logout}>Sign out</Dropdown.Item>
+                      <Dropdown.Item className="items-center justify-center block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white" onClick={logout}>Sign out <BiLogOut className="space-x-1"/> </Dropdown.Item>
                     </div>
                   </div>
                 )

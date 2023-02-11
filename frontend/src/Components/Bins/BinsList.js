@@ -60,6 +60,10 @@ function BinsList(props) {
       EmptyDistanceReading={bin.config.empty_distance_reading}
       FullDistanceReading={bin.config.full_distance_reading}
       Fullness={Math.floor(bin.fullness * 100)}
+      Temperature={bin.temperature}
+      Humidity={bin.humidity}
+
+
       showPropertiesButton={props.showPropertiesButton}
 
       varSeeMap={SeeMap}

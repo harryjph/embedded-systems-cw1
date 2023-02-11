@@ -29,15 +29,23 @@ function Bin(props) {
   return (
     <Card className="block w-72">
       <div className="flex flex-col z-0 px-5">
+
         <div className="grid gap-1 p-2">
           <div className="flex justify-center items-center">
-            <h2 className="flex items-center font-bold pr-2">{binName}</h2>
+            <h2 className="flex items-center font-bold text-3xl pr-2">{binName}</h2>
           </div>
         </div>
 
         <div className={"grid gap-1 p-2"}>
           <CircularProgressBar upper_value={props.Fullness} />
         </div>
+
+        
+        <div className={"flex gap-2 p-3"}>
+          <a className="font-bold">Temperature: {props.Temperature}</a>
+          <a className="font-bold">Humidity: {props.Humidity}</a>
+        </div>
+
         <div className="flex justify-center items-center p-2">
           <button
             data-modal-target="popup-modal"

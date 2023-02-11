@@ -532,7 +532,11 @@ mod tests {
         let nw = Network{nodes,links: links_2, start_point: Node::new(0.0, 0.0, 0, 0.8), max_cost: 100.0};
         let (odd_nodes, odd_links) = nw.get_odd(&links, nodes_id);
         assert_eq!(odd_nodes.len(), 4);
-        assert_eq!(odd_links.len(), 4);
+        assert!(odd_links.contains(&Link{nodes: [1,2], cost: 1.0}));
+        assert!(odd_links.contains(&Link{nodes: [1,4], cost: 3.0}));
+        assert!(odd_links.contains(&Link{nodes: [4,5], cost: 4.0}));
+        assert!(!odd_links.contains(&Link{nodes: [3,4], cost: 5.0}));
+        assert!(!odd_links.contains(&Link{nodes: [1,3], cost: 2.0}));
         assert!(!odd_nodes.contains(&3));
     }
 
@@ -757,5 +761,6 @@ mod tests {
             node.update_fill_level(Some(1.0));
         }
         let mut hamilton = nw.christofides();
+        assert!(hamilton.contains(&1))
     }
 }

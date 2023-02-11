@@ -1,13 +1,13 @@
 use crate::config::Config;
 use crate::db::Database;
 use crate::mailer::Mailer;
+use crate::timer::RealTimer;
 use crate::user_manager::UserManager;
 use anyhow::Error;
 use std::io;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::sync::Arc;
-use crate::timer::RealTimer;
 
 mod config;
 mod db;
@@ -26,12 +26,8 @@ async fn main() -> Result<(), Error> {
     let user_manager = Arc::new(UserManager::new(db.clone()));
 
     let http_server_handle = http_server::launch(config.clone(), db.clone(), user_manager.clone());
-    let grpc_server_handle = grpc_server::launch(
-        config.clone(),
-        db.clone(),
-        mailer.clone(),
-        RealTimer::new(),
-    );
+    let grpc_server_handle =
+        grpc_server::launch(config.clone(), db.clone(), mailer.clone(), RealTimer::new());
 
     tokio::select! {
         _ = http_server_handle => { println!("HTTP Server Stopped! Shutting down."); }

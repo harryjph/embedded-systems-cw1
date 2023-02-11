@@ -1,21 +1,21 @@
 use self::grpc_generated::node_api_server::{NodeApi, NodeApiServer};
-use self::grpc_generated::{Empty, SensorData, NodeId};
+use self::grpc_generated::{Empty, NodeId, SensorData};
 use crate::config::Config;
 use crate::db::Database;
 use crate::mailer::Mailer;
 use crate::timer::Timer;
 use crate::utils::all_interfaces;
+use anyhow::Error;
 use futures_util::StreamExt;
 use std::marker::Send;
 use std::marker::Sync;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use anyhow::Error;
 use tokio::task::JoinHandle;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, Streaming};
 
-const FULLNESS_THRESHOLD: f32 = 0.8;
+pub const FULLNESS_THRESHOLD: f32 = 0.8;
 
 pub fn launch<T: Timer + Sync + Send + 'static>(
     config: Config,
@@ -44,7 +44,9 @@ async fn start_server<T: Timer + Sync + Send + 'static>(
 
     Server::builder()
         .add_service(reflection_service)
-        .add_service(NodeApiServer::new(NodeApiImpl { state: Arc::new(State  { db, mailer, timer }) } ))
+        .add_service(NodeApiServer::new(NodeApiImpl {
+            state: Arc::new(State { db, mailer, timer }),
+        }))
         .serve(socket_addr)
         .await
         .unwrap();
@@ -77,7 +79,8 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                     return Ok(());
                 }
             }
-            state.mailer
+            state
+                .mailer
                 .send_email(
                     email.clone(),
                     "Bin Bot".to_string(),
@@ -87,7 +90,8 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
                         .to_string(),
                 )
                 .await?;
-            state.db
+            state
+                .db
                 .set_user_last_email_time(email.as_str(), now)
                 .await?;
         }
@@ -96,7 +100,7 @@ impl<T: Timer + Sync + Send + 'static> NodeApiImpl<T> {
 }
 
 #[tonic::async_trait]
-impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
+impl<T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
     async fn assign_id(&self, _request: Request<Empty>) -> Result<Response<NodeId>, Status> {
         let id = self
             .state
@@ -114,7 +118,10 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
         let mut stream = request.into_inner();
         while let Some(sensor_data) = stream.next().await {
             let sensor_data = sensor_data?;
-            let node = self.state.db.get_node(sensor_data.id, None)
+            let node = self
+                .state
+                .db
+                .get_node(sensor_data.id, None)
                 .await
                 .map_err(|_| Status::aborted("Unable to get node from database."))?
                 .ok_or(Status::aborted("Could not find node in database"))?;
@@ -137,7 +144,8 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
                 fullness.clamp(0.0, 1.0)
             };
 
-            self.state.db
+            self.state
+                .db
                 .set_node_data(
                     sensor_data.id,
                     filtered_fullness,
@@ -145,9 +153,7 @@ impl <T: Timer + Sync + Send + 'static> NodeApi for NodeApiImpl<T> {
                     sensor_data.relative_humidity,
                 )
                 .await
-                .map_err(|e| {
-                    Status::aborted(format!("Unable to update fullness: {e:?}."))
-                })?;
+                .map_err(|e| Status::aborted(format!("Unable to update fullness: {e:?}.")))?;
         }
         Ok(Response::new(Empty::default()))
     }

@@ -34,11 +34,13 @@ mod tests {
         let n3 = Link{nodes: [323, 4345], cost: 1.0};
         let n4 = Link{nodes: [4345, 123], cost: 10.0};
         let links = vec![n1, n2, n3, n4];
-        let matches = mwmatching(&vec![123,232,323,4345], &links);
+        let mut matches = mwmatching(&vec![123,232,323,4345], &links);
 
         println!("{matches:?}");
 
-        assert_eq!(matches[0], (123, 232));
-        assert_eq!(matches[1], (323, 4345));
+        let mut ans = vec![(123, 232), (323, 4345)];
+        ans.sort();
+        matches.sort();
+        assert_eq!(matches, ans);
     }
 }

@@ -1,11 +1,7 @@
-use std::error::Error;
-
 mod stream;
+mod error;
+mod future;
 
 pub use stream::*;
-
-/// The i2cdev error types produce lifetime errors when you try to return them.
-/// This is a flaw of the crate's structure. This is a hack to work around it.
-pub fn stringify_error<E: Error>(error: E) -> anyhow::Error {
-    anyhow::Error::msg(format!("{error}"))
-}
+pub use error::*;
+pub use future::*;

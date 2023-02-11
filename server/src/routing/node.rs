@@ -20,24 +20,23 @@ impl Hash for Node {
 impl Eq for Node {}
 
 impl Node {
-    pub fn new(x_coord: f64, y_coord: f64, node_id: usize, capacity: f64) -> Node{
+    pub fn new(x_coord: f64, y_coord: f64, node_id: usize, capacity: f64) -> Node {
         Self {
-            x_coord, 
-            y_coord, 
-            node_id, 
-            capacity, 
+            x_coord,
+            y_coord,
+            node_id,
+            capacity,
             fill_level: 0.0,
-            needs_emptying: false
+            needs_emptying: false,
         }
     }
     pub fn update_fill_level(&mut self, new_level: Option<f64>) {
         match new_level {
-            Some(lev) => {self.fill_level = lev}
+            Some(lev) => self.fill_level = lev,
             _ => {}
         }
-        if self.fill_level > self.capacity{
+        if self.fill_level > self.capacity {
             self.needs_emptying = true;
         }
     }
-
 }

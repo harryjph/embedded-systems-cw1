@@ -74,7 +74,7 @@ struct BinRoute {
 }
 
 #[derive(Deserialize)]
-struct RouteInfo{
+struct RouteInfo {
     start_longitude: f64,
     start_latitude: f64,
 }
@@ -202,21 +202,19 @@ async fn get_bin_route(
 ) -> Result<Json<BinRoute>, ErrorResponse> {
     // THIS WILL BE CHANGED BY NODE CONFIG IF WE ADD IT!
     use crate::grpc_server::FULLNESS_THRESHOLD;
-    use rand::thread_rng;
     use rand::seq::SliceRandom;
+    use rand::thread_rng;
 
     let user_email = get_signed_in_email(&session)?;
     let mut route: Vec<_> = get_all_bins(&state.db, Some(user_email.as_str()))
-            .await?
-            .into_iter()
-            .filter(|bin| bin.fullness >= FULLNESS_THRESHOLD)
-            .map(|bin| bin.id)
-            .collect();
+        .await?
+        .into_iter()
+        .filter(|bin| bin.fullness >= FULLNESS_THRESHOLD)
+        .map(|bin| bin.id)
+        .collect();
     route.shuffle(&mut thread_rng());
 
-    Ok(Json(BinRoute {
-        route,
-    }))
+    Ok(Json(BinRoute { route }))
 }
 
 #[cfg(test)]

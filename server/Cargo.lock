@@ -2428,6 +2428,7 @@ dependencies = [
  "bimap",
  "chrono",
  "futures-util",
+ "itertools",
  "lazy-regex",
  "lettre",
  "mwmatching",

@@ -8,6 +8,7 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::{path, vec};
+use itertools::Itertools;
 
 struct Network{
     nodes: HashMap<usize, Node>,
@@ -17,12 +18,16 @@ struct Network{
 }
 
 impl Network{
-    fn new(&mut self, links: Vec<Link>, nodes: Vec<Node>, start_point: Node, max_cost: f64) -> Self {
+    pub fn new(links: Vec<Link>, nodes: Vec<Node>, start_point: Node, max_cost: f64) -> Self {
         Self {
             nodes: nodes.into_iter().enumerate().collect(), links, start_point, max_cost
         }
     }
 
+    pub fn new_euclidean(nodes: Vec<Node>, start_point: Node, max_cost: f64) -> Self {
+        let links = nodes.iter().combinations(2).map(|ns| Link::new(ns[0], ns[1])).collect();
+        Self::new(links, nodes, start_point, max_cost)
+    }
     
     fn link_is_active(&self, link:Link) -> bool {
         if self.nodes[&link.nodes[0]].needs_emptying && self.nodes[&link.nodes[1]].needs_emptying {
@@ -396,30 +401,30 @@ mod tests {
     #[test]
     fn test_min_cost(){
         let node_id: Vec<usize> = (1..=6).collect(); 
-        let nodes = HashMap::from([
-            (1, Node::new(0.0, 1.0, 0, 0.7)), 
-            (2, Node::new(0.0, 1.0, 0, 0.7)), 
-            (3, Node::new(0.0, 1.0, 0, 0.7)), 
-            (4, Node::new(0.0, 1.0, 0, 0.7)), 
-            (5, Node::new(0.0, 1.0, 0, 0.7)), 
-            (6, Node::new(0.0, 1.0, 0, 0.7)), 
-        ]);
+        let nodes = vec![
+            Node::new(0.0, 1.0, 0, 0.7), 
+            Node::new(0.0, 1.0, 0, 0.7), 
+            Node::new(0.0, 1.0, 0, 0.7), 
+            Node::new(0.0, 1.0, 0, 0.7), 
+            Node::new(0.0, 1.0, 0, 0.7), 
+            Node::new(0.0, 1.0, 0, 0.7), 
+        ];
         let mut links: Vec<Link> = Vec::new(); 
-        let link12 = Link{nodes: [1,2], cost : 10.0};
-        let link13 = Link{nodes: [1,3], cost : 15.0};
-        let link14 = Link{nodes: [1,4], cost : 9.0};
-        let link15 = Link{nodes: [1,5], cost : 5.0};
-        let link23 = Link{nodes: [3,2], cost : 17.0};
-        let link24 = Link{nodes: [4,2], cost : 10.0};
-        let link25 = Link{nodes: [5,2], cost : 11.0};
-        let link34 = Link{nodes: [3,4], cost : 1.0};
-        let link35 = Link{nodes: [5,3], cost : 4.0};
-        let link45 = Link{nodes: [5,4], cost : 20.0};
-        let link16 = Link{nodes: [1,6], cost : 21.0};
-        let link26 = Link{nodes: [2,6], cost : 15.0};
-        let link36 = Link{nodes: [3,6], cost : 13.0};
-        let link46 = Link{nodes: [4,6], cost : 2.0};
-        let link56 = Link{nodes: [5,6], cost : 25.0};
+        let link12 = Link{nodes: [0,1], cost : 10.0};
+        let link13 = Link{nodes: [0,2], cost : 15.0};
+        let link14 = Link{nodes: [0,3], cost : 9.0};
+        let link15 = Link{nodes: [0,4], cost : 5.0};
+        let link23 = Link{nodes: [2,1], cost : 17.0};
+        let link24 = Link{nodes: [3,1], cost : 10.0};
+        let link25 = Link{nodes: [4,1], cost : 11.0};
+        let link34 = Link{nodes: [2,3], cost : 1.0};
+        let link35 = Link{nodes: [4,2], cost : 4.0};
+        let link45 = Link{nodes: [4,3], cost : 20.0};
+        let link16 = Link{nodes: [0,5], cost : 21.0};
+        let link26 = Link{nodes: [1,5], cost : 15.0};
+        let link36 = Link{nodes: [2,5], cost : 13.0};
+        let link46 = Link{nodes: [3,5], cost : 2.0};
+        let link56 = Link{nodes: [4,5], cost : 25.0};
         links.push(link12);
         links.push(link13);
         links.push(link14);
@@ -436,13 +441,13 @@ mod tests {
         links.push(link46);
         links.push(link56);
         let costs = HashMap::from([
-            (1, (5.0, link12)),
-            (2, (4.0, link23)),
-            (3, (6.0, link34)),
+            (0, (5.0, link12)),
+            (1, (4.0, link23)),
+            (2, (6.0, link34)),
         ]);
-        let nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 0, 0.8), max_cost: 100.0};
+        let nw = Network::new(links, nodes, Node::new(0.0, 0.0, 0, 0.8), 100.0);
         let min_node = nw.min_cost(&costs); 
-        assert_eq!(min_node, 2);
+        assert_eq!(min_node, 1);
     }
 
     #[test]

@@ -16,7 +16,7 @@ impl Hash for Link{
 impl Eq for Link{}
 
 impl Link{
-    pub fn new(node1: Node, node2: Node) -> Self {
+    pub fn new(node1: &Node, node2: &Node) -> Self {
         let cost: f64 = ((node1.x_coord - node2.x_coord).powf(2.0) + (node1.y_coord - node2.y_coord).powf(2.0)).sqrt();
         Self { 
             nodes: [node1.node_id, node2.node_id],

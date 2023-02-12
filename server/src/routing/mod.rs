@@ -4,7 +4,7 @@ mod node;
 
 use itertools::Itertools;
 use link::Link;
-use node::Node;
+pub use node::Node;
 use std::cmp::min;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -20,7 +20,7 @@ pub struct Network {
 impl Network {
     pub fn new(links: Vec<Link>, nodes: Vec<Node>, start_point: Node, max_cost: f64) -> Self {
         Self {
-            nodes: nodes.into_iter().enumerate().collect(),
+            nodes: nodes.into_iter().map(|n| (n.node_id, n)).collect(),
             links,
             start_point,
             max_cost,
@@ -383,11 +383,10 @@ impl Network {
             .get_link(incomplete_nodes[0], incomplete_nodes[1])
             .unwrap();
         relaxed_links.push(closing_link);
-        //println!({"relaxed_links:?"});
         return relaxed_links;
     }
 
-    fn christofides(&mut self) -> Vec<usize> {
+    pub fn christofides(&mut self) -> Vec<usize> {
         // prims to get mst
         let (mut mst_links, mst_nodes) = self.prims_mst();
         // get all vertices with odd number of connections
@@ -841,7 +840,6 @@ mod tests {
         all_links.push(link23);
         all_links.push(link45);
         let euler_tour = nw.euler_tour(all_links);
-        println!("{euler_tour:?}");
         assert_eq!(euler_tour.len(), 6)
     }
 

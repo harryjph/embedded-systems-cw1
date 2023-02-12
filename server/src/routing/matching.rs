@@ -66,8 +66,6 @@ mod tests {
         let links = vec![n1, n2, n3, n4];
         let mut matches = mwmatching(&vec![123, 232, 323, 4345], &links);
 
-        println!("{matches:?}");
-
         let mut ans = vec![(123, 232), (323, 4345)];
         ans.sort();
         matches.sort();

@@ -3,7 +3,7 @@ use crate::db::Database;
 use crate::http_server::user::get_signed_in_email;
 use crate::http_server::util::{bad_request, not_found, ErrorResponse};
 use crate::http_server::ServerState;
-use crate::routing::{self, Node, Network};
+use crate::routing::{self, Network, Node};
 use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
@@ -53,7 +53,7 @@ impl From<Bin> for routing::Node {
             y_coord: bin.config.latitude,
             node_id: bin.id as usize,
         }
-    }    
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -222,15 +222,23 @@ async fn get_bin_route(
         .collect();
 
     if nodes.is_empty() {
-        Ok(Json(BinRoute{route: vec![]}))
+        Ok(Json(BinRoute { route: vec![] }))
     } else {
-        let max_id = nodes.iter().map(|n| n.node_id).reduce(usize::max).unwrap_or(0);
+        let max_id = nodes
+            .iter()
+            .map(|n| n.node_id)
+            .reduce(usize::max)
+            .unwrap_or(0);
         let start_node = Node::new(-0.172685, 51.497667, max_id + 1, 0.0);
         nodes.push(start_node);
         println!("{nodes:?}");
         println!("{start_node:?}");
         let mut network = Network::new_euclidean(nodes, start_node, 999999.0);
-        let route: Vec<u32> = network.christofides().into_iter().map(|id| id as u32 ).collect();
+        let route: Vec<u32> = network
+            .christofides()
+            .into_iter()
+            .map(|id| id as u32)
+            .collect();
 
         Ok(Json(BinRoute { route: route }))
     }

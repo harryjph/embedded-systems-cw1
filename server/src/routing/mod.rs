@@ -337,12 +337,13 @@ impl Network {
     fn hamiltonian_cycle(&self, links: &mut Vec<Link>) -> Vec<Link> {
         let mut visited_nodes: Vec<usize> = Vec::new();
         let first_link = links[0];
+        let second_link = links[1];
         let mut relaxed_links: Vec<Link> = Vec::new();
         relaxed_links.push(first_link);
         links.retain(|link| *link != first_link);
-        let start_node = self.get_common_node(first_link, links[1]).unwrap();
+        let mut prev_node = self.get_common_node(first_link, second_link).unwrap();
+        let start_node = first_link.other_node(start_node);
         visited_nodes.push(start_node);
-        let mut prev_node = first_link.other_node(start_node);
         visited_nodes.push(prev_node);
         let mut needs_relaxation = false;
         let mut orphan = self.start_point.node_id;

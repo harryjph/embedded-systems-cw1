@@ -277,11 +277,11 @@ impl Network{
                 links.push(*link);
             }
         }
-
+        let start_node_links = self.links_of_node(self.start_point.node_id, &links);
+        let first_link  = start_node_links[0];
         let mut sorted_links: Vec<Link> = Vec::new(); 
-        sorted_links.push(links[0]);
-        let first_link = links[0];
-        let mut last_node = first_link.nodes[0];
+        sorted_links.push(first_link);
+        let mut last_node = self.start_point.node_id; 
         let start_node = last_node; 
         links.retain(|used_link| {*used_link != first_link});
         
@@ -384,8 +384,8 @@ impl Network{
         let mut eulerian = self.euler_tour(mst_links);
         let hamilton = self.hamiltonian_cycle(&mut eulerian);
         let mut final_ids: Vec<u32> = Vec::new();
-        final_ids.push(hamilton[0].nodes[0]);
-        let mut prev_node = final_ids[0];
+        final_ids.push(self.start_point.node_id);
+        let mut prev_node = self.start_point.node_id; 
         for link in hamilton.iter(){
             let other = link.other_node(prev_node);
             final_ids.push(other);
@@ -730,15 +730,15 @@ mod tests {
     #[test]
     fn test_christofides(){
         let nodes = HashMap::from([
-                (1, Node::new(0.0, 1.0, 0, 0.7)),                 
-                (2, Node::new(0.0, 1.0, 0, 0.7)),                     
-                (3, Node::new(0.0, 1.0, 0, 0.7)),                 
-                (4, Node::new(0.0, 1.0, 0, 0.7)), 
-                (5, Node::new(0.0, 1.0, 0, 0.7)), 
+                (1, Node::new(0.0, 1.0, 1, 0.7)),                 
+                (2, Node::new(0.0, 1.0, 2, 0.7)),                     
+                (3, Node::new(0.0, 1.0, 3, 0.7)),                 
+                (4, Node::new(0.0, 1.0, 4, 0.7)), 
+                (5, Node::new(0.0, 1.0, 5, 0.7)), 
             ]);
         let mut links: Vec<Link> = Vec::new(); 
-        let link12 = Link{nodes: [1,2], cost : 3.0};
-        let link13 = Link{nodes: [1,3], cost : 4.0};
+        let link12 = Link{nodes: [1,2], cost : 5.0};
+        let link13 = Link{nodes: [1,3], cost : 5.0};
         let link14 = Link{nodes: [1,4], cost : 2.0};
         let link15 = Link{nodes: [1,5], cost : 5.0};
         let link23 = Link{nodes: [3,2], cost : 5.0};
@@ -757,7 +757,7 @@ mod tests {
         links.push(link34);
         links.push(link35);
         links.push(link45);
-        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 3, 0.8), max_cost: 100.0};
         for (_, node) in nw.nodes.iter_mut(){
             node.update_fill_level(Some(1.0));
         }

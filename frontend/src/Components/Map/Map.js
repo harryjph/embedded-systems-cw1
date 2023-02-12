@@ -10,6 +10,14 @@ import "./Map.css";
 
 import { popupHead } from "./popupStyles";
 
+/*  *******************  */
+
+import {useState} from "react";
+import { useMapEvents } from "react-leaflet";
+
+/*  *******************  */
+
+
 let DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
@@ -17,6 +25,26 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+/*  *******************  */
+function LocationMarker() {
+  const [position, setPosition] = useState(null)
+  const map = useMapEvents({
+    click() {
+      map.locate()
+    },
+    locationfound(e) {
+      setPosition(e.latlng)
+      map.flyTo(e.latlng, map.getZoom())
+    },
+  })
+  
+  return position === null ? null : (
+    <Marker position={position}>
+      <Popup>You are here</Popup>
+    </Marker>
+  )
+}
+/*  *******************  */
 
 function Map(props) {
   
@@ -46,6 +74,7 @@ function Map(props) {
                     "% Full"}
                 </div>
               </Popup>
+              <LocationMarker/>
             </Marker>
           );
         })}

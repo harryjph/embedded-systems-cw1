@@ -3,6 +3,7 @@ use crate::db::Database;
 use crate::http_server::user::get_signed_in_email;
 use crate::http_server::util::{bad_request, not_found, ErrorResponse};
 use crate::http_server::ServerState;
+use crate::routing::Network;
 use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
@@ -19,7 +20,7 @@ pub(super) fn router() -> Router<Arc<ServerState>> {
         .route("/:node_id/config", get(get_config).post(set_config))
         .route("/:node_id/claim", post(take_ownership))
         .route("/:node_id/release", post(release_ownership))
-        .route("/bin_route", post(get_bin_route))
+        .route("/route", post(get_bin_route))
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::{path, vec};
 
-struct Network {
+pub struct Network {
     nodes: HashMap<usize, Node>,
     links: Vec<Link>,
     start_point: Node,
@@ -36,23 +36,6 @@ impl Network {
         Self::new(links, nodes, start_point, max_cost)
     }
 
-    fn link_is_active(&self, link: Link) -> bool {
-        if self.nodes[&link.nodes[0]].needs_emptying && self.nodes[&link.nodes[1]].needs_emptying {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    fn get_active_links(&self) -> Vec<Link> {
-        let mut active_links: Vec<Link> = Vec::new();
-        for link in self.links.iter() {
-            if self.link_is_active(*link) {
-                active_links.push(*link);
-            }
-        }
-        active_links
-    }
 
     fn get_cost(&self, node1: usize, node2: usize) -> f64 {
         for link in self.links.iter() {
@@ -70,12 +53,6 @@ impl Network {
             }
         }
         return Err("there is no link for the two nodes, should not happen");
-    }
-
-    fn check_status(&mut self) {
-        for (_, node) in self.nodes.iter_mut() {
-            node.update_fill_level(None);
-        }
     }
 
     // TODO check if I need the original copy of Node to track the change
@@ -129,12 +106,9 @@ impl Network {
     }
 
     fn prims_mst(&mut self) -> (Vec<Link>, Vec<usize>) {
-        self.check_status();
         let mut active_nodes: Vec<usize> = Vec::new();
         for (node_id, node) in self.nodes.iter() {
-            if node.needs_emptying {
-                active_nodes.push(*node_id);
-            }
+            active_nodes.push(*node_id);
         }
         let mut mst_links: Vec<Link> = Vec::new();
         let mut mst_nodes: Vec<usize> = Vec::new();
@@ -789,9 +763,6 @@ mod tests {
             start_point: Node::new(0.0, 0.0, 1, 0.8),
             max_cost: 100.0,
         };
-        for (_, node) in nw.nodes.iter_mut() {
-            node.update_fill_level(Some(1.0));
-        }
         let (mst_links, mst_nodes) = nw.prims_mst();
         assert!(mst_links.contains(&link12));
     }
@@ -1058,9 +1029,6 @@ mod tests {
         let hamiltonian_cycle = nw.hamiltonian_cycle(&mut euler_tour);
         let nodes_ids: Vec<usize> = (1..7).collect();
         let by_node = nw.links_per_node(&hamiltonian_cycle, &nodes_ids, None);
-        //for (node, link) in by_node.iter(){
-        //  assert_eq!(link.len(), 2);
-        //   }
     }
 
     #[test]
@@ -1129,9 +1097,6 @@ mod tests {
             start_point: Node::new(0.0, 0.0, 1, 0.8),
             max_cost: 100.0,
         };
-        for (_, node) in nw.nodes.iter_mut() {
-            node.update_fill_level(Some(1.0));
-        }
         let mut hamilton = nw.christofides();
         assert!(hamilton.contains(&1))
     }

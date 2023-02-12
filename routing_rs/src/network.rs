@@ -323,10 +323,11 @@ impl Network{
         let first_link = links[0];
         let mut relaxed_links: Vec<Link> = Vec::new(); 
         relaxed_links.push(first_link);
+        let second_link = links[1];
         links.retain(|link| {*link != first_link});
-        let start_node = self.get_common_node(first_link, links[1]).unwrap();
+        let mut prev_node = self.get_common_node(first_link, second_link).unwrap();
+        let start_node = first_link.other_node(prev_node);
         visited_nodes.push(start_node);
-        let mut prev_node = first_link.other_node(start_node);
         visited_nodes.push(prev_node);
         let mut needs_relaxation = false; 
         let mut orphan = self.start_point.node_id; 
@@ -356,10 +357,10 @@ impl Network{
         }
         let by_node = self.links_per_node(&relaxed_links, &visited_nodes, None);
         let mut incomplete_nodes = Vec::new(); 
-        for (node, links) in by_node.iter(){
-            if links.len() < 2{
+        for (node, links_by_node) in by_node.iter(){
+            if links_by_node.len() < 2{
                 incomplete_nodes.push(*node);
-                debug_assert!(links.len() == 1);
+                debug_assert!(links_by_node.len() == 1);
             }
         }
         debug_assert!(incomplete_nodes.len() == 2);
@@ -762,5 +763,44 @@ mod tests {
         }
         let mut hamilton = nw.christofides();
         assert!(hamilton.contains(&1))
+    }
+
+    #[test]
+
+    fn test_get_common_nodes(){
+        let links = vec![Link { nodes: [0, 1], cost: 50.49796226138352 }, Link { nodes: [1, 2], cost: 1.0 }, Link { nodes: [2, 3], cost: 1.0 }, Link { nodes: [0, 3], cost: 51.511017234685966 }];
+        let nodes = HashMap::from([
+                (1, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (2, Node::new(0.0, 1.0, 0, 0.7)),                     
+                (3, Node::new(0.0, 1.0, 0, 0.7)),                 
+                (4, Node::new(0.0, 1.0, 0, 0.7)), 
+                (5, Node::new(0.0, 1.0, 0, 0.7)), 
+            ]);
+        let mut links: Vec<Link> = Vec::new(); 
+        let link12 = Link{nodes: [1,2], cost : 3.0};
+        let link13 = Link{nodes: [1,3], cost : 4.0};
+        let link14 = Link{nodes: [1,4], cost : 2.0};
+        let link15 = Link{nodes: [1,5], cost : 5.0};
+        let link23 = Link{nodes: [3,2], cost : 5.0};
+        let link24 = Link{nodes: [4,2], cost : 7.0};
+        let link25 = Link{nodes: [5,2], cost : 15.0};
+        let link34 = Link{nodes: [3,4], cost : 9.0};
+        let link35 = Link{nodes: [5,3], cost : 10.0};
+        let link45 = Link{nodes: [5,4], cost : 3.0};
+        links.push(link12);
+        links.push(link13);
+        links.push(link14);
+        links.push(link15);
+        links.push(link23);
+        links.push(link24);
+        links.push(link25);
+        links.push(link34);
+        links.push(link35);
+        links.push(link45);
+        let start_link = links[0];
+        let second_link = links[1];
+        let mut nw = Network{nodes, links, start_point: Node::new(0.0, 0.0, 1, 0.8), max_cost: 100.0};
+        let common_node = nw.get_common_node(start_link, second_link);
+        println!("{common_node:?}");
     }
 }

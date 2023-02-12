@@ -276,51 +276,49 @@ impl Network {
         return (boe, path);
     }
 
-    fn euler_tour(&self, links_all: Vec<Link>) -> Vec<Link> {
-        let mut links: Vec<Link> = Vec::new();
+    fn euler_tour(&self, links_all: Vec<Link>) -> Vec<Link>{
+        let mut links: Vec<Link> = Vec::new(); 
         // handle double edges: if there is one just remove it completely
         for link in links_all.iter() {
-            if links.contains(link) {
-                links.retain(|double_link| *double_link != *link);
+            if links.contains(link){
+                links.retain(|double_link| {*double_link != *link});
             } else {
                 links.push(*link);
             }
         }
-
-        let mut sorted_links: Vec<Link> = Vec::new();
-        sorted_links.push(links[0]);
-        let first_link = links[0];
-        let mut last_node = first_link.nodes[0];
-        let start_node = last_node;
-        links.retain(|used_link| *used_link != first_link);
-
+        let start_node_links = self.links_of_node(self.start_point.node_id, &links);
+        let first_link  = start_node_links[0];
+        let mut sorted_links: Vec<Link> = Vec::new(); 
+        sorted_links.push(first_link);
+        let mut last_node = self.start_point.node_id; 
+        let start_node = last_node; 
+        links.retain(|used_link| {*used_link != first_link});
+        
         while links.len() != 0 {
             let (_, mut path_to_end) = self.beginning_of_end(start_node, &links);
-            let other = sorted_links[sorted_links.len() - 1].other_node(last_node);
+            let other = sorted_links[sorted_links.len()-1].other_node(last_node);
             let mut possible_links: Vec<Link> = Vec::new();
-            for link in links.iter() {
-                if link.nodes.contains(&other)
-                    && !link.nodes.contains(&last_node)
-                    && !path_to_end.contains(link)
-                {
+            for link in links.iter(){
+                if link.nodes.contains(&other) && !link.nodes.contains(&last_node) && !path_to_end.contains(link){
                     possible_links.push(*link);
                 }
             }
             // no possible links, close path
-            if possible_links.len() == 0 {
-                path_to_end.reverse();
-                for last_link in path_to_end.iter() {
+            if possible_links.len() == 0{
+                path_to_end.reverse(); 
+                for last_link in path_to_end.iter(){
                     sorted_links.push(*last_link);
                 }
                 break;
             }
             let next_link = possible_links[0];
             sorted_links.push(next_link);
-            links.retain(|link| *link != next_link);
-            last_node = other;
+            links.retain(|link| {*link != next_link});
+            last_node = other; 
         }
         return sorted_links;
     }
+
 
     fn get_common_node(&self, link1: Link, link2: Link) -> Option<usize> {
         let node11 = link1.nodes[0];
@@ -387,32 +385,30 @@ impl Network {
         return relaxed_links;
     }
 
-    pub fn christofides(&mut self) -> Vec<usize> {
-        // prims to get mst
-        let (mut mst_links, mst_nodes) = self.prims_mst();
-        // get all vertices with odd number of connections
+    fn christofides(&mut self) -> Vec<u32> {
+        // prims to get mst 
+        let (mut mst_links, mst_nodes)= self.prims_mst();
+        // get all vertices with odd number of connections 
         let (nodes_odd, links_odd) = self.get_odd(&mst_links, self.nodes.keys().cloned().collect());
-        // get mwpf
-        let min_w_tup: Vec<(usize, usize)> = matching::mwmatching(&nodes_odd, &links_odd);
-        let min_w: Vec<Link> = min_w_tup
-            .into_iter()
-            .map(|(node1, node2)| self.get_link(node1, node2).unwrap())
-            .collect();
+        // get mwpf 
+        let min_w_tup: Vec<(u32,u32)> = matching::mwmatching(&nodes_odd, &links_odd);
+        let min_w: Vec<Link>= min_w_tup.into_iter().map(|(node1, node2)| self.get_link(node1, node2).unwrap()).collect();
         // add nodes and links from mst nodes and links
         mst_links.extend(min_w);
-        // get eulerian tour
+        // get eulerian tour 
         let mut eulerian = self.euler_tour(mst_links);
         let hamilton = self.hamiltonian_cycle(&mut eulerian);
-        let mut final_ids: Vec<usize> = Vec::new();
-        final_ids.push(hamilton[0].nodes[0]);
-        let mut prev_node = final_ids[0];
-        for link in hamilton.iter() {
+        let mut final_ids: Vec<u32> = Vec::new();
+        final_ids.push(self.start_point.node_id);
+        let mut prev_node = self.start_point.node_id; 
+        for link in hamilton.iter(){
             let other = link.other_node(prev_node);
             final_ids.push(other);
-            prev_node = other;
+            prev_node = other; 
         }
         return final_ids;
     }
+
 }
 
 mod tests {

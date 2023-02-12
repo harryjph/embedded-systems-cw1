@@ -14,7 +14,6 @@ mod db;
 mod grpc_server;
 mod http_server;
 mod mailer;
-mod routing;
 mod timer;
 mod user_manager;
 mod utils;

@@ -19,6 +19,7 @@ pub(super) fn router() -> Router<Arc<ServerState>> {
         .route("/:node_id/config", get(get_config).post(set_config))
         .route("/:node_id/claim", post(take_ownership))
         .route("/:node_id/release", post(release_ownership))
+        .route("/route", get(get_bin_route))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -67,6 +68,11 @@ impl From<node::Model> for BinConfig {
     }
 }
 
+#[derive(Serialize)]
+struct BinRoute {
+    route: Vec<u32>, // Route of bin ids
+}
+
 async fn get_one(
     State(state): State<Arc<ServerState>>,
     session: ReadableSession,
@@ -84,15 +90,18 @@ async fn get_one(
     ))
 }
 
+async fn get_all_bins(db: &Arc<Database>, owner: Option<&str>) -> Result<Vec<Bin>, ErrorResponse> {
+    Ok(db
+        .get_nodes(owner)
+        .await
+        .map_err(bad_request)?
+        .into_iter()
+        .map(Into::into)
+        .collect())
+}
+
 async fn get_all(db: &Arc<Database>, owner: Option<&str>) -> Result<Json<Vec<Bin>>, ErrorResponse> {
-    Ok(Json(
-        db.get_nodes(owner)
-            .await
-            .map_err(bad_request)?
-            .into_iter()
-            .map(Into::into)
-            .collect(),
-    ))
+    Ok(Json(get_all_bins(db, owner).await?))
 }
 
 async fn get_all_owned(
@@ -178,6 +187,27 @@ async fn set_config(
         .await
         .map_err(bad_request)?;
     Ok(())
+}
+
+async fn get_bin_route(
+    session: ReadableSession,
+    State(state): State<Arc<ServerState>>,
+) -> Result<Json<BinRoute>, ErrorResponse> {
+    // THIS WILL BE CHANGED BY NODE CONFIG IF WE ADD IT!
+    use crate::grpc_server::FULLNESS_THRESHOLD;
+    use rand::seq::SliceRandom;
+    use rand::thread_rng;
+
+    let user_email = get_signed_in_email(&session)?;
+    let mut route: Vec<_> = get_all_bins(&state.db, Some(user_email.as_str()))
+        .await?
+        .into_iter()
+        .filter(|bin| bin.fullness >= FULLNESS_THRESHOLD)
+        .map(|bin| bin.id)
+        .collect();
+    route.shuffle(&mut thread_rng());
+
+    Ok(Json(BinRoute { route }))
 }
 
 #[cfg(test)]

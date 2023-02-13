@@ -10,9 +10,8 @@ pub trait DescribeError<T> {
     fn describe_error(self, description: &'static str) -> Result<T, Error>;
 }
 
-impl <T, E: Into<Error>> DescribeError<T> for Result<T, E> {
+impl<T, E: Into<Error>> DescribeError<T> for Result<T, E> {
     fn describe_error(self, description: &'static str) -> Result<T, Error> {
-        self.map_err(move |e| { e.into().context(description) })
+        self.map_err(move |e| e.into().context(description))
     }
 }
-

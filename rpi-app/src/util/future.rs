@@ -9,7 +9,7 @@ pub trait GetJoinHandleResult<T> {
 }
 
 #[async_trait]
-impl <T: Send> GetJoinHandleResult<Result<T, JoinError>> for JoinHandle<T> {
+impl<T: Send> GetJoinHandleResult<Result<T, JoinError>> for JoinHandle<T> {
     async fn get_result(&mut self) -> Option<Result<T, JoinError>> {
         if self.is_finished() {
             Some(self.await)

@@ -277,7 +277,6 @@ impl Network {
 
     fn euler_tour(&self, links_all: Vec<Link>) -> Vec<Link> {
         let mut links: Vec<Link> = Vec::new();
-        // handle double edges: if there is one just remove it completely
         for link in links_all.iter() {
             links.push(*link);
         }
@@ -295,7 +294,6 @@ impl Network {
             let mut possible_links: Vec<Link> = Vec::new();
             for link in links.iter() {
                 if link.nodes.contains(&other)
-                    && !link.nodes.contains(&last_node)
                     && !path_to_end.contains(link)
                 {
                     possible_links.push(*link);
@@ -311,7 +309,10 @@ impl Network {
             }
             let next_link = possible_links[0];
             sorted_links.push(next_link);
-            links.retain(|link| *link != next_link);
+            if let Some(pos) = links.iter().position(|x| *x == next_link) {
+                links.remove(pos);
+            }
+            //links.retain(|link| *link != next_link);
             last_node = other;
         }
         return sorted_links;
@@ -330,6 +331,13 @@ impl Network {
     }
 
     fn hamiltonian_cycle(&self, links: &mut Vec<Link>) -> Vec<Link> {
+        if links.len() == 1 {
+            let link = links[0];
+            let mut there_and_back = Vec::new();
+            there_and_back.push(link);
+            there_and_back.push(link);
+            return there_and_back;
+        }
         let mut visited_nodes: Vec<usize> = Vec::new();
         let first_link = links[0];
         let second_link = links[1];
@@ -1084,8 +1092,7 @@ mod tests {
         links.push(link25);
         links.push(link34);
         links.push(link35);
-        links.push(link45);
-        let mut nw = Network {
+        links.push(link45); let mut nw = Network {
             nodes,
             links,
             start_point: Node::new(0.0, 0.0, 1, 0.8),
@@ -1101,6 +1108,26 @@ mod tests {
         let start_node = Node { x_coord: -0.172685, y_coord: 51.497667,node_id:7};
         let mut nw = Network::new_euclidean(nodes, start_node, 999999.0);
         let christofides = nw.christofides();
+        println!("{christofides:?}");
+    }
+
+    #[test]
+    fn test_critica2(){
+        let nodes: Vec<Node> = vec![Node { x_coord: 0.0, y_coord: 1.0, node_id: 1 }, Node { x_coord: 1.0, y_coord: 0.0, node_id: 2 }, Node { x_coord: 11.0, y_coord: 1.0, node_id: 3 }, Node { x_coord: 13.0, y_coord: 23.0, node_id: 4 }, Node { x_coord: 12.0, y_coord: 0.0, node_id: 5 }, Node { x_coord: -0.172685, y_coord: 51.497667, node_id: 6 }];
+        let start_node = Node { x_coord: -0.172685, y_coord: 51.497667, node_id: 6 };
+        let mut nw = Network::new_euclidean(nodes, start_node, 99999999.0);
+        let christofides = nw.christofides();
+        assert_eq!(christofides.len(), 7);
+        println!("{christofides:?}");
+    } 
+
+    #[test]
+    fn test_two_nodes(){
+        let nodes: Vec<Node> = vec![Node { x_coord: 0.0, y_coord: 1.0, node_id: 1 }, Node { x_coord: 1.0, y_coord: 0.0, node_id: 2 }];
+        let start_node = Node { x_coord: 0.0, y_coord: 1.0, node_id: 1 };
+        let mut nw = Network::new_euclidean(nodes, start_node, 99999999.0);
+        let christofides = nw.christofides();
+        assert_eq!(christofides.len(), 3);
         println!("{christofides:?}");
     }
 }

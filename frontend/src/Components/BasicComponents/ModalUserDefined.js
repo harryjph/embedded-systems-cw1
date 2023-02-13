@@ -6,7 +6,7 @@ import { HiOutlineExclamationCircle } from "react-icons/hi";
 function ModalUserDefined(props) {
   const onConfirm = useCallback(() => {
     props.PostRequest(props.ID);
-  }, [props.ID]);
+  }, [props]);
 
   return (
     <div

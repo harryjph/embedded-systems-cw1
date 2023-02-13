@@ -12,6 +12,7 @@ function ModalWithRenameSupport(props) {
   const [binFullDistanceReading, setBinFullDistanceReading] = useState(props.FullDistanceReading);
 
   function submitHandler() {
+    // noinspection JSCheckFunctionSignatures
     const binsData = {
       name: binName,
       latitude: parseFloat(binLatitude),
@@ -28,9 +29,10 @@ function ModalWithRenameSupport(props) {
     props.closeHandler();
   }
 
+  // noinspection JSValidateTypes
   return (
     <form>
-      <div className="relative z-1 mb-6 group">
+      <div className="relative z-1 group">
         <div className={classes.control}>
           <label htmlFor="title">Bin Name</label>
           <input

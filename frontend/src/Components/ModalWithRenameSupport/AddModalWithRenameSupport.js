@@ -15,7 +15,7 @@ function AddModalWithRenameSupport(props) {
 
   return (
     <div
-      className="z-40 modal fixed items-center justify-center w-1/4 h-1/2"
+      className="z-40 modal fixed items-center justify-center w-1/4"
       style={{
         top: "calc(50% - 15rem)",
         left: "calc(50% - 15rem)",

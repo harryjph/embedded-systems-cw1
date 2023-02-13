@@ -1,16 +1,15 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
-import { apiGet, apiPostForm } from "../API";
+import { apiGet, apiPost } from "../API";
 
-import Map from "../Components/Map/Map";
 import { useNavigate } from "react-router-dom";
 
 function AllOfMyBinsPage() {
   const history = useNavigate();
 
   function ReleaseBin(id) {
-    apiPostForm("/bins/" + id + "/release").then(() => {
+    apiPost("/bins/" + id + "/release").then(() => {
       history("/unowned-bins");
     });
   }

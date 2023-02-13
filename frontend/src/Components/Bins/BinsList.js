@@ -1,17 +1,7 @@
 import Bin from "./Bin.js";
-
-import ModalUserDefined from "../BasicComponents/ModalUserDefined.js";
-import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRenameSupport.js";
 import Backdrop from "../BasicComponents/Backdrop.js";
-
 import MapModal from "../Map/MapModal.js";
-
-import useOutsideAlerter from "../BasicComponents/CustomHook";
-
 import { useState } from "react";
-
-//import {Avatar} from "flowbite-react"
-import { Modal, Button } from "flowbite-react";
 
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
@@ -47,6 +37,7 @@ function BinsList(props) {
   let binsWidgets = props.AllData.map((bin) => {
     const seeModal = modalAndBackdropFor === bin.id;
     const seeProperties = SeeRenamingModalAndBackdrop === bin.id;
+    // noinspection JSUnresolvedVariable
     return (
       <Bin
         PostRequest={props.PostRequest}

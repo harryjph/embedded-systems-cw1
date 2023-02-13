@@ -1,7 +1,6 @@
 import CircularProgressBar from "../BasicComponents/CircularProgressBar.js";
 import ModalUserDefined from "../BasicComponents/ModalUserDefined.js";
 import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRenameSupport.js";
-import Backdrop from "../BasicComponents/Backdrop.js";
 import Card from "../ui/Card.js";
 import { useCallback } from "react";
 
@@ -21,11 +20,11 @@ function Bin(props) {
 
   const showMap = useCallback(() => {
     props.foofunctionSeeMap([props.ID]);
-  }, [props.foofunctionSeeMap, props.ID]);
+  }, [props]);
 
   const showModal = useCallback(() => {
     props.foofunctionSeeModalAndBackdrop(props.ID);
-  }, [props.ID]);
+  }, [props]);
 
   return (
     <Card className="block w-72">
@@ -41,8 +40,8 @@ function Bin(props) {
         </div>
 
         <div className={"flex gap-2 p-3"}>
-          <a className="font-bold">Temperature: {props.Temperature}</a>
-          <a className="font-bold">Humidity: {props.Humidity}</a>
+          <span className="font-bold">Temperature: {props.Temperature}</span>
+          <span className="font-bold">Humidity: {props.Humidity}</span>
         </div>
 
         <div className="flex justify-center items-center p-2">

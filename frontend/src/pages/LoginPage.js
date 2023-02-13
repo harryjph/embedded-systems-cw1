@@ -19,6 +19,7 @@ function LoginPage() {
   });
 
   function loginRequest(endpoint) {
+    // noinspection JSUnresolvedVariable
     const loginForm = {
       email: emailRef.current.value,
       password: passwordRef.current.value,

@@ -27,6 +27,13 @@ export function apiGet(endpoint, dontHandleError = false) {
   }).then((r) => handleResponse(r, dontHandleError));
 }
 
+export function apiPost(endpoint, dontHandleError = false) {
+  return fetch(API_URL + endpoint, {
+    method: "POST",
+    credentials: "include",
+  }).then((r) => handleResponse(r, dontHandleError));
+}
+
 export function apiPostForm(endpoint, formBody, dontHandleError = false) {
   return fetch(API_URL + endpoint, {
     method: "POST",

@@ -19,7 +19,7 @@ pub(super) fn router() -> Router<Arc<ServerState>> {
         .route("/:node_id/config", get(get_config).post(set_config))
         .route("/:node_id/claim", post(take_ownership))
         .route("/:node_id/release", post(release_ownership))
-        .route("/route", get(get_bin_route))
+        .route("/route", post(get_bin_route))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -189,9 +189,16 @@ async fn set_config(
     Ok(())
 }
 
+#[derive(Deserialize)]
+struct RouteConfig {
+    starting_latitude: f64,
+    starting_longitude: f64,
+}
+
 async fn get_bin_route(
     session: ReadableSession,
     State(state): State<Arc<ServerState>>,
+    Json(route_config): Json<RouteConfig>,
 ) -> Result<Json<BinRoute>, ErrorResponse> {
     // THIS WILL BE CHANGED BY NODE CONFIG IF WE ADD IT!
     use crate::grpc_server::FULLNESS_THRESHOLD;

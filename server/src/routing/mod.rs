@@ -203,22 +203,22 @@ impl Network {
         }
     }
 
-    fn remove_links_relaxed(
-        &self,
-        node: usize,
-        relaxed_nodes: Vec<usize>,
-        remaining_links: &mut Vec<Link>,
-    ) {
-        let mut node_links = Vec::new();
-        for link in remaining_links.iter() {
-            if link.nodes.contains(&node) {
-                node_links.push(*link);
-            }
-        }
-        node_links.retain(|link| relaxed_nodes.contains(&link.other_node(node)));
-        remaining_links.retain(|link| !node_links.contains(link))
-    }
-
+//    fn remove_links_relaxed(
+//        &self,
+//        node: usize,
+//        relaxed_nodes: Vec<usize>,
+//        remaining_links: &mut Vec<Link>,
+//    ) {
+//        let mut node_links = Vec::new();
+//        for link in remaining_links.iter() {
+//            if link.nodes.contains(&node) {
+//                node_links.push(*link);
+//            }
+//        }
+//        node_links.retain(|link| relaxed_nodes.contains(&link.other_node(node)));
+//        remaining_links.retain(|link| !node_links.contains(link))
+//    }
+//
     fn is_closing_link(&self, link: Link, relaxed_links: Vec<Link>) -> bool {
         if self.is_entered(link.nodes[0], &relaxed_links)
             && self.is_entered(link.nodes[1], &relaxed_links)
@@ -267,7 +267,9 @@ impl Network {
             } else {
                 let link = next_node_links[0];
                 path.push(link);
-                available_links.retain(|av_link| *av_link != link);
+                if let Some(pos) = available_links.iter().position(|x| *x == link) {
+                    available_links.remove(pos);
+                }
                 boe = link.other_node(next_node);
                 next_node = boe;
             }
@@ -286,7 +288,9 @@ impl Network {
         sorted_links.push(first_link);
         let mut last_node = self.start_point.node_id;
         let start_node = last_node;
-        links.retain(|used_link| *used_link != first_link);
+        if let Some(pos) = links.iter().position(|x| *x == first_link) {
+            links.remove(pos);
+        }
 
         while links.len() != 0 {
             let (_, mut path_to_end) = self.beginning_of_end(start_node, &links);
@@ -312,7 +316,6 @@ impl Network {
             if let Some(pos) = links.iter().position(|x| *x == next_link) {
                 links.remove(pos);
             }
-            //links.retain(|link| *link != next_link);
             last_node = other;
         }
         return sorted_links;
@@ -343,7 +346,9 @@ impl Network {
         let second_link = links[1];
         let mut relaxed_links: Vec<Link> = Vec::new();
         relaxed_links.push(first_link);
-        links.retain(|link| *link != first_link);
+        if let Some(pos) = links.iter().position(|x| *x == first_link) {
+            links.remove(pos);
+        }
         let mut prev_node = self.get_common_node(first_link, second_link).unwrap();
         let start_node = first_link.other_node(prev_node);
         visited_nodes.push(start_node);
@@ -1128,6 +1133,16 @@ mod tests {
         let mut nw = Network::new_euclidean(nodes, start_node, 99999999.0);
         let christofides = nw.christofides();
         assert_eq!(christofides.len(), 3);
+        println!("{christofides:?}");
+    }
+
+    #[test]
+    fn test_six_nodes(){
+        let nodes = vec![Node { x_coord: 0.0, y_coord: 2.213, node_id: 1 }, Node { x_coord: 43.0, y_coord: 3.324, node_id: 2 }, Node { x_coord: 3.3, y_coord: 434.43, node_id: 3 }, Node { x_coord: 43.242, y_coord: 43.432, node_id: 4 }, Node { x_coord: 0.0, y_coord: 24.23, node_id: 5 }, Node { x_coord: 32.4238, y_coord: 24.324, node_id: 6 }, Node { x_coord: -0.172685, y_coord: 51.497667,node_id:7}];
+        let start_node = Node { x_coord: 0.0, y_coord: 2.213, node_id: 1 };
+        let mut nw = Network::new_euclidean(nodes, start_node, 99999999.0);
+        let christofides = nw.christofides();
+        assert_eq!(christofides.len(), 8);
         println!("{christofides:?}");
     }
 }

@@ -35,7 +35,6 @@ function BinsList(props) {
   }
 
   function functionSeeRenamingModalAndBackdrop(id) {
-    // console.log(id);
     setSeeRenamingModalAndBackdrop(id);
   }
 
@@ -48,9 +47,6 @@ function BinsList(props) {
   let binsWidgets = props.AllData.map((bin) => {
     const seeModal = modalAndBackdropFor === bin.id;
     const seeProperties = SeeRenamingModalAndBackdrop === bin.id;
-    {
-      console.log(props.AllData);
-    }
     return (
       <Bin
         PostRequest={props.PostRequest}

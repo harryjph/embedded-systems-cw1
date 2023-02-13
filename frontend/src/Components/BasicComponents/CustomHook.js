@@ -6,22 +6,22 @@ import PropTypes from "prop-types";
  */
 
 function useOutsideAlerter(ref, clickOutside) {
-useEffect(() => {
+  useEffect(() => {
     /**
      * Alert if clicked on outside of element
      */
     function handleClickOutside(event) {
-    if (ref.current && !ref.current.contains(event.target)) {
+      if (ref.current && !ref.current.contains(event.target)) {
         clickOutside();
-    }
+      }
     }
     // Bind the event listener
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-    // Unbind the event listener on clean up
-    document.removeEventListener("mousedown", handleClickOutside);
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-}, [ref]);
+  }, [ref]);
 }
 
-export default useOutsideAlerter
+export default useOutsideAlerter;

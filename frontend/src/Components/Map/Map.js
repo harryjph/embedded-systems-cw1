@@ -12,11 +12,10 @@ import { popupHead } from "./popupStyles";
 
 /*  *******************  */
 
-import {useState} from "react";
+import { useState } from "react";
 import { useMapEvents } from "react-leaflet";
 
 /*  *******************  */
-
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -27,58 +26,59 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 /*  *******************  */
 function LocationMarker() {
-  const [position, setPosition] = useState(null)
+  const [position, setPosition] = useState(null);
   const map = useMapEvents({
     click() {
-      map.locate()
+      map.locate();
     },
     locationfound(e) {
-      setPosition(e.latlng)
-      map.flyTo(e.latlng, map.getZoom())
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, map.getZoom());
     },
-  })
-  
+  });
+
   return position === null ? null : (
     <Marker position={position}>
       <Popup>You are here</Popup>
     </Marker>
-  )
+  );
 }
 /*  *******************  */
 
 function Map(props) {
-  
-  const tot = props.AllData.reduce(([totalLat, totalLong],{config:{latitude, longitude}}) => {
-    return [totalLat + latitude, totalLong + longitude]
-  }, [0, 0]);
-  
+  const tot = props.AllData.reduce(
+    ([totalLat, totalLong], { config: { latitude, longitude } }) => {
+      return [totalLat + latitude, totalLong + longitude];
+    },
+    [0, 0]
+  );
 
-  const avgLat = tot[0]/props.AllData.length;
-  const avgLong = tot[1]/props.AllData.length;
+  const avgLat = tot[0] / props.AllData.length;
+  const avgLong = tot[1] / props.AllData.length;
 
   return (
-      <MapContainer className="z-30 w-full h-full p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
-        <TileLayer
-          attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {props.AllData.map((popup) => {
-          return (
-            <Marker position={[popup.config.latitude, popup.config.longitude]} key={popup.id}>
-              <Popup>
-                <IoIosTrash className="z-30 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-                <div className="m-2" style={popupHead}>
-                  {popup.config.name}
-                  <br />
-                  {Math.floor((100 * popup.config.empty_distance_reading) / popup.config.full_distance_reading) +
-                    "% Full"}
-                </div>
-              </Popup>
-              <LocationMarker/>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+    <MapContainer className="z-30 w-full h-full p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
+      <TileLayer
+        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {props.AllData.map((popup) => {
+        return (
+          <Marker position={[popup.config.latitude, popup.config.longitude]} key={popup.id}>
+            <Popup>
+              <IoIosTrash className="z-30 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+              <div className="m-2" style={popupHead}>
+                {popup.config.name}
+                <br />
+                {Math.floor((100 * popup.config.empty_distance_reading) / popup.config.full_distance_reading) +
+                  "% Full"}
+              </div>
+            </Popup>
+            <LocationMarker />
+          </Marker>
+        );
+      })}
+    </MapContainer>
   );
 }
 

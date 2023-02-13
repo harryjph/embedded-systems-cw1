@@ -6,8 +6,7 @@ import { useState } from "react";
 function ModalUserDefined(props) {
   const [binID, setBinID] = useState(props.ID);
 
-
-  function onCancel(){
+  function onCancel() {
     props.closeHandler();
   }
   return (

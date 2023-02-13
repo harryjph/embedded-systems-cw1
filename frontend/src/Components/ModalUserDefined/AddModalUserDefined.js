@@ -12,13 +12,12 @@ function AddModalWithRenameSupport(props) {
   }
 
   return (
-    <ModalUserDefined 
-        isOpen={props.binValue} 
-        ID={props.ID} 
-        onCancel={props.cancelHandler} 
-        onConfirm={ReleaseFunction} 
+    <ModalUserDefined
+      isOpen={props.binValue}
+      ID={props.ID}
+      onCancel={props.cancelHandler}
+      onConfirm={ReleaseFunction}
     />
-
   );
 }
 

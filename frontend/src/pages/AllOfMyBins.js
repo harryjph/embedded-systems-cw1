@@ -35,7 +35,7 @@ function AllOfMyBinsPage() {
     }, 1000);
     return () => {
       clearInterval(timer);
-    }
+    };
   }, []);
 
   return (

@@ -1,20 +1,21 @@
 import React from "react";
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import { Button } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 function ModalUserDefined(props) {
   const onConfirm = useCallback(() => {
-        props.PostRequest(props.ID);
+    props.PostRequest(props.ID);
   }, [props.ID]);
 
   return (
-    <div className="z-40 modal fixed items-center justify-center w-1/4 h-1/5" style={
-      {  
-          top: "calc(50% - 15rem)",
-          left: "calc(50% - 15rem)",
-      }
-  }>
+    <div
+      className="z-40 modal fixed items-center justify-center w-1/4 h-1/5"
+      style={{
+        top: "calc(50% - 15rem)",
+        left: "calc(50% - 15rem)",
+      }}
+    >
       <div className="text-center">
         <HiOutlineExclamationCircle className="z-1 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
         <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure?</h3>

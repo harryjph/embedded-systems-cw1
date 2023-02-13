@@ -14,12 +14,13 @@ function AddModalWithRenameSupport(props) {
   }
 
   return (
-    <div className="z-40 modal fixed items-center justify-center w-1/4 h-1/2" style={
-      {  
-          top: "calc(50% - 15rem)",
-          left: "calc(50% - 15rem)",
-      }
-  }>
+    <div
+      className="z-40 modal fixed items-center justify-center w-1/4 h-1/2"
+      style={{
+        top: "calc(50% - 15rem)",
+        left: "calc(50% - 15rem)",
+      }}
+    >
       <ModalWithRenameSupport
         ID={props.ID}
         Name={props.Name}

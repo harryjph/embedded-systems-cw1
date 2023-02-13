@@ -1,5 +1,5 @@
-import {useEffect, useRef} from "react";
-import {apiGet, apiPostForm} from "../API";
+import { useEffect, useRef } from "react";
+import { apiGet, apiPostForm } from "../API";
 
 function LoginPage() {
   const emailRef = useRef();
@@ -19,6 +19,7 @@ function LoginPage() {
   });
 
   function loginRequest(endpoint) {
+    // noinspection JSUnresolvedVariable
     const loginForm = {
       email: emailRef.current.value,
       password: passwordRef.current.value,
@@ -52,9 +53,13 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex items-center h-screen w-screen justify-center bg-slate-300">
+    <div className="flex items-center h-screen w-screen justify-center bg-gradient-to-r from-blue-500 to-blue-600">
       <div className="w-full max-w-xs">
         <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <div className="flex justify-center">
+            <img src="https://flowbite.com/docs/images/logo.svg" className="h-6 mr-3 sm:h-10" alt="Logo" />
+            <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Login</span>
+          </div>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
               Username

@@ -1,86 +1,74 @@
 import CircularProgressBar from "../BasicComponents/CircularProgressBar.js";
 import ModalUserDefined from "../BasicComponents/ModalUserDefined.js";
 import AddModalWithRenameSupport from "../ModalWithRenameSupport/AddModalWithRenameSupport.js";
-import Backdrop from "../BasicComponents/Backdrop.js";
 import Card from "../ui/Card.js";
-
-import { useState } from "react";
+import { useCallback } from "react";
 
 function Bin(props) {
-  const [binValue, setBinValue] = useState(false);
-  const [renameBinValue, setRenameBinValue] = useState(false);
-
   const binName = props.Name === "" ? "Unnamed (ID: " + props.ID + ")" : props.Name;
 
-  function addHandler() {
-    setBinValue(true);
-  }
+  const propertiesButton = props.showPropertiesButton ? (
+    <button
+      className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+      onClick={() => props.foofunctionSeeRenamingModalAndBackdrop(props.ID)}
+    >
+      Properties
+    </button>
+  ) : (
+    <div />
+  );
 
-  function changeNameHandler() {
-    setRenameBinValue(true);
-  }
+  const showMap = useCallback(() => {
+    props.foofunctionSeeMap([props.ID]);
+  }, [props]);
 
-  function cancelHandler() {
-    setBinValue(false);
-    setRenameBinValue(false);
-  }
-
-  /**
-   * This function interacts with the bins node.
-   * What it does is dependent on the parent function which called BinsList,
-   * and subsequently this bin.
-   *
-   * If AllOfMyBins:
-   * - props.Text = "Release This Bin"
-   * - props.PostRequest will be a function defined in AllOfMyBins which
-   *   handles post requests to /bins/<id>/release
-   *
-   * If UnownedBins:
-   * - props.Text = "Claim This Bin"
-   * - props.PostRequest will be a function defined in UnownedBins which
-   *   handles post requests to /bins/<id>/claim
-   */
-  function closeHandler() {
-    setBinValue(false);
-    setRenameBinValue(false);
-    props.PostRequest({ ID: props.ID });
-  }
-
-  const propertiesButton = props.showPropertiesButton ? <button
-    className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-    onClick={changeNameHandler}
-  >Properties</button> : <div />;
+  const showModal = useCallback(() => {
+    props.foofunctionSeeModalAndBackdrop(props.ID);
+  }, [props]);
 
   return (
-    <Card className="block max-w-sm">
+    <Card className="block w-72">
       <div className="flex flex-col z-0 px-5">
         <div className="grid gap-1 p-2">
           <div className="flex justify-center items-center">
-            <h2 className="flex items-center font-bold pr-2">{binName}</h2>
+            <h2 className="flex items-center font-bold text-3xl pr-2">{binName}</h2>
           </div>
         </div>
 
         <div className={"grid gap-1 p-2"}>
           <CircularProgressBar upper_value={props.Fullness} />
         </div>
+
+        <div className={"flex gap-2 p-3"}>
+          <span className="font-bold">Temperature: {props.Temperature}</span>
+          <span className="font-bold">Humidity: {props.Humidity}</span>
+        </div>
+
         <div className="flex justify-center items-center p-2">
           <button
             data-modal-target="popup-modal"
             data-modal-toggle="popup-modal"
             className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            onClick={addHandler}
+            onClick={showModal}
           >
             {props.Text}
           </button>
           {propertiesButton}
+
+          <button
+            data-modal-target="popup-modal"
+            data-modal-toggle="popup-modal"
+            className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            onClick={showMap}
+          >
+            Map
+          </button>
         </div>
 
-        {binValue && (
-          <ModalUserDefined isOpen={binValue} ID={props.ID} onCancel={cancelHandler} onConfirm={closeHandler} />
+        {props.varSeeModalAndBackdrop && (
+          <ModalUserDefined ID={props.ID} onCancel={props.foocancelModal} PostRequest={props.PostRequest} />
         )}
-
-        {binValue && <Backdrop onClick={cancelHandler} />}
-        {renameBinValue && (
+        {props.varSeeRenamingModalAndBackdrop && (
           <AddModalWithRenameSupport
             ID={props.ID}
             Name={props.Name}
@@ -89,11 +77,9 @@ function Bin(props) {
             Fullness={props.Fullness}
             EmptyDistanceReading={props.EmptyDistanceReading}
             FullDistanceReading={props.FullDistanceReading}
-            onCancel={cancelHandler}
-            onConfirm={closeHandler}
+            onCancel={props.foocancelModal}
           />
         )}
-        {renameBinValue && <Backdrop onClick={cancelHandler} />}
       </div>
     </Card>
   );

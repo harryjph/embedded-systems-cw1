@@ -61,8 +61,7 @@ h2 {
   text-align: center;
   width: 30rem;
   z-index: 10;
-  position: fixed;
-  top: 20vh;
+  top: calc(50% - 15rem);
   left: calc(50% - 15rem);
 }
 

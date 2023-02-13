@@ -1,16 +1,15 @@
 import BinsList from "../Components/Bins/BinsList.js";
 import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
-import { apiGet, apiPostForm } from "../API";
+import { apiGet, apiPost } from "../API";
 
-import Map from "../Components/Map/Map";
 import { useNavigate } from "react-router-dom";
 
 function AllOfMyBinsPage() {
   const history = useNavigate();
 
-  function ReleaseFunction(variables) {
-    apiPostForm("/bins/" + variables.ID + "/release").then(() => {
+  function ReleaseBin(id) {
+    apiPost("/bins/" + id + "/release").then(() => {
       history("/unowned-bins");
     });
   }
@@ -35,21 +34,13 @@ function AllOfMyBinsPage() {
     }, 1000);
     return () => {
       clearInterval(timer);
-    }
+    };
   }, []);
 
   return (
     <div>
       <Layout />
-      <div className="flex p-5">
-        <div className="flex-auto">
-          <Map AllData={loadedBins} />
-        </div>
-
-        <div className="flex-auto">
-          <BinsList PostRequest={ReleaseFunction} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
-        </div>
-      </div>
+      <BinsList PostRequest={ReleaseBin} Text={"Release"} AllData={loadedBins} showPropertiesButton={true} />
     </div>
   );
 }

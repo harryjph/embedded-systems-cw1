@@ -240,7 +240,7 @@ async fn get_bin_route(
             .map(|id| id as u32)
             .collect();
 
-        Ok(Json(BinRoute { route: route }))
+        Ok(Json(BinRoute { route: route[1..route.len() - 1].into() }))
     }
 }
 

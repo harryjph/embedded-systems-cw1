@@ -16,9 +16,13 @@ impl Eq for Link {}
 
 impl Link {
     pub fn new(node1: &Node, node2: &Node) -> Self {
-        let cost: f64 = ((node1.x_coord - node2.x_coord).powf(2.0)
-            + (node1.y_coord - node2.y_coord).powf(2.0))
-        .sqrt();
+        use std::f64::consts::PI;
+        const EARTH_RADIUS_M: f64 = 6371.0 * 1000;
+
+        let a = 0.5 - ((node2.y_coord-node1.y_coord)*PI/180.0).cos()/2.0 + (node1.y_coord*PI/180.0).cos()*(node2.y_coord*PI/180.0).cos() * (1.0-((node2.x_coord-node1.x_coord)*PI/180.0).cos()) / 2.0;
+        
+        let cost = 2.0 * EARTH_RADIUS_M * a.sqrt().asin();
+
         Self {
             nodes: [node1.node_id, node2.node_id],
             cost: cost,

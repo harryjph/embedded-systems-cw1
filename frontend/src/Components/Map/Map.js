@@ -12,7 +12,7 @@ import { popupHead } from "./popupStyles";
 
 /*  *******************  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMapEvents } from "react-leaflet";
 
 /*  *******************  */
@@ -52,6 +52,7 @@ function LocationMarker() {
 /*  *******************  */
 
 function Map(props) {
+  const mapRef = useRef(null);
   const tot = props.AllData.reduce(
     ([totalLat, totalLong], { config: { latitude, longitude } }) => {
       return [totalLat + latitude, totalLong + longitude];
@@ -63,7 +64,7 @@ function Map(props) {
   const avgLong = tot[1] / props.AllData.length;
 
   return (
-    <MapContainer className="z-30 w-full h-full p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
+    <MapContainer ref={mapRef} className="z-30 w-full h-full p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
       <TileLayer
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -80,11 +81,11 @@ function Map(props) {
                   "% Full"}
               </div>
             </Popup>
-            <LocationMarker />
+            <LocationMarker map={mapRef}/>
           </Marker>
         );
       })}
-      <Routing RoutingData={props.RoutingData}/>
+      <Routing  RoutingData={props.RoutingData}/>
     </MapContainer>
   );
 }

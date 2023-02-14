@@ -2,6 +2,7 @@ import Bin from "./Bin.js";
 import Backdrop from "../BasicComponents/Backdrop.js";
 import MapModal from "../Map/MapModal.js";
 import { useState } from "react";
+import { apiPostJson } from "../../API.js";
 
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
@@ -10,8 +11,22 @@ function BinsList(props) {
   const [SeeRenamingModalAndBackdrop, setSeeRenamingModalAndBackdrop] = useState(-1);
 
   function SeeRoutingMap() {
-    setMapData(props.AllData);
-    setSeeMap(true);
+    const successCallback = (position) => {
+      apiPostJson("/bins/route", { starting_latitude: position.coords.latitude, starting_longitude: position.coords.longitude })
+        .then((r) => r.json())
+        .then((response) => {
+          const binIds = response.route;
+          let mapData = prgitops.AllData.filter((bin) => binIds.includes(bin.id));
+          setMapData(mapData);
+          setSeeMap(true);
+        });
+    };
+    
+    const errorCallback = (error) => {
+      alert("Error getting location: " + error);
+    };
+    
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);    
   }
 
   function functionSeeMap(mapIds) {

@@ -5,11 +5,14 @@ import "leaflet-routing-machine";
 const createRoutineMachineLayer = ({RoutingData}) => {
     const returnWayPointArr = () => {
         const waypoints = [];
+        // waypoints[0] = L.latLng(51.5014, 0.179);
+        // waypoints[1] = L.latLng(51.5014, 0.1419);
         for(var i = 0; i < RoutingData.length; i++) {
-            waypoints[i] = L.latLng(RoutingData[0], RoutingData[1]);
+            waypoints[i] = L.latLng(RoutingData[i][0], RoutingData[i][1]);
         }
+        console.log(RoutingData)
+    return waypoints;
         
-        return waypoints;
     }
 const instance = L.Routing.control({
     waypoints: returnWayPointArr(),
@@ -23,8 +26,8 @@ const instance = L.Routing.control({
     fitSelectedRoutes: true,
     showAlternatives: false
 });
-console.log(instance);
-return instance;
+    // console.log("hi");
+    return instance;
 };
 
 const Routing = createControlComponent(createRoutineMachineLayer);

@@ -85,7 +85,10 @@ function Map(props) {
           </Marker>
         );
       })}
-      <Routing  RoutingData={props.RoutingData}/>
+      {
+        (props.RoutingData.length > 0) &&
+          <Routing  RoutingData={props.RoutingData}/>
+        }
     </MapContainer>
   );
 }

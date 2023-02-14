@@ -17,6 +17,12 @@ import { useMapEvents } from "react-leaflet";
 
 /*  *******************  */
 
+/*  *******************  */
+
+import Routing from "./Routing.js";
+
+/*  *******************  */
+
 let DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
@@ -78,6 +84,7 @@ function Map(props) {
           </Marker>
         );
       })}
+      <Routing RoutingData={props.RoutingData}/>
     </MapContainer>
   );
 }

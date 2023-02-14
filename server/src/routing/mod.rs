@@ -23,7 +23,7 @@ impl Network {
             nodes: nodes.into_iter().map(|n| (n.node_id, n)).collect(),
             links,
             start_point,
-            max_cost,
+            max_cost: f64::MAX,
         }
     }
 
@@ -58,15 +58,15 @@ impl Network {
     // I don't think it should because the only change to the node concerns the
     // fill level which should be updated at network level
     fn min_cost(&self, costs: &HashMap<usize, (f64, Link)>) -> usize {
-        let mut min_cost = self.max_cost;
-        let mut min_node = self.start_point.node_id;
-        for (node, cost) in costs.iter() {
-            if cost.0 < min_cost {
-                min_node = *node;
-                min_cost = cost.0;
-            }
-        }
-        return min_node;
+        //let mut min_cost = self.max_cost;
+        //let mut min_node = self.start_point.node_id;
+        //for (node, cost) in costs.iter() {
+        //    if cost.0 < min_cost {
+        //        min_node = *node;
+        //        min_cost = cost.0;
+        //    }
+        //}
+        costs.iter().reduce(|a, b| if a.1.0 < b.1.0 {a} else {b}).unwrap().0.clone()
     }
 
     fn update_costs(

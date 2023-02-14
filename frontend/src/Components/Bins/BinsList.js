@@ -16,8 +16,18 @@ function BinsList(props) {
         .then((r) => r.json())
         .then((response) => {
           const binIds = response.route;
-          let mapData = prgitops.AllData.filter((bin) => binIds.includes(bin.id));
+          let mapData = props.AllData.filter((bin) => binIds.includes(bin.id));
           setMapData(mapData);
+          //  TODO: Compute this list into a set of lat_longs
+          let InitialLatLng = [position.coords.latitude, position.coords.longitude];
+          let LatterLatLongData = mapData.map(
+            (bin) => {
+              return [bin.config.latitude, bin.config.longitude]
+            }
+          );
+          let LatLongData = [InitialLatLng].concat(LatterLatLongData);
+          console.log(LatLongData);
+          //  end
           setSeeMap(true);
         });
     };

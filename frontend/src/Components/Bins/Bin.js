@@ -26,7 +26,12 @@ function Bin(props) {
     props.foofunctionSeeModalAndBackdrop(props.ID);
   }, [props]);
 
-  const temperature = props.Temperature >= 40 ? <span className="text-[#ff0000]">High (> 40°C)</span> : <span className="text-[#00ff20]">Normal</span>
+  const temperature =
+    props.Temperature >= 40 ? (
+      <span className="text-[#ff0000]">High (> 40°C)</span>
+    ) : (
+      <span className="text-[#00ff20]">Normal</span>
+    );
 
   return (
     <Card className="block w-72">

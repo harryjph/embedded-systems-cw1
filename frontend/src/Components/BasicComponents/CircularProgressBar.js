@@ -1,6 +1,6 @@
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
 const ProgressProvider = ({ valueStart, valueEnd, children }) => {
   const [value, setValue] = useState(valueStart);
@@ -12,8 +12,10 @@ const ProgressProvider = ({ valueStart, valueEnd, children }) => {
 };
 
 function CircularProgressBar({ value }) {
-  return <ProgressProvider valueStart={0} valueEnd={value}>
-    {(value) => <CircularProgressbar value={value} text={`${value}%`} />}
-  </ProgressProvider>;
+  return (
+    <ProgressProvider valueStart={0} valueEnd={value}>
+      {(value) => <CircularProgressbar value={value} text={`${value}%`} />}
+    </ProgressProvider>
+  );
 }
 export default CircularProgressBar;

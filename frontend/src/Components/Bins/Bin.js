@@ -38,7 +38,7 @@ function Bin(props) {
         </div>
 
         <div className={"grid gap-1 p-2"}>
-          <CircularProgressBar upper_value={props.Fullness} />
+          <CircularProgressBar value={props.Fullness} />
         </div>
 
         <div className={"flex gap-2 p-3 ml-auto mr-auto"}>

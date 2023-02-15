@@ -3,25 +3,12 @@ import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
-
 import { IoIosTrash } from "react-icons/io";
-
 import "./Map.css";
-
 import { popupHead } from "./popupStyles";
-
-/*  *******************  */
-
 import { useState, useRef } from "react";
 import { useMapEvents } from "react-leaflet";
-
-/*  *******************  */
-
-/*  *******************  */
-
 import Routing from "./Routing.js";
-
-/*  *******************  */
 
 let DefaultIcon = L.icon({
   iconUrl: icon,

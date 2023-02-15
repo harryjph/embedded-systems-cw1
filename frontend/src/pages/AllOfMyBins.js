@@ -3,14 +3,10 @@ import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
 import { apiGet, apiPost } from "../API";
 
-import { useNavigate } from "react-router-dom";
-
 function AllOfMyBinsPage() {
-  const history = useNavigate();
-
   function ReleaseBin(id) {
     apiPost("/bins/" + id + "/release").then(() => {
-      history("/my-bins");
+      window.location.reload();
     });
   }
   const [loadedBins, setLoadedBins] = useState([]);

@@ -25,6 +25,7 @@ function AllOfMyBinsPage() {
           bins.push(bin);
         }
         setLoadedBins(bins);
+        console.log("update");
       });
   }
 

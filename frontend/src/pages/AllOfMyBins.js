@@ -3,37 +3,37 @@ import { useEffect, useState } from "react";
 import Layout from "../Components/Layout/Layout";
 import { apiGet, apiPost } from "../API";
 
-import { useNavigate } from "react-router-dom";
-
 function AllOfMyBinsPage() {
-  const history = useNavigate();
-
   function ReleaseBin(id) {
     apiPost("/bins/" + id + "/release").then(() => {
-      history("/unowned-bins");
+      window.location.reload();
     });
   }
   const [loadedBins, setLoadedBins] = useState([]);
 
+  function updateBins() {
+    apiGet("/bins")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        const bins = [];
+        for (const key in data) {
+          const bin = {
+            ...data[key],
+          };
+          bins.push(bin);
+        }
+        setLoadedBins(bins);
+        console.log("update");
+      });
+  }
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      apiGet("/bins")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          const bins = [];
-          for (const key in data) {
-            const bin = {
-              ...data[key],
-            };
-            bins.push(bin);
-          }
-          setLoadedBins(bins);
-        });
-    }, 1000);
+    updateBins();
+    const timer = setInterval(updateBins, 1000);
     return () => {
-      clearInterval(timer);
+      clearTimeout(timer);
     };
   }, []);
 

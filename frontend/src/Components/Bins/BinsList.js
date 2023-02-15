@@ -59,6 +59,10 @@ function BinsList(props) {
     setSeeRenamingModalAndBackdrop(-1);
   }
 
+  if (props.AllData.length === 0) {
+    return <p className="text-center text-2xl">There are no bins!</p>;
+  }
+
   let binsWidgets = props.AllData.map((bin) => {
     const seeModal = modalAndBackdropFor === bin.id;
     const seeProperties = SeeRenamingModalAndBackdrop === bin.id;

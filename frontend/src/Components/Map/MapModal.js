@@ -9,7 +9,7 @@ const MapModal = (props) => (
       left: "calc(50% - 29rem)",
     }}
   >
-    <Map AllData={props.AllData} />
+    <Map AllData={props.AllData} RoutingData={props.RoutingData} />
   </div>
 );
 

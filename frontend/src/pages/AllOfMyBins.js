@@ -11,25 +11,29 @@ function AllOfMyBinsPage() {
   }
   const [loadedBins, setLoadedBins] = useState([]);
 
+  function updateBins() {
+    apiGet("/bins")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        const bins = [];
+        for (const key in data) {
+          const bin = {
+            ...data[key],
+          };
+          bins.push(bin);
+        }
+        setLoadedBins(bins);
+        console.log("update");
+      });
+  }
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      apiGet("/bins")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          const bins = [];
-          for (const key in data) {
-            const bin = {
-              ...data[key],
-            };
-            bins.push(bin);
-          }
-          setLoadedBins(bins);
-        });
-    }, 1000);
+    updateBins();
+    const timer = setInterval(updateBins, 1000);
     return () => {
-      clearInterval(timer);
+      clearTimeout(timer);
     };
   }, []);
 

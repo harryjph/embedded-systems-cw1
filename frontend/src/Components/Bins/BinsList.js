@@ -32,6 +32,7 @@ function BinsList(props) {
           //  end
           setSeeMap(true);
         });
+        setSeeRoute(true);
     };
     
     const errorCallback = (error) => {
@@ -47,11 +48,11 @@ function BinsList(props) {
     setSeeMap(true);
   }
   
-  function functionSeeRoute(mapIds) {
+  function functionSeeRoute() {
     setSeeRoute(true);
   }
   
-  function functionDontSeeRoute(mapIds) {
+  function functionDontSeeRoute() {
     setSeeRoute(false);
   }
 
@@ -64,6 +65,7 @@ function BinsList(props) {
   }
 
   function cancelModal() {
+    setSeeRoute(false);
     setSeeMap(false);
     setModalAndBackdropFor(-1);
     setSeeRenamingModalAndBackdrop(-1);
@@ -95,12 +97,14 @@ function BinsList(props) {
         foofunctionSeeModalAndBackdrop={functionSeeModalAndBackdrop}
         foofunctionSeeRenamingModalAndBackdrop={functionSeeRenamingModalAndBackdrop}
         foocancelModal={cancelModal}
+        foofunctionSeeRoute={functionSeeRoute}
+        foofunctionDontSeeRoute={functionDontSeeRoute}
       />
     );
   });
   return (
     <div>
-      {SeeMap && <MapModal AllData={MapData} RoutingData={RouteData}/>}
+      {SeeMap && <MapModal AllData={MapData} RoutingData={RouteData} SeeRoute={SeeRoute}/>}
       <div className="flex items-center justify-center m-5">
         <button
           className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

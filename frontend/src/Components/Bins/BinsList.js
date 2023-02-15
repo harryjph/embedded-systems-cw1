@@ -6,6 +6,7 @@ import { apiPostJson } from "../../API.js";
 
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
+  const [SeeRoute, setSeeRoute] = useState(false);
   const [MapData, setMapData] = useState([]);
   const [RouteData, setRouteData] = useState([]);
   const [modalAndBackdropFor, setModalAndBackdropFor] = useState(-1);
@@ -44,6 +45,14 @@ function BinsList(props) {
     let mapData = props.AllData.filter((bin) => mapIds.includes(bin.id));
     setMapData(mapData);
     setSeeMap(true);
+  }
+  
+  function functionSeeRoute(mapIds) {
+    setSeeRoute(true);
+  }
+  
+  function functionDontSeeRoute(mapIds) {
+    setSeeRoute(false);
   }
 
   function functionSeeModalAndBackdrop(id) {

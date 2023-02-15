@@ -26,6 +26,8 @@ function Bin(props) {
     props.foofunctionSeeModalAndBackdrop(props.ID);
   }, [props]);
 
+  const temperature = props.Temperature >= 40 ? <span className="text-[#ff0000]">High (> 40°C)</span> : <span className="text-[#00ff20]">Normal</span>
+
   return (
     <Card className="block w-72">
       <div className="flex flex-col z-0 px-5">
@@ -39,9 +41,8 @@ function Bin(props) {
           <CircularProgressBar upper_value={props.Fullness} />
         </div>
 
-        <div className={"flex gap-2 p-3"}>
-          <span className="font-bold">Temperature: {props.Temperature}</span>
-          <span className="font-bold">Humidity: {props.Humidity}</span>
+        <div className={"flex gap-2 p-3 ml-auto mr-auto"}>
+          <span className="font-bold">Temperature: {temperature}</span>
         </div>
 
         <div className="flex justify-center items-center p-2">

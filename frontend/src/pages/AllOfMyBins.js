@@ -10,7 +10,7 @@ function AllOfMyBinsPage() {
 
   function ReleaseBin(id) {
     apiPost("/bins/" + id + "/release").then(() => {
-      history("/unowned-bins");
+      history("/my-bins");
     });
   }
   const [loadedBins, setLoadedBins] = useState([]);

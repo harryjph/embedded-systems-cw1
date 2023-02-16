@@ -1,9 +1,8 @@
-import { map_routed, map_unrouted } from "../../assets/index.js";
+import { map_routed } from "../../assets/index.js";
 import styles, { layout } from "../../style.js";
 import { useState } from "react";
 
 const Routing = () => {
-  const [open, setOpen] = useState(false);
   return (
     <section className={layout.section}>
       <div className={layout.sectionInfo}>
@@ -22,11 +21,9 @@ const Routing = () => {
 
       <div
         className={layout.sectionImg}
-        onMouseOver={() => setOpen(true)}
-        onMouseOut={() => setOpen(false)}
       >
         <div className="company-block">
-          <img src={open ? map_routed : map_unrouted} />
+          <img src={map_routed} />
         </div>
       </div>
     </section>

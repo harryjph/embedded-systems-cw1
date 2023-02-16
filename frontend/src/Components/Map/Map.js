@@ -74,7 +74,7 @@ function Map(props) {
                   "% Full"}
               </div>
             </Popup>
-            <LocationMarker map={mapRef} />
+            {props.SeeRoute && <LocationMarker map={mapRef} />}
           </Marker>
         );
       })}

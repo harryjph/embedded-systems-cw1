@@ -6,12 +6,4 @@ import Stats from "./Stats";
 import Testimonials from "./Testimonials";
 import Hero from "./Hero";
 
-export {
-  Navbar,
-  Billing,
-  CardDeal,
-  Business,
-  Stats,
-  Testimonials,
-  Hero,
-};
+export { Navbar, Billing, CardDeal, Business, Stats, Testimonials, Hero };

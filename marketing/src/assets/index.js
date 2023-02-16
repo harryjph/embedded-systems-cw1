@@ -27,8 +27,8 @@ import before from "./before.png";
 import after from "./after.png";
 
 export {
-  before, 
-  after, 
+  before,
+  after,
   airbnb,
   bin,
   binance,

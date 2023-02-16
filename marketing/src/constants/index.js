@@ -1,4 +1,18 @@
-import { people01, people02, people03, facebook, instagram, linkedin, twitter, airbnb, binance, coinbase, dropbox, send, shield, star  } from "../assets";
+import {
+  people01,
+  people02,
+  people03,
+  facebook,
+  instagram,
+  linkedin,
+  twitter,
+  airbnb,
+  binance,
+  coinbase,
+  dropbox,
+  shield,
+  star,
+} from "../assets";
 
 export const navLinks = [
   {
@@ -24,22 +38,19 @@ export const features = [
     id: "feature-1",
     icon: star,
     title: "Advanced Routing Algorithm ",
-    content:
-    "",
+    content: "",
   },
   {
     id: "feature-2",
     icon: star,
     title: "High Scalability",
-    content:
-    "",
+    content: "",
   },
   {
     id: "feature-3",
     icon: shield,
     title: "Secure Network",
-    content:
-    "",
+    content: "",
   },
 ];
 
@@ -49,7 +60,7 @@ export const stuff = [
     icon: star,
     title: "Advanced Routing Algorithm ",
     content:
-      "Our advanced routing algorithm employs real-time data analytics to determine which bins require immediate attention, optimizing waste collection and disposal."
+      "Our advanced routing algorithm employs real-time data analytics to determine which bins require immediate attention, optimizing waste collection and disposal.",
   },
   {
     id: "feature-2",
@@ -79,7 +90,7 @@ export const feedback = [
   {
     id: "feedback-2",
     content:
-    "Adding smart-bins into our infrastructure would be a valuable tool in identifying areas of budget waste and furthering our efforts to reduce fuel costs.",
+      "Adding smart-bins into our infrastructure would be a valuable tool in identifying areas of budget waste and furthering our efforts to reduce fuel costs.",
     name: "Steve Neechi-Phillips",
     title: "City Councilman",
     img: people02,
@@ -87,7 +98,7 @@ export const feedback = [
   {
     id: "feedback-3",
     content:
-    "I believe in an innovative IoT product that also has a focus on security is a way for the future.",
+      "I believe in an innovative IoT product that also has a focus on security is a way for the future.",
     name: "Kenn Stott",
     title: "CEO Entrepreneur",
     img: people03,
@@ -111,7 +122,6 @@ export const stats = [
     value: "230M+",
   },
 ];
-
 
 export const socialMedia = [
   {

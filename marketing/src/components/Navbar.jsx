@@ -1,16 +1,18 @@
 import { useState } from "react";
 
-import { close, logo, menu } from "../assets";
+import { close, menu } from "../assets";
 
 const Navbar = () => {
   const [toggle, setToggle] = useState(false);
 
   return (
     <nav className="w-full flex py-6 justify-between items-center navbar">
-      <img src={logo} alt="hoobank" className="w-[124px] h-[32px]" />
+      <img src="https://flowbite.com/docs/images/logo.svg" alt="Logo" className="w-[60px] h-auto mt-5" />
+
+      <span className="font-poppins font-semibold text-[32px] text-white ml-5 mt-6">IoT101</span>
 
       <ul className="list-none sm:flex hidden justify-end items-center flex-1">
-        <li key="login" className={"font-poppins font-normal cursor-pointer text-[16px] text-white mr-10 mt-5"}>
+        <li key="login" className="font-poppins font-normal cursor-pointer text-[16px] text-white mr-10 mt-5">
           <a href="/app" className="py-4 px-6 font-poppins font-medium text-[18px] text-primary bg-blue-gradient rounded-[10px] outline-none">
             Login
           </a>

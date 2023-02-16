@@ -1,5 +1,4 @@
 import map from "./map.png";
-import logo from "./logo.svg";
 import quotes from "./quotes.svg";
 import bin from "./bin.png";
 import menu from "./menu.svg";
@@ -9,7 +8,6 @@ import person from "./person.png";
 
 export {
   close,
-  logo,
   menu,
   bin,
   map,

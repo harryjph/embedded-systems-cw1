@@ -1,57 +1,17 @@
-import airbnb from "./airbnb.png";
-import bin from "./bin.png";
-import binance from "./binance.png";
-import card from "./card.png";
-import coinbase from "./coinbase.png";
-import dropbox from "./dropbox.png";
-import logo from "./logo.svg";
+import map from "./map.png";
 import quotes from "./quotes.svg";
-import robot from "./robot.png";
-import send from "./Send.svg";
-import shield from "./Shield.svg";
-import star from "./Star.svg";
+import bin from "./bin.png";
 import menu from "./menu.svg";
 import close from "./close.svg";
-import google from "./google.svg";
-import apple from "./apple.svg";
-import arrowUp from "./arrow-up.svg";
-import discount from "./Discount.svg";
-import facebook from "./facebook.svg";
-import instagram from "./instagram.svg";
-import linkedin from "./linkedin.svg";
-import twitter from "./twitter.svg";
-import people01 from "./people01.png";
-import people02 from "./people02.png";
-import people03 from "./people03.png";
-import before from "./before.png";
-import after from "./after.png";
+import map_routed from "./map_routed.png";
+import person from "./person.png";
 
 export {
-  before, 
-  after, 
-  airbnb,
-  bin,
-  binance,
-  card,
-  coinbase,
-  dropbox,
-  logo,
-  quotes,
-  robot,
-  send,
-  shield,
-  star,
-  menu,
   close,
-  google,
-  apple,
-  arrowUp,
-  discount,
-  facebook,
-  instagram,
-  linkedin,
-  twitter,
-  people01,
-  people02,
-  people03,
+  menu,
+  bin,
+  map,
+  map_routed,
+  quotes,
+  person,
 };

@@ -21,7 +21,7 @@ const Hero = () => {
         </h1>
         <p className={`${styles.paragraph} max-w-[470px] mt-5`}>
           Level up your bin game by adding our latest Smart Bin IoT product to
-          your current infastructure. Never have pesky overflowing bins again.
+          your current infrastructure. Never have pesky overflowing bins again.
         </p>
       </div>
 

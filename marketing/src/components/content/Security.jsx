@@ -1,6 +1,6 @@
-import styles, { layout } from "../style";
+import styles, { layout } from "../../style.js";
 
-const Business = () => (
+const Security = () => (
   <section id="features" className={layout.section}>
     <div className={layout.sectionInfo}>
       <h2 className={styles.heading2}>
@@ -31,4 +31,4 @@ const Business = () => (
   </section>
 );
 
-export default Business;
+export default Security;

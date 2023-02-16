@@ -1,8 +1,8 @@
-import { before, after } from "../assets";
-import styles, { layout } from "../style";
+import { before, after } from "../../assets/index.js";
+import styles, { layout } from "../../style.js";
 import { useState } from "react";
 
-const CardDeal = () => {
+const Routing = () => {
   const [open, setOpen] = useState(false);
   return (
     <section className={layout.section}>
@@ -33,4 +33,4 @@ const CardDeal = () => {
   );
 };
 
-export default CardDeal;
+export default Routing;

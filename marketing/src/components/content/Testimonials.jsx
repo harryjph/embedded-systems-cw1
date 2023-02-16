@@ -1,6 +1,6 @@
-import styles from "../style";
-import FeedbackCard from "./FeedbackCard";
-import {people01, people02, people03} from "../assets/index.js";
+import styles from "../../style.js";
+import FeedbackCard from "../FeedbackCard.jsx";
+import {people01, people02, people03} from "../../assets/index.js";
 
 const feedback = [
   {

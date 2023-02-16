@@ -1,7 +1,7 @@
-import { bin } from "../assets";
-import styles, { layout } from "../style";
+import { bin } from "../../assets/index.js";
+import styles, { layout } from "../../style.js";
 
-const Billing = () => (
+const ControlBins = () => (
   <section id="product" className={layout.sectionReverse}>
     <div className={layout.sectionImgReverse}>
       <img src={bin} alt="bin" className="w-[100%] h-[90%] relative z-[5]" />
@@ -25,4 +25,4 @@ const Billing = () => (
   </section>
 );
 
-export default Billing;
+export default ControlBins;

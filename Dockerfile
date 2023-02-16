@@ -17,12 +17,21 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release \
     && cp target/release/server .
 
+FROM node:alpine AS marketing-build
+WORKDIR /app
+COPY marketing .
+RUN --mount=type=cache,target=/app/node_modules \
+    --mount=type=cache,target=~/.npm \
+	npm install && npm run build
+
 FROM alpine:latest
 WORKDIR /usr/local/bin
 COPY --from=frontend-build /app/build /etc/frontend
+COPY --from=marketing-build /app/dist /etc/marketing
 COPY --from=server-build /build/server .
 ENV CONFIG_PATH=/etc/server/config.toml
 ENV DATABASE_PATH=/etc/server/database.db
 ENV FRONTEND_PATH=/etc/frontend
+ENV MARKETING_PATH=/etc/marketing
 VOLUME /etc/server/
 ENTRYPOINT ["server"]

@@ -22,7 +22,7 @@ const Business = () => (
           height="315"
           src="https://www.youtube.com/embed/dQw4w9WgXcQ"
           title="YouTube video player"
-          style="border: 0px"
+          style={{border: 0}}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         ></iframe>

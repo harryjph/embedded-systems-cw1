@@ -1,6 +1,5 @@
 import { before, after } from "../assets";
 import styles, { layout } from "../style";
-import Button from "./Button";
 import { useState } from "react";
 
 const CardDeal = () => {

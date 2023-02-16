@@ -22,6 +22,7 @@ mod user;
 mod util;
 
 const FRONTEND_PATH_ENV_NAME: &str = "FRONTEND_PATH";
+const MARKETING_PATH_ENV_NAME: &str = "MARKETING_PATH";
 
 pub fn launch(config: Config, db: Arc<Database>, user_manager: Arc<UserManager>) -> JoinHandle<()> {
     println!(
@@ -45,6 +46,7 @@ async fn start_server(socket_addr: SocketAddr, state: Arc<ServerState>) {
     let allowed_origins = ["http://localhost", "http://localhost:3000"];
 
     let router = Router::new()
+        .nest("/", marketing_router())
         .nest("/api", api_router())
         .nest("/app", frontend_router())
         .with_state(state)
@@ -80,6 +82,20 @@ fn frontend_router() -> Router<Arc<ServerState>> {
         )
     } else {
         eprintln!("Warning: Frontend not found and will not be served");
+        Router::new()
+    }
+}
+
+fn marketing_router() -> Router<Arc<ServerState>> {
+    if let Ok(marketing_path) = env::var(MARKETING_PATH_ENV_NAME) {
+        Router::new().nest_service(
+            "/",
+            get_service(
+                ServeDir::new(&marketing_path))
+                .handle_error(|_| async { StatusCode::INTERNAL_SERVER_ERROR })
+        )
+    } else {
+        eprintln!("Warning: Marketing website not found and will not be served");
         Router::new()
     }
 }

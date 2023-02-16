@@ -3,6 +3,7 @@ use crate::db::Database;
 use crate::http_server::user::get_signed_in_email;
 use crate::http_server::util::{bad_request, not_found, ErrorResponse};
 use crate::http_server::ServerState;
+use crate::routing::{self, Network, Node};
 use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
@@ -45,6 +46,16 @@ impl From<node::Model> for Bin {
     }
 }
 
+impl From<Bin> for routing::Node {
+    fn from(bin: Bin) -> Self {
+        Self {
+            x_coord: bin.config.longitude,
+            y_coord: bin.config.latitude,
+            node_id: bin.id as usize,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct BinConfig {
     pub name: String,
@@ -71,6 +82,12 @@ impl From<node::Model> for BinConfig {
 #[derive(Serialize)]
 struct BinRoute {
     route: Vec<u32>, // Route of bin ids
+}
+
+#[derive(Deserialize)]
+struct RouteInfo {
+    start_longitude: f64,
+    start_latitude: f64,
 }
 
 async fn get_one(
@@ -202,19 +219,36 @@ async fn get_bin_route(
 ) -> Result<Json<BinRoute>, ErrorResponse> {
     // THIS WILL BE CHANGED BY NODE CONFIG IF WE ADD IT!
     use crate::grpc_server::FULLNESS_THRESHOLD;
-    use rand::seq::SliceRandom;
-    use rand::thread_rng;
 
     let user_email = get_signed_in_email(&session)?;
-    let mut route: Vec<_> = get_all_bins(&state.db, Some(user_email.as_str()))
+    let mut nodes: Vec<routing::Node> = get_all_bins(&state.db, Some(user_email.as_str()))
         .await?
         .into_iter()
         .filter(|bin| bin.fullness >= FULLNESS_THRESHOLD)
-        .map(|bin| bin.id)
+        .map(|bin| bin.into())
         .collect();
-    route.shuffle(&mut thread_rng());
 
-    Ok(Json(BinRoute { route }))
+    if nodes.is_empty() {
+        Ok(Json(BinRoute { route: vec![] }))
+    } else {
+        let max_id = nodes
+            .iter()
+            .map(|n| n.node_id)
+            .reduce(usize::max)
+            .unwrap_or(0);
+        let start_node = Node::new(route_config.starting_longitude, route_config.starting_latitude, max_id + 1, 0.0);
+        nodes.push(start_node);
+        println!("{nodes:?}");
+        println!("{start_node:?}");
+        let mut network = Network::new_euclidean(nodes, start_node, 999999.0);
+        let route: Vec<u32> = network
+            .christofides()
+            .into_iter()
+            .map(|id| id as u32)
+            .collect();
+
+        Ok(Json(BinRoute { route: route[1..route.len() - 1].into() }))
+    }
 }
 
 #[cfg(test)]

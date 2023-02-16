@@ -34,12 +34,12 @@ function BinsList(props) {
         });
         setSeeRoute(true);
     };
-    
+
     const errorCallback = (error) => {
       alert("Error getting location: " + error);
     };
-    
-    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);    
+
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
   }
 
   function functionSeeMap(mapIds) {
@@ -47,11 +47,11 @@ function BinsList(props) {
     setMapData(mapData);
     setSeeMap(true);
   }
-  
+
   function functionSeeRoute() {
     setSeeRoute(true);
   }
-  
+
   function functionDontSeeRoute() {
     setSeeRoute(false);
   }
@@ -69,6 +69,10 @@ function BinsList(props) {
     setSeeMap(false);
     setModalAndBackdropFor(-1);
     setSeeRenamingModalAndBackdrop(-1);
+  }
+
+  if (props.AllData.length === 0) {
+    return <p className="text-center text-2xl">There are no bins!</p>;
   }
 
   let binsWidgets = props.AllData.map((bin) => {
@@ -102,6 +106,7 @@ function BinsList(props) {
       />
     );
   });
+
   return (
     <div>
       {SeeMap && <MapModal AllData={MapData} RoutingData={RouteData} SeeRoute={SeeRoute}/>}

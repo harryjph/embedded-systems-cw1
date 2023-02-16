@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { useEffect, useState } from "react";
 
-function CircularProgressBar({ upper_value }) {
-  const [percentage, setPercentage] = useState(0);
-
+const ProgressProvider = ({ valueStart, valueEnd, children }) => {
+  const [value, setValue] = useState(valueStart);
   useEffect(() => {
-    let timer = setTimeout(() => {
-      if (percentage < upper_value) {
-        setPercentage(percentage + 1);
-      }
-    }, 5);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [percentage, upper_value]);
+    setValue(valueEnd);
+  }, [valueEnd]);
 
-  return <CircularProgressbar value={percentage} text={`${percentage}%`} />;
+  return children(value);
+};
+
+function CircularProgressBar({ value }) {
+  return (
+    <ProgressProvider valueStart={0} valueEnd={value}>
+      {(value) => <CircularProgressbar value={value} text={`${value}%`} />}
+    </ProgressProvider>
+  );
 }
 export default CircularProgressBar;

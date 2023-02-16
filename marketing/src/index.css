@@ -28,10 +28,7 @@
     #5ce1e6 71.54%,
     #33bbcf 100%
   );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-fill-color: transparent;
 }
 
 .bg-blue-gradient {
@@ -77,7 +74,7 @@
 }
 
 .box-shadow {
-  box-shadow: 0px 20px 100px -10px rgba(66, 71, 91, 0.1);
+  box-shadow: 0 20px 100px -10px rgba(66, 71, 91, 0.1);
 }
 
 .sidebar {
@@ -87,22 +84,18 @@
 
 @-webkit-keyframes slide-top {
   0% {
-    -webkit-transform: translateY(100px);
     transform: translateY(100px);
   }
   100% {
-    -webkit-transform: translateY(0);
     transform: translateY(0);
   }
 }
 
 @keyframes slide-top {
   0% {
-    -webkit-transform: translateY(100px);
     transform: translateY(100px);
   }
   100% {
-    -webkit-transform: translateY(0);
     transform: translateY(0);
   }
 }
@@ -113,7 +106,7 @@
 }
 
 .feedback-container .feedback-card:last-child {
-  margin-right: 0px;
+  margin-right: 0;
 }
 
 .feedback-card {

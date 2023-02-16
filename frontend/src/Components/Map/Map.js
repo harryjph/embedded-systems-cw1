@@ -51,7 +51,13 @@ function Map(props) {
   const avgLong = tot[1] / props.AllData.length;
 
   return (
-    <MapContainer ref={mapRef} className="z-30 w-full h-full p-10" center={[avgLat, avgLong]} zoom={13} scrollWheelZoom={false}>
+    <MapContainer
+      ref={mapRef}
+      className="z-30 w-full h-full p-10"
+      center={[avgLat, avgLong]}
+      zoom={13}
+      scrollWheelZoom={false}
+    >
       <TileLayer
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -68,14 +74,11 @@ function Map(props) {
                   "% Full"}
               </div>
             </Popup>
-            {props.SeeRoute && <LocationMarker map={mapRef}/>}
+            {props.SeeRoute && <LocationMarker map={mapRef} />}
           </Marker>
         );
       })}
-      {
-        (props.RoutingData.length > 0) &&
-          <Routing  RoutingData={props.RoutingData}/>
-        }
+      {props.RoutingData.length > 0 && <Routing RoutingData={props.RoutingData} />}
     </MapContainer>
   );
 }

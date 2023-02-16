@@ -14,25 +14,24 @@ function BinsList(props) {
 
   function SeeRoutingMap() {
     const successCallback = (position) => {
-      apiPostJson("/bins/route", { starting_latitude: position.coords.latitude, starting_longitude: position.coords.longitude })
+      apiPostJson("/bins/route", {
+        starting_latitude: position.coords.latitude,
+        starting_longitude: position.coords.longitude,
+      })
         .then((r) => r.json())
         .then((response) => {
           const binIds = response.route;
           let mapData = props.AllData.filter((bin) => binIds.includes(bin.id));
           setMapData(mapData);
-          //  TODO: Compute this list into a set of lat_longs
           let InitialLatLng = [position.coords.latitude, position.coords.longitude];
-          let LatterLatLongData = mapData.map(
-            (bin) => {
-              return [bin.config.latitude, bin.config.longitude]
-            }
-          );
+          let LatterLatLongData = mapData.map((bin) => {
+            return [bin.config.latitude, bin.config.longitude];
+          });
           let LatLongData = [InitialLatLng].concat(LatterLatLongData);
           setRouteData(LatLongData);
-          //  end
           setSeeMap(true);
         });
-        setSeeRoute(true);
+      setSeeRoute(true);
     };
 
     const errorCallback = (error) => {
@@ -109,7 +108,7 @@ function BinsList(props) {
 
   return (
     <div>
-      {SeeMap && <MapModal AllData={MapData} RoutingData={RouteData} SeeRoute={SeeRoute}/>}
+      {SeeMap && <MapModal AllData={MapData} RoutingData={RouteData} SeeRoute={SeeRoute} />}
       <div className="flex items-center justify-center m-5">
         <button
           className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

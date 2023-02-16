@@ -4,7 +4,6 @@ import {
   Business,
   CardDeal,
   Navbar,
-  Stats,
   Testimonials,
   Hero,
 } from "./components";
@@ -25,7 +24,6 @@ const App = () => (
 
     <div className={`bg-primary ${styles.paddingX} ${styles.flexCenter}`}>
       <div className={`${styles.boxWidth}`}>
-        <Stats />
         <Business />
         <Billing />
         <CardDeal />

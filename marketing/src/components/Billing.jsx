@@ -11,8 +11,7 @@ const Billing = () => (
 
     <div className={layout.sectionInfo}>
       <h2 className={styles.heading2}>
-        Easily control your <br className="sm:block hidden" />
-        <span className="text-gradient">Bins</span>{" "}
+        Easily <span className="text-gradient">control</span> your Bins{" "}
       </h2>
       <p className={`${styles.paragraph} max-w-[470px] mt-5`}>
         Our advanced routing algorithm employs real-time data analytics to

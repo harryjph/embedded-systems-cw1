@@ -28,7 +28,11 @@
     #5ce1e6 71.54%,
     #33bbcf 100%
   );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
+  /*noinspection CssUnknownProperty*/
+  text-fill-color: transparent;
 }
 
 .bg-blue-gradient {

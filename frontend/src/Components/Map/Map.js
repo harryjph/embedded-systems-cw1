@@ -5,12 +5,14 @@ import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import "./Map.css";
 import Routing from "./Routing.js";
-import {IoIosTrash} from "react-icons/all";
+import {IoIosTrash} from "react-icons/io";
 import {popupHead} from "./popupStyles";
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
+  iconSize: [25,41],
+  iconAnchor: [12,41],
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
@@ -42,9 +44,9 @@ function Map({ points, route }) {
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {points.map((point) => {
+      {points.map((point, i) => {
         return (
-          <Marker position={[point.latitude, point.longitude]}>
+          <Marker position={[point.latitude, point.longitude]} key={i}>
             <Popup>
               {point.isBin && <IoIosTrash className="z-30 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />}
               <div className="m-2" style={popupHead}>

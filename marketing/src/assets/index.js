@@ -1,5 +1,5 @@
 import airbnb from "./airbnb.png";
-import bill from "./bill.png";
+import bin from "./bin.png";
 import binance from "./binance.png";
 import card from "./card.png";
 import coinbase from "./coinbase.png";
@@ -23,10 +23,14 @@ import twitter from "./twitter.svg";
 import people01 from "./people01.png";
 import people02 from "./people02.png";
 import people03 from "./people03.png";
+import before from "./before.png";
+import after from "./after.png";
 
 export {
+  before, 
+  after, 
   airbnb,
-  bill,
+  bin,
   binance,
   card,
   coinbase,

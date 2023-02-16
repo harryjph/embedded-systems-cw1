@@ -21,11 +21,9 @@ const Hero = () => {
           of Trash.
         </h1>
         <p className={`${styles.paragraph} max-w-[470px] mt-5`}>
-          Our team of experts uses a methodology to identify the credit cards
-          most likely to fit your needs. We examine annual percentage rates,
-          annual fees.
+          Level up your bin game by adding our latest Smart Bin IoT product to your current infastructure.
+          Never have pesky overflowing bins again.
         </p>
-
       </div>
 
       <div className={`flex-1 flex ${styles.flexCenter} md:my-0 my-10 relative`}>

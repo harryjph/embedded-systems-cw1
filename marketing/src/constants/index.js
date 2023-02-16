@@ -15,24 +15,55 @@ export const navLinks = [
   },
   {
     id: "clients",
-    title: "Clients",
+    title: "Quotes",
   },
 ];
 
 export const features = [
   {
     id: "feature-1",
-    icon: shield,
-    title: "100% Secured",
+    icon: star,
+    title: "Advanced Routing Algorithm ",
     content:
-      "We take proactive steps make sure your information and transactions are secure.",
+    "",
   },
   {
     id: "feature-2",
-    icon: send,
-    title: "Balance Transfer",
+    icon: star,
+    title: "High Scalability",
     content:
-      "A balance transfer credit card can save you a lot of money in interest charges.",
+    "",
+  },
+  {
+    id: "feature-3",
+    icon: shield,
+    title: "Secure Network",
+    content:
+    "",
+  },
+];
+
+export const stuff = [
+  {
+    id: "feature-1",
+    icon: star,
+    title: "Advanced Routing Algorithm ",
+    content:
+      "Our advanced routing algorithm employs real-time data analytics to determine which bins require immediate attention, optimizing waste collection and disposal."
+  },
+  {
+    id: "feature-2",
+    icon: star,
+    title: "High Scalability",
+    content:
+      "Our algorithm is designed to handle a large number of bins, without any loss of efficiency or performance. You can scale our technology to suit your needs, regardless of the size of your waste management network. Choose us and experience the benefits of a high-performance waste management system that can adapt to your evolving needs.",
+  },
+  {
+    id: "feature-3",
+    icon: shield,
+    title: "Secure Network",
+    content:
+      "Rest easy knowing that your data is always protected with our state-of-the-art security measures. Our network features TLS encryption to safeguard your information, while your password is secured by 10,000 PBKDF2 iterations and salting. We take your privacy seriously and are committed to keeping your data safe and secure. ",
   },
 ];
 
@@ -40,25 +71,25 @@ export const feedback = [
   {
     id: "feedback-1",
     content:
-      "Money is only a tool. It will take you wherever you wish, but it will not replace you as the driver.",
-    name: "Herman Jensen",
-    title: "Founder & Leader",
+      "This product would help make tracking biowaste much more cost friendly on the NHS.",
+    name: "Herman Ali-Gallagher",
+    title: "NHS Hospital Administrator",
     img: people01,
   },
   {
     id: "feedback-2",
     content:
-      "Money makes your life easier. If you're lucky to have it, you're lucky.",
-    name: "Steve Mark",
-    title: "Founder & Leader",
+    "Adding smart-bins into our infrastructure would be a valuable tool in identifying areas of budget waste and furthering our efforts to reduce fuel costs.",
+    name: "Steve Neechi-Phillips",
+    title: "City Councilman",
     img: people02,
   },
   {
     id: "feedback-3",
     content:
-      "It is usually people in the money business, finance, and international trade that are really rich.",
-    name: "Kenn Gallagher",
-    title: "Founder & Leader",
+    "I believe in an innovative IoT product that also has a focus on security is a way for the future.",
+    name: "Kenn Stott",
+    title: "CEO Entrepreneur",
     img: people03,
   },
 ];
@@ -66,89 +97,21 @@ export const feedback = [
 export const stats = [
   {
     id: "stats-1",
-    title: "UR mom",
-    value: "so fat",
+    title: "Active Users",
+    value: "5M+",
   },
   {
     id: "stats-2",
-    title: "UR mom",
-    value: "so fat",  },
+    title: "Trusted by Counties",
+    value: "230+",
+  },
   {
     id: "stats-3",
-    title: "UR mom",
-    value: "so fat",  },
-  {
-    id: "stats-4",
-    title: "UR mom",
-    value: "so fat",
+    title: "Bins",
+    value: "230M+",
   },
 ];
 
-export const footerLinks = [
-  {
-    title: "Useful Links",
-    links: [
-      {
-        name: "Content",
-        link: "https://www.hoobank.com/content/",
-      },
-      {
-        name: "How it Works",
-        link: "https://www.hoobank.com/how-it-works/",
-      },
-      {
-        name: "Create",
-        link: "https://www.hoobank.com/create/",
-      },
-      {
-        name: "Explore",
-        link: "https://www.hoobank.com/explore/",
-      },
-      {
-        name: "Terms & Services",
-        link: "https://www.hoobank.com/terms-and-services/",
-      },
-    ],
-  },
-  {
-    title: "Community",
-    links: [
-      {
-        name: "Help Center",
-        link: "https://www.hoobank.com/help-center/",
-      },
-      {
-        name: "Partners",
-        link: "https://www.hoobank.com/partners/",
-      },
-      {
-        name: "Suggestions",
-        link: "https://www.hoobank.com/suggestions/",
-      },
-      {
-        name: "Blog",
-        link: "https://www.hoobank.com/blog/",
-      },
-      {
-        name: "Newsletters",
-        link: "https://www.hoobank.com/newsletters/",
-      },
-    ],
-  },
-  {
-    title: "Partner",
-    links: [
-      {
-        name: "Our Partner",
-        link: "https://www.hoobank.com/our-partner/",
-      },
-      {
-        name: "Become a Partner",
-        link: "https://www.hoobank.com/become-a-partner/",
-      },
-    ],
-  },
-];
 
 export const socialMedia = [
   {
@@ -170,5 +133,24 @@ export const socialMedia = [
     id: "social-media-4",
     icon: linkedin,
     link: "https://www.linkedin.com/",
+  },
+];
+
+export const clients = [
+  {
+    id: "client-1",
+    logo: airbnb,
+  },
+  {
+    id: "client-2",
+    logo: binance,
+  },
+  {
+    id: "client-3",
+    logo: coinbase,
+  },
+  {
+    id: "client-4",
+    logo: dropbox,
   },
 ];

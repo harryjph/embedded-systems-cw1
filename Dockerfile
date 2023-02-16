@@ -1,9 +1,7 @@
 FROM node:alpine AS frontend-build
 WORKDIR /app
 COPY frontend .
-RUN --mount=type=cache,target=/app/node_modules \
-    --mount=type=cache,target=~/.npm \
-	npm install && npm run build
+RUN npm install && npm run build
 
 FROM rust:alpine AS server-build
 # musl-dev is required in order to dynamically link proc_macro crates
@@ -20,9 +18,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 FROM node:alpine AS marketing-build
 WORKDIR /app
 COPY marketing .
-RUN --mount=type=cache,target=/app/node_modules \
-    --mount=type=cache,target=~/.npm \
-	npm install && npm run build
+RUN npm install && npm run build
 
 FROM alpine:latest
 WORKDIR /usr/local/bin

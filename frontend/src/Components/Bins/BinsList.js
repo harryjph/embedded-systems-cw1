@@ -1,16 +1,24 @@
-import Bin from "./Bin.js";
+import Bin, {getBinLabel} from "./Bin.js";
 import Backdrop from "../BasicComponents/Backdrop.js";
 import MapModal from "../Map/MapModal.js";
-import { useState } from "react";
-import { apiPostJson } from "../../API.js";
+import {useState} from "react";
+import {apiPostJson} from "../../API.js";
 
 function BinsList(props) {
   const [SeeMap, setSeeMap] = useState(false);
   const [SeeRoute, setSeeRoute] = useState(false);
   const [MapData, setMapData] = useState([]);
-  const [RouteData, setRouteData] = useState([]);
   const [modalAndBackdropFor, setModalAndBackdropFor] = useState(-1);
   const [SeeRenamingModalAndBackdrop, setSeeRenamingModalAndBackdrop] = useState(-1);
+
+  function binToMapPoint(bin) {
+    return {
+      latitude: bin.config.latitude,
+      longitude: bin.config.longitude,
+      text: getBinLabel(bin.config.name, bin.id),
+      isBin: true,
+    };
+  }
 
   function SeeRoutingMap() {
     const successCallback = (position) => {
@@ -20,18 +28,19 @@ function BinsList(props) {
       })
         .then((r) => r.json())
         .then((response) => {
-          const binIds = response.route;
-          let mapData = props.AllData.filter((bin) => binIds.includes(bin.id));
-          setMapData(mapData);
-          let InitialLatLng = [position.coords.latitude, position.coords.longitude];
-          let LatterLatLongData = mapData.map((bin) => {
-            return [bin.config.latitude, bin.config.longitude];
-          });
-          let LatLongData = [InitialLatLng].concat(LatterLatLongData);
-          setRouteData(LatLongData);
+          const binPoints = response.route
+            .map((id) => props.AllData.find((bin) => bin.id === id))
+            .map(binToMapPoint);
+          let initialPosition = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            text: "You are here",
+            isBin: false,
+          };
+          setMapData([initialPosition].concat(binPoints));
           setSeeMap(true);
+          setSeeRoute(true);
         });
-      setSeeRoute(true);
     };
 
     const errorCallback = (error) => {
@@ -42,17 +51,11 @@ function BinsList(props) {
   }
 
   function functionSeeMap(mapIds) {
-    let mapData = props.AllData.filter((bin) => mapIds.includes(bin.id));
+    let mapData = props.AllData.filter((bin) => mapIds.includes(bin.id))
+      .map(binToMapPoint);
     setMapData(mapData);
-    setSeeMap(true);
-  }
-
-  function functionSeeRoute() {
-    setSeeRoute(true);
-  }
-
-  function functionDontSeeRoute() {
     setSeeRoute(false);
+    setSeeMap(true);
   }
 
   function functionSeeModalAndBackdrop(id) {
@@ -64,7 +67,6 @@ function BinsList(props) {
   }
 
   function cancelModal() {
-    setSeeRoute(false);
     setSeeMap(false);
     setModalAndBackdropFor(-1);
     setSeeRenamingModalAndBackdrop(-1);
@@ -100,15 +102,13 @@ function BinsList(props) {
         foofunctionSeeModalAndBackdrop={functionSeeModalAndBackdrop}
         foofunctionSeeRenamingModalAndBackdrop={functionSeeRenamingModalAndBackdrop}
         foocancelModal={cancelModal}
-        foofunctionSeeRoute={functionSeeRoute}
-        foofunctionDontSeeRoute={functionDontSeeRoute}
       />
     );
   });
 
   return (
     <div>
-      {SeeMap && <MapModal AllData={MapData} RoutingData={RouteData} SeeRoute={SeeRoute} />}
+      {SeeMap && <MapModal points={MapData} route={SeeRoute} />}
       <div className="flex items-center justify-center m-5">
         <button
           className="m-1 inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

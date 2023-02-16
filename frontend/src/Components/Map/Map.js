@@ -1,14 +1,12 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {MapContainer, TileLayer, Marker, Popup} from "react-leaflet";
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
-import { IoIosTrash } from "react-icons/io";
 import "./Map.css";
-import { popupHead } from "./popupStyles";
-import { useState, useRef } from "react";
-import { useMapEvents } from "react-leaflet";
 import Routing from "./Routing.js";
+import {IoIosTrash} from "react-icons/all";
+import {popupHead} from "./popupStyles";
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -17,44 +15,26 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-/*  *******************  */
-function LocationMarker() {
-  const [position, setPosition] = useState(null);
-  const map = useMapEvents({
-    click() {
-      map.locate();
-    },
-    locationfound(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    },
+function Map({ points, route }) {
+  if (points.length === 0) {
+    return <p>No map points!</p>;
+  }
+
+  let [centreLat, centreLong] = [0, 0];
+  points.forEach((point) => {
+    centreLat += point.latitude;
+    centreLong += point.longitude;
   });
+  centreLat /= points.length;
+  centreLong /= points.length;
 
-  return position === null ? null : (
-    <Marker position={position}>
-      <Popup>You are here</Popup>
-    </Marker>
-  );
-}
-/*  *******************  */
-
-function Map(props) {
-  const mapRef = useRef(null);
-  const tot = props.AllData.reduce(
-    ([totalLat, totalLong], { config: { latitude, longitude } }) => {
-      return [totalLat + latitude, totalLong + longitude];
-    },
-    [0, 0]
-  );
-
-  const avgLat = tot[0] / props.AllData.length;
-  const avgLong = tot[1] / props.AllData.length;
+  const routeData = points.map((point) => [point.latitude, point.longitude]);
+  routeData.push(routeData[0]);
 
   return (
     <MapContainer
-      ref={mapRef}
       className="z-30 w-full h-full p-10"
-      center={[avgLat, avgLong]}
+      center={[centreLat, centreLong]}
       zoom={13}
       scrollWheelZoom={false}
     >
@@ -62,23 +42,19 @@ function Map(props) {
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {props.AllData.map((popup) => {
+      {points.map((point) => {
         return (
-          <Marker position={[popup.config.latitude, popup.config.longitude]} key={popup.id}>
+          <Marker position={[point.latitude, point.longitude]}>
             <Popup>
-              <IoIosTrash className="z-30 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+              {point.isBin && <IoIosTrash className="z-30 mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />}
               <div className="m-2" style={popupHead}>
-                {popup.config.name}
-                <br />
-                {Math.floor((100 * popup.config.empty_distance_reading) / popup.config.full_distance_reading) +
-                  "% Full"}
+                {point.text}
               </div>
             </Popup>
-            {props.SeeRoute && <LocationMarker map={mapRef} />}
           </Marker>
         );
       })}
-      {props.RoutingData.length > 0 && <Routing RoutingData={props.RoutingData} />}
+      {route && <Routing RoutingData={routeData} />}
     </MapContainer>
   );
 }

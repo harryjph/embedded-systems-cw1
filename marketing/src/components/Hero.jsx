@@ -1,5 +1,5 @@
 import styles from "../style";
-import { robot } from "../assets";
+import { bin } from "../assets";
 
 const Hero = () => {
   return (
@@ -29,7 +29,7 @@ const Hero = () => {
         className={`flex-1 flex ${styles.flexCenter} md:my-0 my-10 relative`}
       >
         <img
-          src={robot}
+          src={bin}
           alt="billing"
           className="w-[100%] h-[100%] relative z-[5]"
         />

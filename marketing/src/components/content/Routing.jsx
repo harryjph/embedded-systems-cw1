@@ -1,4 +1,4 @@
-import { before, after } from "../../assets/index.js";
+import { map_routed, map_unrouted } from "../../assets/index.js";
 import styles, { layout } from "../../style.js";
 import { useState } from "react";
 
@@ -26,7 +26,7 @@ const Routing = () => {
         onMouseOut={() => setOpen(false)}
       >
         <div className="company-block">
-          <img src={open ? after : before} />
+          <img src={open ? map_routed : map_unrouted} />
         </div>
       </div>
     </section>

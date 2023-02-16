@@ -1,6 +1,5 @@
 import styles from "../../style.js";
 import FeedbackCard from "../FeedbackCard.jsx";
-import {people01, people02, people03} from "../../assets/index.js";
 
 const feedback = [
   {
@@ -9,7 +8,6 @@ const feedback = [
       "This product would help make tracking biowaste much more cost friendly on the NHS.",
     name: "Herman Ali-Gallagher",
     title: "NHS Hospital Administrator",
-    img: people01,
   },
   {
     id: "feedback-2",
@@ -17,7 +15,6 @@ const feedback = [
       "Adding smart-bins into our infrastructure would be a valuable tool in identifying areas of budget waste and furthering our efforts to reduce fuel costs.",
     name: "Steve Necchi-Phillips",
     title: "City Councilman",
-    img: people02,
   },
   {
     id: "feedback-3",
@@ -25,7 +22,6 @@ const feedback = [
       "I believe in an innovative IoT product that also has a focus on security is a way for the future.",
     name: "Kenn Stott",
     title: "CEO Entrepreneur",
-    img: people03,
   },
 ];
 

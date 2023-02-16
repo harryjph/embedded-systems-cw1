@@ -44,6 +44,7 @@ function Map({ points, route }) {
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {route && <Routing RoutingData={routeData} />}
       {points.map((point, i) => {
         return (
           <Marker position={[point.latitude, point.longitude]} key={i}>
@@ -56,7 +57,6 @@ function Map({ points, route }) {
           </Marker>
         );
       })}
-      {route && <Routing RoutingData={routeData} />}
     </MapContainer>
   );
 }
